@@ -7,7 +7,8 @@ plugins {
 android {
     namespace = "com.inclusivedating.app.inclusive_dating"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // ndkVersion is not needed for standard Flutter app and avoids downloading 1.5GB NDK
+
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
