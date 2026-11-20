@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:inclusive_dating/core/theme/app_colors.dart';
 
 /// Clean summary card with direct "Edit" trigger for Review Screen
 class SectionReviewCard extends StatelessWidget {

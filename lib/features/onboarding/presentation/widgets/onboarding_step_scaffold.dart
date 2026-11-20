@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/onboarding_progress_bar.dart';
-import '../../../../core/widgets/primary_button.dart';
+import 'package:inclusive_dating/core/theme/app_colors.dart';
+import 'package:inclusive_dating/core/widgets/onboarding_progress_bar.dart';
+import 'package:inclusive_dating/core/widgets/primary_button.dart';
 
 /// Standard step wrapper ensuring consistent layout, spacing, and animations
 class OnboardingStepScaffold extends StatelessWidget {

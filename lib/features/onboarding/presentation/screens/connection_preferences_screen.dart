@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/onboarding_options.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/selection_pill_tile.dart';
+import 'package:inclusive_dating/core/constants/onboarding_options.dart';
+import 'package:inclusive_dating/core/theme/app_colors.dart';
+import 'package:inclusive_dating/core/widgets/selection_pill_tile.dart';
 import '../providers/onboarding_provider.dart';
 import '../widgets/onboarding_step_scaffold.dart';
 

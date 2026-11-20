@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/app_constants.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/primary_button.dart';
-import '../../../../core/widgets/secondary_button.dart';
+import 'package:inclusive_dating/core/constants/app_constants.dart';
+import 'package:inclusive_dating/core/theme/app_colors.dart';
+import 'package:inclusive_dating/core/widgets/main_navigation_screen.dart';
+import 'package:inclusive_dating/core/widgets/primary_button.dart';
+import 'package:inclusive_dating/core/widgets/secondary_button.dart';
 import '../providers/onboarding_provider.dart';
 
 /// Screen 1: Welcome & Introduction
@@ -20,128 +21,152 @@ class WelcomeScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-          child: Column(
-            children: [
-              const Spacer(flex: 1),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+            child: Column(
+              children: [
+                const SizedBox(height: 8),
 
-              // Brand Emblem
-              Container(
-                width: 90,
-                height: 90,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.accent],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.28),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
+                // Brand Hero Header with Date² logo & gradient
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.gradientStart, AppColors.gradientEnd],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
-                  ],
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.favorite_rounded,
-                    color: Colors.white,
-                    size: 44,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.28),
+                        blurRadius: 18,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/logo.png',
+                        height: 48,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        AppConstants.appName,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 28),
+                const SizedBox(height: 14),
 
-              // App Name & Tagline
-              Text(
-                AppConstants.appName,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.displayMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                // Tagline
+                Text(
+                  AppConstants.appTagline,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: isDark ? AppColors.accent : AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                    fontStyle: FontStyle.italic,
+                    letterSpacing: -0.2,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                AppConstants.appTagline,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.4,
+
+                const SizedBox(height: 10),
+
+                // Welcome Introduction Text
+                Text(
+                  AppConstants.welcomeSubtitle,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondary,
+                    height: 1.45,
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 18),
+                const SizedBox(height: 14),
 
-              // Welcome Introduction Text
-              Text(
-                AppConstants.welcomeSubtitle,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondary,
-                  height: 1.55,
+                // Feature Value Pillars
+                _buildPillarItem(
+                  context,
+                  icon: Icons.diversity_1_rounded,
+                  title: 'Authentic Inclusivity',
+                  description:
+                      'Choose how you express your gender, pronouns, and orientation with full affirmation.',
                 ),
-              ),
+                const SizedBox(height: 10),
+                _buildPillarItem(
+                  context,
+                  icon: Icons.shield_outlined,
+                  title: 'Safety & Respect First',
+                  description:
+                      'Clear boundaries, thoughtful standards, and a community built on empathy.',
+                ),
+                const SizedBox(height: 10),
+                _buildPillarItem(
+                  context,
+                  icon: Icons.handshake_outlined,
+                  title: 'Transparent Intentions',
+                  description:
+                      'Match for romantic relationships, casual dating, or platonic companionship.',
+                ),
 
-              const Spacer(flex: 1),
+                const SizedBox(height: 18),
 
-              // Feature Value Pillars
-              _buildPillarItem(
-                context,
-                icon: Icons.diversity_1_rounded,
-                title: 'Authentic Inclusivity',
-                description:
-                    'Choose how you express your gender, pronouns, and orientation with full affirmation.',
-              ),
-              const SizedBox(height: 14),
-              _buildPillarItem(
-                context,
-                icon: Icons.shield_outlined,
-                title: 'Safety & Respect First',
-                description:
-                    'Clear boundaries, thoughtful standards, and a community built on empathy.',
-              ),
-              const SizedBox(height: 14),
-              _buildPillarItem(
-                context,
-                icon: Icons.handshake_outlined,
-                title: 'Transparent Intentions',
-                description:
-                    'Match for romantic relationships, casual dating, or platonic companionship.',
-              ),
+                // Action Buttons
+                PrimaryButton(
+                  label: 'Get Started',
+                  icon: Icons.arrow_forward_rounded,
+                  onPressed: () => notifier.startOnboarding(),
+                ),
 
-              const Spacer(flex: 2),
+                const SizedBox(height: 6),
 
-              // Action Buttons
-              PrimaryButton(
-                label: 'Get Started',
-                icon: Icons.arrow_forward_rounded,
-                onPressed: () => notifier.startOnboarding(),
-              ),
-
-              if (state.hasSavedDraft && state.profile.firstName.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                SecondaryButton(
-                  label: 'Resume Setup (${state.profile.firstName})',
-                  icon: Icons.refresh_rounded,
+                TextButton(
                   onPressed: () {
-                    // Jump to last saved step or review
-                    final step = ref.read(onboardingLocalStorageProvider).loadCurrentStep();
-                    notifier.goToStep(step > 0 ? step : 1);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MainNavigationScreen(initialIndex: 0),
+                      ),
+                    );
                   },
+                  child: Text(
+                    'Explore App & All 6 Modules ➔',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: isDark ? AppColors.accent : AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
-              ],
 
-              const SizedBox(height: 12),
-            ],
+                if (state.hasSavedDraft && state.profile.firstName.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SecondaryButton(
+                    label: 'Resume Setup (${state.profile.firstName})',
+                    icon: Icons.refresh_rounded,
+                    onPressed: () {
+                      // Jump to last saved step or review
+                      final step = ref.read(onboardingLocalStorageProvider).loadCurrentStep();
+                      notifier.goToStep(step > 0 ? step : 1);
+                    },
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         ),
       ),

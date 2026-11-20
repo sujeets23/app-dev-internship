@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../core/constants/app_constants.dart';
+import 'package:inclusive_dating/core/constants/app_constants.dart';
 import '../domain/models/onboarding_profile.dart';
 
 /// Handles saving and restoring onboarding progress from local storage

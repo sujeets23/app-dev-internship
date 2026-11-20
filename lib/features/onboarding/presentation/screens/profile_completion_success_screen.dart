@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/primary_button.dart';
-import '../../../../core/widgets/secondary_button.dart';
+import 'package:inclusive_dating/core/theme/app_colors.dart';
+import 'package:inclusive_dating/core/widgets/main_navigation_screen.dart';
+import 'package:inclusive_dating/core/widgets/primary_button.dart';
+import 'package:inclusive_dating/core/widgets/secondary_button.dart';
 import '../providers/onboarding_provider.dart';
 
 /// Success Screen shown upon profile completion
@@ -153,14 +154,11 @@ class ProfileCompletionSuccessScreen extends ConsumerWidget {
                 label: 'Begin Discovering Connections',
                 icon: Icons.explore_rounded,
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Onboarding completed! (Discovery module is planned for Phase 02)',
-                      ),
-                      backgroundColor: AppColors.primary,
-                      duration: Duration(seconds: 3),
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (_) => const MainNavigationScreen(initialIndex: 0),
                     ),
+                    (route) => false,
                   );
                 },
               ),

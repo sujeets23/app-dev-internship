@@ -1,7 +1,7 @@
 /// Core application constants
 class AppConstants {
-  static const String appName = 'Kindred';
-  static const String appTagline = 'Inclusive Dating & Safe Companionship';
+  static const String appName = 'Date²';
+  static const String appTagline = 'Date Smart • Connect Meaningfully';
   static const String welcomeSubtitle =
       'A respectful, affirming space designed to help you find meaningful romantic '
       'connections and safe companionship on your own terms.';
