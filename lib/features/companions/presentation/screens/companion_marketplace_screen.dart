@@ -5,6 +5,7 @@ import 'package:inclusive_dating/core/theme/app_typography.dart';
 import '../../domain/models/companion_model.dart';
 import '../providers/companion_provider.dart';
 import 'companion_detail_screen.dart';
+import 'package:inclusive_dating/features/verification/presentation/screens/companion_kyc_screen.dart';
 
 class CompanionMarketplaceScreen extends ConsumerStatefulWidget {
   const CompanionMarketplaceScreen({super.key});
@@ -63,6 +64,16 @@ class _CompanionMarketplaceScreenState
           ),
         ),
         actions: [
+          IconButton(
+            icon: Icon(Icons.assignment_ind_outlined, color: isDark ? AppColors.neonLime : AppColors.primary),
+            tooltip: 'Companion KYC Verification',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CompanionKycScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.tune, color: isDark ? AppColors.neonLime : AppColors.primary),
             tooltip: 'Filter Options',

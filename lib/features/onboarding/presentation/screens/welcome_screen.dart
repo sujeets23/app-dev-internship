@@ -5,6 +5,7 @@ import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/widgets/main_navigation_screen.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
 import 'package:inclusive_dating/core/widgets/secondary_button.dart';
+import 'package:inclusive_dating/features/auth/presentation/screens/login_screen.dart';
 import '../providers/onboarding_provider.dart';
 
 /// Screen 1: Welcome & Introduction
@@ -130,6 +131,37 @@ class WelcomeScreen extends ConsumerWidget {
                   label: 'Get Started',
                   icon: Icons.arrow_forward_rounded,
                   onPressed: () => notifier.startOnboarding(),
+                ),
+
+                const SizedBox(height: 10),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Already have an account? ',
+                      style: TextStyle(
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        );
+                      },
+                      child: Text(
+                        'Log In',
+                        style: TextStyle(
+                          color: isDark ? AppColors.accent : AppColors.primary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 6),

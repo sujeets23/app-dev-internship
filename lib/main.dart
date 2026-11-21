@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
+import 'features/auth/presentation/screens/splash_screen.dart';
 import 'features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'features/onboarding/presentation/screens/onboarding_flow_screen.dart';
 
@@ -33,7 +34,7 @@ class KindredApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      home: const OnboardingFlowScreen(),
+      home: const SplashScreen(),
     );
   }
 }

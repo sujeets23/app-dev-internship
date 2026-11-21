@@ -6,6 +6,7 @@ import 'package:inclusive_dating/core/widgets/secondary_button.dart';
 import '../../domain/models/biometric_verification_model.dart';
 import '../providers/biometric_verification_provider.dart';
 import 'verification_result_screen.dart';
+import 'companion_kyc_screen.dart';
 
 class BiometricVerificationScreen extends ConsumerStatefulWidget {
   const BiometricVerificationScreen({super.key});
@@ -72,6 +73,24 @@ class _BiometricVerificationScreenState
             fontSize: 18,
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CompanionKycScreen()),
+              );
+            },
+            child: const Text(
+              'Companion KYC',
+              style: TextStyle(
+                color: AppColors.accent,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(

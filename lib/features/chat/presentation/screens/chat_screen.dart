@@ -4,7 +4,8 @@ import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import '../../domain/models/chat_message.dart';
 import '../providers/chat_provider.dart';
-import 'video_call_screen.dart';
+import 'incoming_call_screen.dart';
+import 'outgoing_call_screen.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -117,13 +118,65 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             icon: const Icon(Icons.videocam, color: AppColors.neonLime),
             tooltip: 'Mutual Consent Video Call',
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => VideoCallScreen(
-                    matchId: widget.conversationId,
-                    matchName: widget.participantName,
-                    matchAvatar: widget.participantAvatar,
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: AppColors.surfaceDark,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (ctx) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        leading: const CircleAvatar(
+                          backgroundColor: AppColors.neonLime,
+                          child: Icon(Icons.call_made_rounded, color: Colors.black),
+                        ),
+                        title: Text('Call ${widget.participantName}',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: const Text('Start outgoing WebRTC call with mutual consent',
+                            style: TextStyle(color: Colors.white60, fontSize: 12)),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => OutgoingCallScreen(
+                                channelId: widget.conversationId,
+                                participantName: widget.participantName,
+                                participantAvatar: widget.participantAvatar,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(color: Colors.white12),
+                      ListTile(
+                        leading: const CircleAvatar(
+                          backgroundColor: AppColors.softPink,
+                          child: Icon(Icons.call_received_rounded, color: Colors.black),
+                        ),
+                        title: Text('Simulate Incoming Call from ${widget.participantName}',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: const Text('Experience incoming ringing and accept screen',
+                            style: TextStyle(color: Colors.white60, fontSize: 12)),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => IncomingCallScreen(
+                                channelId: widget.conversationId,
+                                callerName: widget.participantName,
+                                callerAvatar: widget.participantAvatar,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
               );
