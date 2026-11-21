@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
+import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
 import 'package:inclusive_dating/features/onboarding/presentation/screens/onboarding_flow_screen.dart';
 import 'login_screen.dart';
 
@@ -81,6 +82,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Brand Header with Date² Logo
+                const Center(
+                  child: Date2LogoWidget(
+                    height: 44,
+                    showContainer: true,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
                 // Editorial Title
                 Text(
                   'Join Date²',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
+import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
 import 'package:inclusive_dating/core/widgets/main_navigation_screen.dart';
 import 'package:inclusive_dating/features/onboarding/presentation/screens/welcome_screen.dart';
 
@@ -45,8 +46,8 @@ class _SplashScreenState extends State<SplashScreen>
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             transitionDuration: const Duration(milliseconds: 600),
-            pageBuilder: (_, __, ___) => const WelcomeScreen(),
-            transitionsBuilder: (_, animation, __, child) =>
+            pageBuilder: (context, anim1, anim2) => const WelcomeScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) =>
                 FadeTransition(opacity: animation, child: child),
           ),
         );
@@ -105,48 +106,30 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Logo
-                        Image.asset(
-                          'assets/images/date2_logo.png',
+                        // Centered signature brand hero container with Date² logo
+                        const Date2LogoWidget(
                           height: 72,
-                          errorBuilder: (_, __, ___) => Image.asset(
-                            'assets/images/logo.png',
-                            height: 72,
-                            errorBuilder: (_, __, ___) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: AppColors.butterYellow,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Text(
-                                'Date²',
-                                style: TextStyle(
-                                  color: AppColors.charcoal,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 36,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                            ),
-                          ),
+                          showContainer: true,
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 24),
                         Text(
                           'Date Smart • Connect Meaningfully',
                           style: AppTypography.headlineSmall.copyWith(
                             color: AppColors.charcoal,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 0.4,
+                            fontStyle: FontStyle.italic,
+                            letterSpacing: 0.3,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
                         Text(
                           'Inclusive Romance & Verified Companionship',
                           style: TextStyle(
-                            color: AppColors.charcoal.withValues(alpha: 0.6),
-                            fontSize: 12,
-                            letterSpacing: 0.8,
+                            fontFamily: 'Helvetica Now Display',
+                            fontFamilyFallback: AppTypography.sansFallbacks,
+                            color: AppColors.charcoal.withValues(alpha: 0.65),
+                            fontSize: 13,
+                            letterSpacing: 0.6,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

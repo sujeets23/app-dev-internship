@@ -3,9 +3,19 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 /// Artistic and editorial typography pairing:
-/// - Editorial Serif Headlines (Playfair Display / DM Serif Display)
-/// - Modern Clean Body Typography (Inter / Helvetica Now)
+/// - Editorial Headlines (Helvetica Now Display / Playfair Display)
+/// - Modern Clean Body Typography (Helvetica Now Display / Inter)
+/// - Italic styling for brand accent and editorial warmth
 class AppTypography {
+  static const List<String> sansFallbacks = [
+    'Helvetica Now Display',
+    'Helvetica Neue',
+    'Helvetica',
+    'Inter',
+    'Arial',
+    'sans-serif',
+  ];
+
   static const List<String> serifFallbacks = [
     'Playfair Display',
     'DM Serif Display',
@@ -14,55 +24,35 @@ class AppTypography {
     'serif',
   ];
 
-  static const List<String> sansFallbacks = [
-    'Inter',
-    'Helvetica Now Display',
-    'Helvetica Neue',
-    'Helvetica',
-    'Arial',
-    'sans-serif',
-  ];
-
   static TextTheme textTheme({bool isDark = false}) {
     final Color primaryColor =
         isDark ? AppColors.textPrimaryDark : AppColors.charcoal;
     final Color secondaryColor =
         isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
 
-    // Serif style for editorial headings
-    TextStyle serifStyle({
+    // Editorial headline typography (Helvetica Now Display / Serif fallback)
+    TextStyle headlineStyle({
       required double fontSize,
       FontWeight fontWeight = FontWeight.w700,
-      FontStyle fontStyle = FontStyle.normal,
+      FontStyle fontStyle = FontStyle.italic,
       double? height,
       Color? color,
       double? letterSpacing,
     }) {
-      try {
-        return GoogleFonts.playfairDisplay(
-          fontSize: fontSize,
-          fontWeight: fontWeight,
-          fontStyle: fontStyle,
-          height: height,
-          color: color ?? primaryColor,
-          letterSpacing: letterSpacing,
-        );
-      } catch (_) {
-        return TextStyle(
-          fontFamily: 'Playfair Display',
-          fontFamilyFallback: serifFallbacks,
-          fontSize: fontSize,
-          fontWeight: fontWeight,
-          fontStyle: fontStyle,
-          height: height,
-          color: color ?? primaryColor,
-          letterSpacing: letterSpacing,
-        );
-      }
+      return TextStyle(
+        fontFamily: 'Helvetica Now Display',
+        fontFamilyFallback: sansFallbacks,
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        fontStyle: fontStyle,
+        height: height,
+        color: color ?? primaryColor,
+        letterSpacing: letterSpacing,
+      );
     }
 
-    // Modern clean sans-serif for body, buttons and labels
-    TextStyle sansStyle({
+    // Modern clean typography for body, buttons and labels
+    TextStyle bodySansStyle({
       required double fontSize,
       FontWeight fontWeight = FontWeight.normal,
       FontStyle fontStyle = FontStyle.normal,
@@ -94,22 +84,22 @@ class AppTypography {
     }
 
     return TextTheme(
-      // Display - Editorial Serif Headlines
-      displayLarge: serifStyle(
+      // Display - Bold Editorial Italic Headlines
+      displayLarge: headlineStyle(
         fontSize: 34,
         fontWeight: FontWeight.w800,
         fontStyle: FontStyle.italic,
         letterSpacing: -0.6,
         height: 1.15,
       ),
-      displayMedium: serifStyle(
+      displayMedium: headlineStyle(
         fontSize: 28,
         fontWeight: FontWeight.w700,
         fontStyle: FontStyle.italic,
         letterSpacing: -0.5,
         height: 1.2,
       ),
-      displaySmall: serifStyle(
+      displaySmall: headlineStyle(
         fontSize: 24,
         fontWeight: FontWeight.w700,
         fontStyle: FontStyle.italic,
@@ -117,20 +107,22 @@ class AppTypography {
         height: 1.25,
       ),
 
-      // Headline - Elegant Serif
-      headlineLarge: serifStyle(
+      // Headline - Distinctive & Expressive
+      headlineLarge: headlineStyle(
         fontSize: 22,
         fontWeight: FontWeight.w700,
+        fontStyle: FontStyle.italic,
         letterSpacing: -0.2,
         height: 1.25,
       ),
-      headlineMedium: serifStyle(
+      headlineMedium: headlineStyle(
         fontSize: 20,
         fontWeight: FontWeight.w700,
+        fontStyle: FontStyle.italic,
         letterSpacing: -0.1,
         height: 1.3,
       ),
-      headlineSmall: serifStyle(
+      headlineSmall: headlineStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,
         fontStyle: FontStyle.italic,
@@ -138,36 +130,36 @@ class AppTypography {
       ),
 
       // Title - Clean, legible neo-grotesque
-      titleLarge: sansStyle(
+      titleLarge: bodySansStyle(
         fontSize: 16,
         fontWeight: FontWeight.w700,
         height: 1.35,
       ),
-      titleMedium: sansStyle(
+      titleMedium: bodySansStyle(
         fontSize: 15,
         fontWeight: FontWeight.w600,
         height: 1.4,
       ),
-      titleSmall: sansStyle(
+      titleSmall: bodySansStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
         height: 1.4,
       ),
 
       // Body - Ultra legible clean sans
-      bodyLarge: sansStyle(
+      bodyLarge: bodySansStyle(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         height: 1.5,
         color: secondaryColor,
       ),
-      bodyMedium: sansStyle(
+      bodyMedium: bodySansStyle(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         height: 1.5,
         color: secondaryColor,
       ),
-      bodySmall: sansStyle(
+      bodySmall: bodySansStyle(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         height: 1.4,
@@ -175,17 +167,17 @@ class AppTypography {
       ),
 
       // Label - Dynamic button & badge typography
-      labelLarge: sansStyle(
+      labelLarge: bodySansStyle(
         fontSize: 15,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.2,
       ),
-      labelMedium: sansStyle(
+      labelMedium: bodySansStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.2,
       ),
-      labelSmall: sansStyle(
+      labelSmall: bodySansStyle(
         fontSize: 11,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.3,
@@ -209,4 +201,22 @@ class AppTypography {
   static TextStyle get labelLarge => textTheme().labelLarge!;
   static TextStyle get labelMedium => textTheme().labelMedium!;
   static TextStyle get labelSmall => textTheme().labelSmall!;
+
+  /// Signature brand wordmark typography
+  static TextStyle brandWordmark({
+    double fontSize = 28,
+    FontWeight fontWeight = FontWeight.w900,
+    FontStyle fontStyle = FontStyle.italic,
+    Color? color,
+  }) {
+    return TextStyle(
+      fontFamily: 'Helvetica Now Display',
+      fontFamilyFallback: sansFallbacks,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontStyle: fontStyle,
+      color: color ?? AppColors.primary,
+      letterSpacing: -0.5,
+    );
+  }
 }

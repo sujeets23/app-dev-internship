@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
-import 'package:inclusive_dating/core/constants/app_constants.dart';
+import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
 import 'package:inclusive_dating/features/verification/presentation/providers/biometric_verification_provider.dart';
 import 'package:inclusive_dating/features/verification/presentation/screens/biometric_verification_screen.dart';
 import 'package:inclusive_dating/features/companions/presentation/widgets/safety_hud_widget.dart';
@@ -11,7 +11,6 @@ import 'package:inclusive_dating/features/subscription/presentation/providers/su
 import 'package:inclusive_dating/features/subscription/presentation/screens/subscription_pricing_screen.dart';
 import 'package:inclusive_dating/features/subscription/domain/models/subscription_model.dart';
 import 'package:inclusive_dating/features/settings/presentation/screens/notifications_screen.dart';
-import 'package:inclusive_dating/features/chat/domain/models/chat_message.dart';
 import 'package:inclusive_dating/features/chat/presentation/screens/chat_screen.dart';
 import 'package:inclusive_dating/features/discovery/domain/models/discovery_profile.dart';
 import 'package:inclusive_dating/features/discovery/presentation/providers/discovery_provider.dart';
@@ -119,34 +118,9 @@ class HomeDashboardScreen extends ConsumerWidget {
       child: Row(
         children: [
           // Application Logo & Name
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                'assets/images/date2_logo.png',
-                height: 32,
-                errorBuilder: (_, __, ___) => Image.asset(
-                  'assets/images/logo.png',
-                  height: 32,
-                  errorBuilder: (_, __, ___) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.butterYellow,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Date²',
-                      style: TextStyle(
-                        color: AppColors.charcoal,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 20,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          const Date2LogoWidget(
+            height: 32,
+            showContainer: false,
           ),
 
           const SizedBox(width: 14),

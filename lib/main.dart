@@ -5,7 +5,6 @@ import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/screens/splash_screen.dart';
 import 'features/onboarding/presentation/providers/onboarding_provider.dart';
-import 'features/onboarding/presentation/screens/onboarding_flow_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

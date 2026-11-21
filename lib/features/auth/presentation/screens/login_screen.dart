@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
+import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
 import 'package:inclusive_dating/core/widgets/main_navigation_screen.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
@@ -106,27 +107,10 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Brand Header
-                Row(
-                  children: [
-                    Image.asset(
-                      'assets/images/date2_logo.png',
-                      height: 32,
-                      errorBuilder: (_, __, ___) => Image.asset(
-                        'assets/images/logo.png',
-                        height: 32,
-                        errorBuilder: (_, __, ___) => const Text(
-                          'Date²',
-                          style: TextStyle(
-                            color: AppColors.charcoal,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 22,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                // Brand Header with Date² Logo
+                const Date2LogoWidget(
+                  height: 44,
+                  showContainer: true,
                 ),
                 const SizedBox(height: 24),
 

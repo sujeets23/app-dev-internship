@@ -1,43 +1,65 @@
 import 'package:flutter/material.dart';
 
 /// Distinctive, modern palette for Date²
-/// Inspired by the user reference design:
-/// - Lavender backgrounds (#E5D5FF, #DCCBFF)
-/// - Blush pink (#F28DB7, #F7A5C7, #FFCCDF)
-/// - Peach (#F8C0AE) & Coral (#ED907B)
-/// - Butter yellow (#FFE95C) & Neon lime (#E2FF85)
-/// - Charcoal (#17151C) & Soft white (#FFF9F5)
+/// Exact specification from brand guidelines and user PDF:
+/// - Electric Violet (#5000F4)
+/// - Soft Blush Pink (#FFCCDF)
+/// - Neon Lime / Yellow (#E2FF85)
+/// - Deep Violet (#4820C9)
+/// - Lavender (#E8D9FF, #E5D5FF)
+/// - Blush Pink (#F28DB7)
+/// - Peach (#F8C5B2) & Coral (#ED907B)
+/// - Cream / Soft White (#FFF9F5)
+/// - Dark Charcoal (#211B29, #17151C)
+/// - Secondary Text (#756D7D, #5A526B)
 class AppColors {
-  // Brand Identity Primary & Accents
-  static const Color softLavender = Color(0xFFE5D5FF);
-  static const Color lightLavender = Color(0xFFDCCBFF);
-  static const Color blushPink = Color(0xFFF28DB7);
-  static const Color softPinkNew = Color(0xFFF7A5C7);
-  static const Color peach = Color(0xFFF8C0AE);
-  static const Color coral = Color(0xFFED907B);
-  static const Color butterYellow = Color(0xFFFFE95C);
-  static const Color charcoal = Color(0xFF17151C);
-  static const Color softWhite = Color(0xFFFFF9F5);
-
-  // Brand Triad
-  static const Color primary = Color(0xFF5000F4); // Electric Violet
+  // Brand Triad from PDF
+  static const Color primary = Color(0xFF5000F4); // Electric Violet (#5000F4)
+  static const Color primaryViolet = Color(0xFF5000F4);
+  static const Color deepViolet = Color(0xFF4820C9);
   static const Color primaryLight = Color(0xFFECE4FE);
   static const Color primaryDark = Color(0xFF3800B0);
   static const Color primarySubtle = Color(0xFFF7F3FF);
 
-  static const Color secondary = Color(0xFFFFCCDF); // Soft Pastel Pink
+  static const Color secondary = Color(0xFFFFCCDF); // Soft Pastel Pink (#FFCCDF)
+  static const Color softPink = secondary;
   static const Color secondaryLight = Color(0xFFFFF0F6);
   static const Color secondaryDark = Color(0xFFD98CA8);
+  static const Color blushPink = Color(0xFFF28DB7);
+  static const Color softPinkNew = Color(0xFFF7A5C7);
 
-  static const Color accent = Color(0xFFE2FF85); // Neon Lime Green
+  static const Color accent = Color(0xFFE2FF85); // Neon Lime Green (#E2FF85)
+  static const Color neonLime = accent;
   static const Color accentLight = Color(0xFFF6FFD6);
   static const Color accentDark = Color(0xFF98BD1C);
+  static const Color butterYellow = Color(0xFFE9FF83);
 
-  // Hero & Card Gradients
-  static const Color gradientStart = Color(0xFFE5D5FF);
-  static const Color gradientEnd = Color(0xFFF28DB7);
+  // Soft Backgrounds & Pastel Accents
+  static const Color lavender = Color(0xFFE8D9FF);
+  static const Color softLavender = Color(0xFFE5D5FF);
+  static const Color lightLavender = Color(0xFFF5F0FF);
+  static const Color peach = Color(0xFFF8C5B2);
+  static const Color coral = Color(0xFFED907B);
+  static const Color cream = Color(0xFFFFF9F5);
+  static const Color softWhite = cream;
+
+  // Dark & Neutral Tones
+  static const Color darkCharcoal = Color(0xFF211B29);
+  static const Color charcoal = Color(0xFF17151C);
+  static const Color secondaryText = Color(0xFF756D7D);
+
+  // Signature Hero & Card Gradients
+  static const Color gradientStart = Color(0xFF5000F4);
+  static const Color gradientEnd = Color(0xFFFFCCDF);
   static const Color gradientPeachStart = Color(0xFFF8C0AE);
   static const Color gradientPeachEnd = Color(0xFFFFE95C);
+
+  /// Brand Hero Gradient from Violet (#5000F4) to Soft Pink (#FFCCDF)
+  static const LinearGradient brandHeroGradient = LinearGradient(
+    colors: [primary, secondary],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
 
   static const LinearGradient lavenderBlushGradient = LinearGradient(
     colors: [softLavender, blushPink],
@@ -58,7 +80,7 @@ class AppColors {
   );
 
   static const LinearGradient violetPinkGradient = LinearGradient(
-    colors: [primary, blushPink],
+    colors: [primary, secondary],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -92,8 +114,6 @@ class AppColors {
 
   // Convenient Aliases
   static const Color electricViolet = primary;
-  static const Color softPink = secondary;
-  static const Color neonLime = accent;
   static const Color cardBackgroundDark = surfaceElevatedDark;
   static const Color textMutedDark = textSecondaryDark;
 
