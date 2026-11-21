@@ -51,7 +51,12 @@ class HomeDashboardScreen extends ConsumerWidget {
                 // Persistent Safety Escrow HUD (shows if active companion booking exists)
                 const SafetyHudWidget(),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
+
+                // Welcome Greeting Section
+                _buildWelcomeGreetingSection(context),
+
+                const SizedBox(height: 16),
 
                 // SECTION 2: FEATURED DISCOVERY SECTION
                 _buildFeaturedDiscoverySection(
@@ -105,59 +110,27 @@ class HomeDashboardScreen extends ConsumerWidget {
   // ---------------------------------------------------------------------------
   Widget _buildTopHeader(BuildContext context, {required Function(int) onTabSelected}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.softLavender.withValues(alpha: 0.35),
+        color: AppColors.softLavender.withValues(alpha: 0.25),
         border: Border(
           bottom: BorderSide(
-            color: AppColors.softLavender.withValues(alpha: 0.8),
+            color: AppColors.softLavender.withValues(alpha: 0.6),
             width: 1,
           ),
         ),
       ),
       child: Row(
         children: [
-          // Application Logo & Name
+          // Date² Logo on the left - prominently visible, never cropped
           const Date2LogoWidget(
-            height: 32,
+            height: 38,
             showContainer: false,
           ),
 
-          const SizedBox(width: 14),
+          const Spacer(),
 
-          // Personalized Greeting
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Good evening, Alex ✨',
-                  style: AppTypography.headlineSmall.copyWith(
-                    color: AppColors.charcoal,
-                    fontWeight: FontWeight.bold,
-                    fontStyle: FontStyle.italic,
-                    fontSize: 16,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Find your meaningful vibe today',
-                  style: TextStyle(
-                    color: AppColors.charcoal.withValues(alpha: 0.7),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-
-          // Notification Icon with Badge
+          // Notification Icon with Badge on the right
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -175,8 +148,8 @@ class HomeDashboardScreen extends ConsumerWidget {
                 top: 8,
                 right: 8,
                 child: Container(
-                  width: 10,
-                  height: 10,
+                  width: 9,
+                  height: 9,
                   decoration: const BoxDecoration(
                     color: AppColors.blushPink,
                     shape: BoxShape.circle,
@@ -186,16 +159,16 @@ class HomeDashboardScreen extends ConsumerWidget {
             ],
           ),
 
+          const SizedBox(width: 8),
+
           // User Profile Thumbnail
           GestureDetector(
             onTap: () => onTabSelected(4), // Navigate to Profile
             child: Container(
-              padding: const EdgeInsets.all(2.5),
+              padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [AppColors.blushPink, AppColors.butterYellow],
-                ),
+                border: Border.all(color: AppColors.primary, width: 2),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.blushPink.withValues(alpha: 0.3),
@@ -205,11 +178,50 @@ class HomeDashboardScreen extends ConsumerWidget {
                 ],
               ),
               child: const CircleAvatar(
-                radius: 18,
+                radius: 17,
                 backgroundImage: NetworkImage(
                   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // WELCOME GREETING SECTION
+  // ---------------------------------------------------------------------------
+  Widget _buildWelcomeGreetingSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Good evening, Alex',
+                style: AppTypography.displayMedium.copyWith(
+                  color: AppColors.charcoal,
+                  fontWeight: FontWeight.w800,
+                  fontStyle: FontStyle.italic,
+                  fontSize: 24,
+                  letterSpacing: -0.4,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Text('✨', style: TextStyle(fontSize: 20)),
+            ],
+          ),
+          const SizedBox(height: 3),
+          const Text(
+            'Ready to find your meaningful vibe and connections today?',
+            style: TextStyle(
+              color: AppColors.secondaryText,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

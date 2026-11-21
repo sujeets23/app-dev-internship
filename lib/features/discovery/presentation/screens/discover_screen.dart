@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
+import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
 import '../../domain/models/discovery_profile.dart';
 import '../providers/discovery_provider.dart';
 import '../widgets/match_celebration_dialog.dart';
@@ -51,17 +52,9 @@ class DiscoverScreen extends ConsumerWidget {
         elevation: 0,
         title: Row(
           children: [
-            Image.asset(
-              'assets/images/logo.png',
-              height: 28,
-              errorBuilder: (_, __, ___) => const Text(
-                'Date²',
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 22,
-                ),
-              ),
+            const Date2LogoWidget(
+              height: 30,
+              showContainer: false,
             ),
             const SizedBox(width: 8),
             Container(

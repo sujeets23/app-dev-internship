@@ -22,7 +22,10 @@ class OnboardingFlowScreen extends ConsumerWidget {
     Widget currentScreen;
     switch (state.currentStep) {
       case 0:
-        currentScreen = const WelcomeScreen(key: ValueKey('step_0_welcome'));
+        currentScreen = const WelcomeScreen(
+          key: ValueKey('step_0_welcome'),
+          isInsideFlow: true,
+        );
         break;
       case 1:
         currentScreen = const BasicProfileScreen(key: ValueKey('step_1_basic'));

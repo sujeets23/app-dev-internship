@@ -124,59 +124,63 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
-                builder: (ctx) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: AppColors.neonLime,
-                          child: Icon(Icons.call_made_rounded, color: Colors.black),
-                        ),
-                        title: Text('Call ${widget.participantName}',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        subtitle: const Text('Start outgoing WebRTC call with mutual consent',
-                            style: TextStyle(color: Colors.white60, fontSize: 12)),
-                        onTap: () {
-                          Navigator.pop(ctx);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => OutgoingCallScreen(
-                                channelId: widget.conversationId,
-                                participantName: widget.participantName,
-                                participantAvatar: widget.participantAvatar,
+                builder: (ctx) => Material(
+                  color: AppColors.surfaceDark,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: const CircleAvatar(
+                            backgroundColor: AppColors.neonLime,
+                            child: Icon(Icons.call_made_rounded, color: Colors.black),
+                          ),
+                          title: Text('Call ${widget.participantName}',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          subtitle: const Text('Start outgoing WebRTC call with mutual consent',
+                              style: TextStyle(color: Colors.white60, fontSize: 12)),
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => OutgoingCallScreen(
+                                  channelId: widget.conversationId,
+                                  participantName: widget.participantName,
+                                  participantAvatar: widget.participantAvatar,
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(color: Colors.white12),
-                      ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: AppColors.softPink,
-                          child: Icon(Icons.call_received_rounded, color: Colors.black),
+                            );
+                          },
                         ),
-                        title: Text('Simulate Incoming Call from ${widget.participantName}',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        subtitle: const Text('Experience incoming ringing and accept screen',
-                            style: TextStyle(color: Colors.white60, fontSize: 12)),
-                        onTap: () {
-                          Navigator.pop(ctx);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => IncomingCallScreen(
-                                channelId: widget.conversationId,
-                                callerName: widget.participantName,
-                                callerAvatar: widget.participantAvatar,
+                        const Divider(color: Colors.white12),
+                        ListTile(
+                          leading: const CircleAvatar(
+                            backgroundColor: AppColors.softPink,
+                            child: Icon(Icons.call_received_rounded, color: Colors.black),
+                          ),
+                          title: Text('Simulate Incoming Call from ${widget.participantName}',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          subtitle: const Text('Experience incoming ringing and accept screen',
+                              style: TextStyle(color: Colors.white60, fontSize: 12)),
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => IncomingCallScreen(
+                                  callerName: widget.participantName,
+                                  callerAvatar: widget.participantAvatar,
+                                  channelId: widget.conversationId,
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -504,41 +508,45 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.shield_outlined, color: AppColors.neonLime),
-            title: const Text('Safety & Verification Details', style: TextStyle(color: Colors.white)),
-            onTap: () {
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile verified with Live Biometric Assurance.')),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.block, color: Colors.orangeAccent),
-            title: const Text('Unmatch User', style: TextStyle(color: Colors.white)),
-            onTap: () {
-              Navigator.pop(ctx);
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.report_problem_outlined, color: Colors.redAccent),
-            title: const Text('Report Safety Concern', style: TextStyle(color: Colors.redAccent)),
-            onTap: () {
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Incident reported to Trust & Safety team.'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            },
-          ),
-        ],
+      builder: (ctx) => Material(
+        color: AppColors.surfaceDark,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.shield_outlined, color: AppColors.neonLime),
+              title: const Text('Safety & Verification Details', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Profile verified with Live Biometric Assurance.')),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.block, color: Colors.orangeAccent),
+              title: const Text('Unmatch User', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.report_problem_outlined, color: Colors.redAccent),
+              title: const Text('Report Safety Concern', style: TextStyle(color: Colors.redAccent)),
+              onTap: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Incident reported to Trust & Safety team.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

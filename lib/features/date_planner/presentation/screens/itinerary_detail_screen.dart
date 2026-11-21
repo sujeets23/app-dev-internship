@@ -364,55 +364,62 @@ class ItineraryDetailScreen extends ConsumerWidget {
                 style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
               ),
               const SizedBox(height: 16),
-              ListTile(
-                leading: const CircleAvatar(
-                  backgroundImage: NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400'),
-                ),
-                title: const Text('Aarya', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                subtitle: const Text('Active now', style: TextStyle(color: AppColors.neonLime, fontSize: 11)),
-                trailing: const Icon(Icons.send, color: AppColors.neonLime),
-                onTap: () {
-                  ref.read(conversationMessagesProvider('conv_1').notifier).sendMessage(
-                    'Hey Aarya, check out this date itinerary I generated for us on Date²! 🍷✨',
-                    itinerarySnippet: {
-                      'title': plan.title,
-                      'summary': plan.stops.map((s) => s.venueName).join(' ➔ '),
-                      'budget': plan.totalEstimatedCost.toInt().toString(),
-                    },
-                  );
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('🎉 Itinerary shared with Aarya!'),
-                      backgroundColor: AppColors.electricViolet,
+              Material(
+                color: Colors.transparent,
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const CircleAvatar(
+                        backgroundImage: NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400'),
+                      ),
+                      title: const Text('Aarya', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      subtitle: const Text('Active now', style: TextStyle(color: AppColors.neonLime, fontSize: 11)),
+                      trailing: const Icon(Icons.send, color: AppColors.neonLime),
+                      onTap: () {
+                        ref.read(conversationMessagesProvider('conv_1').notifier).sendMessage(
+                          'Hey Aarya, check out this date itinerary I generated for us on Date²! 🍷✨',
+                          itinerarySnippet: {
+                            'title': plan.title,
+                            'summary': plan.stops.map((s) => s.venueName).join(' ➔ '),
+                            'budget': plan.totalEstimatedCost.toInt().toString(),
+                          },
+                        );
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('🎉 Itinerary shared with Aarya!'),
+                            backgroundColor: AppColors.electricViolet,
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const CircleAvatar(
-                  backgroundImage: NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'),
-                ),
-                title: const Text('Zayan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                subtitle: const Text('Matched yesterday', style: TextStyle(color: AppColors.textMutedDark, fontSize: 11)),
-                trailing: const Icon(Icons.send, color: AppColors.neonLime),
-                onTap: () {
-                  ref.read(conversationMessagesProvider('conv_2').notifier).sendMessage(
-                    'Hey Zayan, generated this date plan for us!',
-                    itinerarySnippet: {
-                      'title': plan.title,
-                      'summary': plan.stops.map((s) => s.venueName).join(' ➔ '),
-                      'budget': plan.totalEstimatedCost.toInt().toString(),
-                    },
-                  );
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('🎉 Itinerary shared with Zayan!'),
-                      backgroundColor: AppColors.electricViolet,
+                    ListTile(
+                      leading: const CircleAvatar(
+                        backgroundImage: NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'),
+                      ),
+                      title: const Text('Zayan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      subtitle: const Text('Matched yesterday', style: TextStyle(color: AppColors.textMutedDark, fontSize: 11)),
+                      trailing: const Icon(Icons.send, color: AppColors.neonLime),
+                      onTap: () {
+                        ref.read(conversationMessagesProvider('conv_2').notifier).sendMessage(
+                          'Hey Zayan, generated this date plan for us!',
+                          itinerarySnippet: {
+                            'title': plan.title,
+                            'summary': plan.stops.map((s) => s.venueName).join(' ➔ '),
+                            'budget': plan.totalEstimatedCost.toInt().toString(),
+                          },
+                        );
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('🎉 Itinerary shared with Zayan!'),
+                            backgroundColor: AppColors.electricViolet,
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
+                  ],
+                ),
               ),
             ],
           ),

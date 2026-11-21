@@ -121,21 +121,28 @@ class AvatarPickerWidget extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: AppColors.primaryLight,
-                    child: Icon(Icons.photo_library_outlined, color: AppColors.primary),
+                Material(
+                  color: Colors.transparent,
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const CircleAvatar(
+                          backgroundColor: AppColors.primaryLight,
+                          child: Icon(Icons.photo_library_outlined, color: AppColors.primary),
+                        ),
+                        title: const Text('Choose from Gallery'),
+                        onTap: () => _pickImage(bottomSheetContext, ImageSource.gallery),
+                      ),
+                      ListTile(
+                        leading: const CircleAvatar(
+                          backgroundColor: AppColors.secondaryLight,
+                          child: Icon(Icons.camera_alt_outlined, color: AppColors.secondary),
+                        ),
+                        title: const Text('Take a Photo'),
+                        onTap: () => _pickImage(bottomSheetContext, ImageSource.camera),
+                      ),
+                    ],
                   ),
-                  title: const Text('Choose from Gallery'),
-                  onTap: () => _pickImage(bottomSheetContext, ImageSource.gallery),
-                ),
-                ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: AppColors.secondaryLight,
-                    child: Icon(Icons.camera_alt_outlined, color: AppColors.secondary),
-                  ),
-                  title: const Text('Take a Photo'),
-                  onTap: () => _pickImage(bottomSheetContext, ImageSource.camera),
                 ),
                 const SizedBox(height: 12),
                 const Divider(),

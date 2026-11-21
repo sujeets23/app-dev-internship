@@ -8,6 +8,8 @@ import 'package:inclusive_dating/core/theme/app_typography.dart';
 /// - High-contrast neon lime (#E2FF85), electric violet (#5000F4) or custom tint
 /// - High-res PNG asset with crisp vector typography fallback
 /// - Optional brand gradient hero container (#5000F4 -> #FFCCDF)
+typedef DateLogo = Date2LogoWidget;
+
 class Date2LogoWidget extends StatelessWidget {
   final double height;
   final Color? color;

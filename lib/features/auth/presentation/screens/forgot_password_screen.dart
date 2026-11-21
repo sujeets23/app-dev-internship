@@ -59,7 +59,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 12),
           child: Form(
             key: _formKey,
@@ -81,9 +82,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Editorial Title
+                // Title
                 Text(
-                  'Forgot Password?',
+                  'Reset Password',
                   style: AppTypography.displayMedium.copyWith(
                     color: textColor,
                     fontWeight: FontWeight.w800,
@@ -92,14 +93,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  "Don't worry, it happens. Enter your registered email address or mobile number and we'll send a 6-digit verification code.",
+                  'Enter the email address or phone number associated with your account, and we will send a 6-digit verification code.',
                   style: TextStyle(color: mutedTextColor, fontSize: 13, height: 1.45),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
 
-                // Email / Phone Field
+                // Contact Target Input
                 Text(
-                  'EMAIL OR MOBILE NUMBER',
+                  'EMAIL OR PHONE NUMBER',
                   style: AppTypography.bodySmall.copyWith(
                     fontWeight: FontWeight.w700,
                     color: isDark ? AppColors.neonLime : AppColors.primary,
@@ -109,11 +110,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _contactController,
+                  keyboardType: TextInputType.emailAddress,
                   style: TextStyle(color: textColor, fontSize: 14),
                   decoration: InputDecoration(
                     hintText: 'alex@example.com or +91 9876543210',
                     hintStyle: TextStyle(color: mutedTextColor.withValues(alpha: 0.7)),
-                    prefixIcon: const Icon(Icons.mark_email_read_outlined, color: AppColors.primary),
+                    prefixIcon: const Icon(Icons.alternate_email, color: AppColors.primary),
                     filled: true,
                     fillColor: cardBg,
                     enabledBorder: OutlineInputBorder(
@@ -128,52 +130,64 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   ),
-                  validator: (val) =>
-                      val == null || val.trim().isEmpty ? 'Please enter your email or phone' : null,
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) {
+                      return 'Please enter your registered email or phone';
+                    }
+                    if (!val.contains('@') && val.trim().length < 8) {
+                      return 'Please enter a valid email or phone number';
+                    }
+                    return null;
+                  },
                 ),
-                const SizedBox(height: 28),
+
+                const SizedBox(height: 32),
 
                 // Send OTP Button
                 SizedBox(
                   width: double.infinity,
+                  height: 52,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.butterYellow,
-                      foregroundColor: AppColors.charcoal,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 1,
-                    ),
                     onPressed: _isLoading ? null : _handleSendOtp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
                     child: _isLoading
                         ? const SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                              color: AppColors.charcoal,
                               strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
                         : const Text(
-                            'Send 6-Digit OTP',
-                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                            'Send Verification Code',
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                           ),
                   ),
                 ),
-                const Spacer(),
 
-                // Return to Login
+                const SizedBox(height: 20),
+
+                // Return to login
                 Center(
-                  child: TextButton.icon(
+                  child: TextButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_rounded, size: 16, color: AppColors.primary),
-                    label: const Text(
-                      'Back to Log In',
-                      style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                    child: Text(
+                      'Remember password? Log In',
+                      style: TextStyle(
+                        color: isDark ? AppColors.neonLime : AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
               ],
             ),
           ),

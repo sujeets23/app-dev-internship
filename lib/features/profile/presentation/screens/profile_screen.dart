@@ -352,11 +352,7 @@ class ProfileScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: cardBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? Colors.transparent : AppColors.softLavender,
-        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.softLavender.withValues(alpha: 0.2),
@@ -365,12 +361,23 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
-      child: ListTile(
-        leading: Icon(icon, color: isDark ? AppColors.neonLime : AppColors.primary),
-        title: Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 14)),
-        subtitle: Text(subtitle, style: TextStyle(color: mutedTextColor, fontSize: 11)),
-        trailing: Icon(Icons.arrow_forward_ios, color: mutedTextColor, size: 14),
-        onTap: onTap,
+      child: Material(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(14),
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(
+            color: isDark ? Colors.transparent : AppColors.softLavender,
+          ),
+        ),
+        child: ListTile(
+          leading: Icon(icon, color: isDark ? AppColors.neonLime : AppColors.primary),
+          title: Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 14)),
+          subtitle: Text(subtitle, style: TextStyle(color: mutedTextColor, fontSize: 11)),
+          trailing: Icon(Icons.arrow_forward_ios, color: mutedTextColor, size: 14),
+          onTap: onTap,
+        ),
       ),
     );
   }

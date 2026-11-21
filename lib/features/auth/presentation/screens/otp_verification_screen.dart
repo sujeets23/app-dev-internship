@@ -103,7 +103,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,49 +143,46 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       text: widget.contactTarget,
                       style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
                     ),
-                    const TextSpan(text: '. Enter it below to verify your account.'),
+                    const TextSpan(text: '. Enter the code below to reset your password.'),
                   ],
                 ),
               ),
-              const SizedBox(height: 36),
+              const SizedBox(height: 32),
 
-              // 6 OTP Digit boxes
+              // 6-digit OTP fields
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: List.generate(6, (index) {
                   return SizedBox(
-                    width: 48,
+                    width: 46,
                     height: 56,
                     child: TextFormField(
                       controller: _controllers[index],
                       focusNode: _focusNodes[index],
-                      keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
-                      maxLength: 1,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(1),
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
                       style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
                         color: textColor,
                       ),
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
-                        counterText: '',
                         filled: true,
                         fillColor: cardBg,
                         contentPadding: EdgeInsets.zero,
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: BorderSide(
-                            color: isDark ? Colors.white12 : AppColors.softLavender,
-                            width: 1.5,
+                            color: isDark ? Colors.transparent : AppColors.softLavender,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
-                          borderSide: const BorderSide(
-                            color: AppColors.primary,
-                            width: 2,
-                          ),
+                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
                         ),
                       ),
                       onChanged: (val) {
@@ -198,63 +196,63 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   );
                 }),
               ),
+
               const SizedBox(height: 32),
 
-              // Verify Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.butterYellow,
-                    foregroundColor: AppColors.charcoal,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 1,
-                  ),
-                  onPressed: _isLoading ? null : _handleVerifyOtp,
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: AppColors.charcoal,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Verify Code',
-                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Resend Countdown
+              // Resend Timer Row
               Center(
                 child: _countdown > 0
                     ? Text(
-                        'Resend code in ${_countdown}s',
+                        'Resend code in 00:${_countdown.toString().padLeft(2, '0')}',
                         style: TextStyle(color: mutedTextColor, fontSize: 13),
                       )
                     : TextButton(
                         onPressed: () {
                           _startTimer();
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('A fresh 6-digit verification code was sent.'),
-                              backgroundColor: AppColors.primary,
-                            ),
+                            const SnackBar(content: Text('✓ New code sent.')),
                           );
                         },
-                        child: const Text(
+                        child: Text(
                           'Resend Code',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: isDark ? AppColors.neonLime : AppColors.primary,
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
                           ),
                         ),
                       ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Verify & Continue Button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleVerifyOtp,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'Verify & Proceed',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+                ),
               ),
             ],
           ),

@@ -194,16 +194,17 @@ class SettingsScreen extends StatelessWidget {
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
+      child: Material(
         color: AppColors.surfaceDark,
         borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: AppColors.neonLime, size: 22),
-        title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-        subtitle: Text(subtitle, style: const TextStyle(color: AppColors.textMutedDark, fontSize: 11)),
-        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 14),
-        onTap: onTap,
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          leading: Icon(icon, color: AppColors.neonLime, size: 22),
+          title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+          subtitle: Text(subtitle, style: const TextStyle(color: AppColors.textMutedDark, fontSize: 11)),
+          trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 14),
+          onTap: onTap,
+        ),
       ),
     );
   }
