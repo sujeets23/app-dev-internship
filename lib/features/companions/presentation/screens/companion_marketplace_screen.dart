@@ -37,23 +37,34 @@ class _CompanionMarketplaceScreenState
   Widget build(BuildContext context) {
     final companionsAsync = ref.watch(companionsListProvider);
     final filter = ref.watch(companionFilterProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
+    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
+    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: bgColor,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           'Companion Escrow',
           style: AppTypography.headlineMedium.copyWith(
-            color: Colors.white,
+            color: textColor,
             fontWeight: FontWeight.w800,
             fontStyle: FontStyle.italic,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.tune, color: AppColors.neonLime),
+            icon: Icon(Icons.tune, color: isDark ? AppColors.neonLime : AppColors.primary),
             tooltip: 'Filter Options',
             onPressed: () => _showFilterBottomSheet(context),
           ),
@@ -69,16 +80,25 @@ class _CompanionMarketplaceScreenState
               onChanged: (val) {
                 ref.read(companionFilterProvider.notifier).updateSearch(val);
               },
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: textColor),
               decoration: InputDecoration(
                 hintText: 'Search by companion, event, or skill...',
-                hintStyle: const TextStyle(color: AppColors.textMutedDark),
-                prefixIcon: const Icon(Icons.search, color: AppColors.neonLime),
+                hintStyle: TextStyle(color: mutedTextColor),
+                prefixIcon: Icon(Icons.search, color: isDark ? AppColors.neonLime : AppColors.primary),
                 filled: true,
-                fillColor: AppColors.surfaceDark,
-                border: OutlineInputBorder(
+                fillColor: cardBg,
+                enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.transparent : AppColors.softLavender,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: isDark ? AppColors.accent : AppColors.primary,
+                    width: 1.5,
+                  ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
@@ -100,12 +120,17 @@ class _CompanionMarketplaceScreenState
                 return ChoiceChip(
                   label: Text(cat),
                   selected: isSelected,
-                  selectedColor: AppColors.electricViolet,
-                  backgroundColor: AppColors.surfaceDark,
+                  selectedColor: AppColors.butterYellow,
+                  backgroundColor: cardBg,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.textMutedDark,
+                    color: isSelected ? AppColors.charcoal : textColor,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     fontSize: 12,
+                  ),
+                  side: BorderSide(
+                    color: isSelected
+                        ? AppColors.butterYellow
+                        : (isDark ? Colors.white12 : AppColors.softLavender),
                   ),
                   onSelected: (_) {
                     ref.read(companionFilterProvider.notifier).updateCategory(cat);
@@ -120,16 +145,22 @@ class _CompanionMarketplaceScreenState
           // Safety Escrow Explainer Banner
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.surfaceDark,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.neonLime.withValues(alpha: 0.3)),
+              color: isDark ? AppColors.surfaceDark : AppColors.softLavender.withValues(alpha: 0.45),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark ? AppColors.neonLime.withValues(alpha: 0.3) : AppColors.softLavender,
+              ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.verified_user, color: AppColors.neonLime, size: 22),
-                const SizedBox(width: 10),
+                Icon(
+                  Icons.verified_user_rounded,
+                  color: isDark ? AppColors.neonLime : AppColors.primary,
+                  size: 26,
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,13 +169,13 @@ class _CompanionMarketplaceScreenState
                         '100% Platonic & Safety Escrow Protected',
                         style: AppTypography.bodySmall.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: textColor,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      const Text(
+                      Text(
                         'Background-checked companions. Funds held safely in escrow until completion.',
-                        style: TextStyle(color: AppColors.textMutedDark, fontSize: 11),
+                        style: TextStyle(color: mutedTextColor, fontSize: 11),
                       ),
                     ],
                   ),
@@ -160,10 +191,10 @@ class _CompanionMarketplaceScreenState
             child: companionsAsync.when(
               data: (companions) {
                 if (companions.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
                       'No companions found matching criteria',
-                      style: TextStyle(color: AppColors.textMutedDark),
+                      style: TextStyle(color: mutedTextColor),
                     ),
                   );
                 }
@@ -178,7 +209,7 @@ class _CompanionMarketplaceScreenState
                 );
               },
               loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.electricViolet),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
               error: (err, _) => Center(
                 child: Text('Error: $err', style: const TextStyle(color: Colors.red)),
@@ -191,12 +222,26 @@ class _CompanionMarketplaceScreenState
   }
 
   Widget _buildCompanionCard(BuildContext context, CompanionModel companion) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
+    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppColors.cardBackgroundDark,
+        color: cardBg,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.softLavender,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.softLavender.withValues(alpha: 0.25),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
@@ -234,14 +279,14 @@ class _CompanionMarketplaceScreenState
                           children: [
                             Text(
                               '${companion.name}, ${companion.age}',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: textColor,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
                             ),
                             const SizedBox(width: 4),
-                            const Icon(Icons.verified, color: AppColors.neonLime, size: 16),
+                            const Icon(Icons.verified, color: AppColors.primary, size: 16),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -249,8 +294,8 @@ class _CompanionMarketplaceScreenState
                           companion.tagLine,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.textMutedDark,
+                          style: TextStyle(
+                            color: mutedTextColor,
                             fontSize: 12,
                           ),
                         ),
@@ -261,8 +306,8 @@ class _CompanionMarketplaceScreenState
                             const SizedBox(width: 4),
                             Text(
                               '${companion.rating} (${companion.reviewCount} reviews)',
-                              style: const TextStyle(
-                                color: Colors.white70,
+                              style: TextStyle(
+                                color: textColor,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -283,32 +328,36 @@ class _CompanionMarketplaceScreenState
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceDark,
+                      color: isDark ? AppColors.surfaceElevatedDark : AppColors.softLavender.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       s,
-                      style: const TextStyle(color: AppColors.softPink, fontSize: 11),
+                      style: TextStyle(
+                        color: isDark ? AppColors.softPink : AppColors.primary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   );
                 }).toList(),
               ),
               const SizedBox(height: 12),
-              const Divider(color: Colors.white10),
+              Divider(color: isDark ? Colors.white10 : AppColors.softLavender.withValues(alpha: 0.6)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Hourly Escrow Rate',
-                        style: TextStyle(color: AppColors.textMutedDark, fontSize: 11),
+                        style: TextStyle(color: mutedTextColor, fontSize: 11),
                       ),
                       Text(
                         '₹${companion.hourlyRate.toInt()} / hr',
-                        style: const TextStyle(
-                          color: AppColors.neonLime,
+                        style: TextStyle(
+                          color: isDark ? AppColors.neonLime : AppColors.primary,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -317,11 +366,12 @@ class _CompanionMarketplaceScreenState
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.electricViolet,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.butterYellow,
+                      foregroundColor: AppColors.charcoal,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 0,
                     ),
                     onPressed: () {
                       Navigator.push(
@@ -331,7 +381,7 @@ class _CompanionMarketplaceScreenState
                         ),
                       );
                     },
-                    child: const Text('View & Book'),
+                    child: const Text('View & Book', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -345,10 +395,11 @@ class _CompanionMarketplaceScreenState
   void _showFilterBottomSheet(BuildContext context) {
     final filter = ref.read(companionFilterProvider);
     double selectedRate = filter.maxRate;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surfaceDark,
+      backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -364,22 +415,22 @@ class _CompanionMarketplaceScreenState
                   Text(
                     'Filter Companions',
                     style: AppTypography.headlineMedium.copyWith(
-                      color: Colors.white,
+                      color: isDark ? Colors.white : AppColors.charcoal,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Max Hourly Rate: ₹${selectedRate.toInt()}',
-                    style: const TextStyle(color: Colors.white70),
+                    style: TextStyle(color: isDark ? Colors.white70 : AppColors.charcoal),
                   ),
                   Slider(
                     value: selectedRate,
                     min: 500,
                     max: 3000,
                     divisions: 25,
-                    activeColor: AppColors.neonLime,
-                    inactiveColor: Colors.white24,
+                    activeColor: AppColors.blushPink,
+                    inactiveColor: AppColors.softLavender,
                     onChanged: (val) {
                       setSheetState(() => selectedRate = val);
                     },
@@ -387,8 +438,8 @@ class _CompanionMarketplaceScreenState
                   const SizedBox(height: 16),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.electricViolet,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.butterYellow,
+                      foregroundColor: AppColors.charcoal,
                       minimumSize: const Size.fromHeight(48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -398,7 +449,7 @@ class _CompanionMarketplaceScreenState
                       ref.read(companionFilterProvider.notifier).updateMaxRate(selectedRate);
                       Navigator.pop(ctx);
                     },
-                    child: const Text('Apply Filters'),
+                    child: const Text('Apply Filters', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),

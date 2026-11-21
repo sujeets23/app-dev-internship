@@ -46,6 +46,13 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
       'avatar': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
       'isNew': 'false',
     },
+    {
+      'id': 'match_5',
+      'name': 'Mia',
+      'age': '25',
+      'avatar': 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400',
+      'isNew': 'true',
+    },
   ];
 
   @override
@@ -57,29 +64,39 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
   @override
   Widget build(BuildContext context) {
     final conversationsAsync = ref.watch(conversationsProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
+    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
+    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: bgColor,
         elevation: 0,
         title: Text(
           'Matches & Chats',
           style: AppTypography.headlineMedium.copyWith(
             fontStyle: FontStyle.italic,
             fontWeight: FontWeight.w800,
-            color: Colors.white,
+            color: textColor,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.shield_outlined, color: AppColors.neonLime),
+            icon: Icon(
+              Icons.shield_outlined,
+              color: isDark ? AppColors.neonLime : AppColors.primary,
+            ),
             tooltip: 'Safety & Moderation Center',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('🛡️ All messages & calls are protected with AI Safety Shields.'),
-                  backgroundColor: AppColors.electricViolet,
+                  backgroundColor: AppColors.primary,
                 ),
               );
             },
@@ -95,16 +112,25 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
               child: TextField(
                 controller: _searchController,
                 onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: textColor),
                 decoration: InputDecoration(
                   hintText: 'Search matched connections...',
-                  hintStyle: const TextStyle(color: AppColors.textMutedDark),
-                  prefixIcon: const Icon(Icons.search, color: AppColors.textMutedDark),
+                  hintStyle: TextStyle(color: mutedTextColor),
+                  prefixIcon: Icon(Icons.search, color: mutedTextColor),
                   filled: true,
-                  fillColor: AppColors.surfaceDark,
-                  border: OutlineInputBorder(
+                  fillColor: cardBg,
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
+                    borderSide: BorderSide(
+                      color: isDark ? Colors.transparent : AppColors.softLavender,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: isDark ? AppColors.accent : AppColors.primary,
+                      width: 1.5,
+                    ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 ),
@@ -125,7 +151,7 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                         'NEW MATCHES',
                         style: AppTypography.bodySmall.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.neonLime,
+                          color: isDark ? AppColors.neonLime : AppColors.primary,
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -133,7 +159,7 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.electricViolet,
+                          color: AppColors.blushPink,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
@@ -177,13 +203,12 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(2.5),
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     shape: BoxShape.circle,
-                                    gradient: const LinearGradient(
+                                    gradient: LinearGradient(
                                       colors: [
-                                        AppColors.electricViolet,
-                                        AppColors.softPink,
-                                        AppColors.neonLime,
+                                        AppColors.blushPink,
+                                        AppColors.butterYellow,
                                       ],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
@@ -201,10 +226,10 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                                     width: 14,
                                     height: 14,
                                     decoration: BoxDecoration(
-                                      color: AppColors.neonLime,
+                                      color: AppColors.success,
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: AppColors.backgroundDark,
+                                        color: bgColor,
                                         width: 2,
                                       ),
                                     ),
@@ -215,8 +240,8 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                             const SizedBox(height: 6),
                             Text(
                               match['name']!,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: textColor,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
                               ),
@@ -239,7 +264,7 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                 'MESSAGES',
                 style: AppTypography.bodySmall.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textMutedDark,
+                  color: isDark ? AppColors.textMutedDark : AppColors.primary,
                   letterSpacing: 1.2,
                 ),
               ),
@@ -255,12 +280,12 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
               }).toList();
 
               if (filtered.isEmpty) {
-                return const SliverFillRemaining(
+                return SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
                     child: Text(
                       'No conversations found',
-                      style: TextStyle(color: AppColors.textMutedDark),
+                      style: TextStyle(color: mutedTextColor),
                     ),
                   ),
                 );
@@ -284,8 +309,25 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                           ),
                         );
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
+                        decoration: BoxDecoration(
+                          color: cardBg,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.transparent
+                                : AppColors.softLavender.withValues(alpha: 0.8),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.softLavender.withValues(alpha: 0.2),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
                         child: Row(
                           children: [
                             Stack(
@@ -302,10 +344,10 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                                       width: 14,
                                       height: 14,
                                       decoration: BoxDecoration(
-                                        color: AppColors.neonLime,
+                                        color: AppColors.success,
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                          color: AppColors.backgroundDark,
+                                          color: cardBg,
                                           width: 2,
                                         ),
                                       ),
@@ -322,26 +364,26 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                                     children: [
                                       Text(
                                         conv.participantName,
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color: textColor,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 16,
+                                          fontSize: 15,
                                         ),
                                       ),
                                       if (conv.isVerified) ...[
                                         const SizedBox(width: 4),
                                         const Icon(
                                           Icons.verified,
-                                          color: AppColors.neonLime,
+                                          color: AppColors.primary,
                                           size: 16,
                                         ),
                                       ],
                                       const Spacer(),
                                       Text(
                                         _formatTime(conv.lastTimestamp),
-                                        style: const TextStyle(
-                                          color: AppColors.textMutedDark,
-                                          fontSize: 12,
+                                        style: TextStyle(
+                                          color: mutedTextColor,
+                                          fontSize: 11,
                                         ),
                                       ),
                                     ],
@@ -352,30 +394,33 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                                       Expanded(
                                         child: Text(
                                           conv.lastMessageText,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             color: conv.unreadCount > 0
-                                                ? Colors.white
-                                                : AppColors.textMutedDark,
+                                                ? textColor
+                                                : mutedTextColor,
                                             fontWeight: conv.unreadCount > 0
                                                 ? FontWeight.w600
                                                 : FontWeight.normal,
-                                            fontSize: 14,
+                                            fontSize: 13,
                                           ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                       if (conv.unreadCount > 0)
                                         Container(
-                                          padding: const EdgeInsets.all(6),
-                                          decoration: const BoxDecoration(
-                                            color: AppColors.neonLime,
-                                            shape: BoxShape.circle,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 7,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.blushPink,
+                                            borderRadius: BorderRadius.circular(10),
                                           ),
                                           child: Text(
                                             '${conv.unreadCount}',
                                             style: const TextStyle(
-                                              color: Colors.black,
+                                              color: Colors.white,
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -396,12 +441,12 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
               );
             },
             loading: () => const SliverFillRemaining(
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.electricViolet),
-              ),
+              child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
             ),
             error: (err, _) => SliverFillRemaining(
-              child: Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+              child: Center(
+                child: Text('Failed to load chats: $err', style: TextStyle(color: mutedTextColor)),
+              ),
             ),
           ),
         ],
@@ -409,13 +454,14 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
     );
   }
 
-  String _formatTime(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
+  String _formatTime(DateTime time) {
+    final diff = DateTime.now().difference(time);
     if (diff.inMinutes < 60) {
       return '${diff.inMinutes}m ago';
     } else if (diff.inHours < 24) {
       return '${diff.inHours}h ago';
+    } else {
+      return '${diff.inDays}d ago';
     }
-    return '${dt.day}/${dt.month}';
   }
 }

@@ -15,23 +15,30 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isVerified = ref.watch(isProfileVerifiedProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
+    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
+    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: bgColor,
         elevation: 0,
         title: Text(
           'My Profile',
           style: AppTypography.headlineMedium.copyWith(
-            color: Colors.white,
+            color: textColor,
             fontWeight: FontWeight.bold,
             fontStyle: FontStyle.italic,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            icon: Icon(Icons.settings_outlined, color: textColor),
             tooltip: 'Settings',
             onPressed: () {
               Navigator.push(
@@ -52,10 +59,10 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [AppColors.electricViolet, AppColors.softPink, AppColors.neonLime],
+                      gradient: LinearGradient(
+                        colors: [AppColors.blushPink, AppColors.butterYellow],
                       ),
                     ),
                     child: const CircleAvatar(
@@ -72,10 +79,10 @@ class ProfileScreen extends ConsumerWidget {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
-                          color: AppColors.neonLime,
+                          color: AppColors.success,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.verified, color: Colors.black, size: 20),
+                        child: const Icon(Icons.verified, color: Colors.white, size: 20),
                       ),
                     ),
                 ],
@@ -91,7 +98,7 @@ class ProfileScreen extends ConsumerWidget {
                 Text(
                   'Alex, 25',
                   style: AppTypography.headlineMedium.copyWith(
-                    color: Colors.white,
+                    color: textColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -99,18 +106,21 @@ class ProfileScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceDark,
+                    color: AppColors.blushPink.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text('they/them', style: TextStyle(color: AppColors.softPink, fontSize: 12)),
+                  child: const Text(
+                    'they/them',
+                    style: TextStyle(color: AppColors.blushPink, fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
                 ),
               ],
             ),
 
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Mumbai, India • Non-Binary • Queer',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+              style: TextStyle(color: mutedTextColor, fontSize: 13),
             ),
 
             const SizedBox(height: 16),
@@ -132,11 +142,11 @@ class ProfileScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: isVerified
-                      ? AppColors.neonLime.withValues(alpha: 0.15)
-                      : Colors.orange.withValues(alpha: 0.15),
+                      ? AppColors.success.withValues(alpha: 0.12)
+                      : AppColors.softLavender.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isVerified ? AppColors.neonLime : Colors.orangeAccent,
+                    color: isVerified ? AppColors.success : AppColors.softLavender,
                   ),
                 ),
                 child: Row(
@@ -144,16 +154,16 @@ class ProfileScreen extends ConsumerWidget {
                   children: [
                     Icon(
                       isVerified ? Icons.verified_user : Icons.warning_amber_rounded,
-                      color: isVerified ? AppColors.neonLime : Colors.orangeAccent,
+                      color: isVerified ? AppColors.success : AppColors.primary,
                       size: 16,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       isVerified
-                          ? 'Identity Assurance: Verified Live ML'
+                          ? 'Identity Assurance: Verified Live ML ✓'
                           : 'Identity Assurance: Unverified (Tap to verify)',
                       style: TextStyle(
-                        color: isVerified ? AppColors.neonLime : Colors.orangeAccent,
+                        color: isVerified ? AppColors.success : AppColors.charcoal,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -168,8 +178,10 @@ class ProfileScreen extends ConsumerWidget {
             // Edit Profile Button
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Colors.white24),
+                foregroundColor: textColor,
+                side: BorderSide(
+                  color: isDark ? Colors.white24 : AppColors.softLavender,
+                ),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               ),
@@ -190,25 +202,35 @@ class ProfileScreen extends ConsumerWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark ? Colors.transparent : AppColors.softLavender,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.softLavender.withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     'ABOUT ME',
                     style: TextStyle(
-                      color: AppColors.neonLime,
+                      color: isDark ? AppColors.neonLime : AppColors.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
                       letterSpacing: 1.1,
                     ),
                   ),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Text(
                     'Designer & creative thinker. Big on analog photography, indie poetry, specialty coffees, and queer social events across the city. Looking for meaningful dating & creative friendships.',
-                    style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                    style: TextStyle(color: mutedTextColor, fontSize: 13, height: 1.4),
                   ),
                 ],
               ),
@@ -221,16 +243,26 @@ class ProfileScreen extends ConsumerWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark ? Colors.transparent : AppColors.softLavender,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.softLavender.withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'INTERESTS & PASSIONS',
                     style: TextStyle(
-                      color: AppColors.neonLime,
+                      color: isDark ? AppColors.neonLime : AppColors.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
                       letterSpacing: 1.1,
@@ -251,13 +283,17 @@ class ProfileScreen extends ConsumerWidget {
                       return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.backgroundDark,
+                          color: isDark ? AppColors.backgroundDark : AppColors.softLavender.withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.electricViolet.withValues(alpha: 0.5)),
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.electricViolet.withValues(alpha: 0.5)
+                                : AppColors.softLavender,
+                          ),
                         ),
                         child: Text(
                           interest,
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                          style: TextStyle(color: textColor, fontSize: 12),
                         ),
                       );
                     }).toList(),
@@ -270,6 +306,7 @@ class ProfileScreen extends ConsumerWidget {
 
             // Menu Shortcuts
             _buildProfileMenuItem(
+              context: context,
               icon: Icons.shield_moon_outlined,
               title: 'Incognito Privacy Shield',
               subtitle: 'Control Discovery isolation & visibility',
@@ -281,6 +318,7 @@ class ProfileScreen extends ConsumerWidget {
               },
             ),
             _buildProfileMenuItem(
+              context: context,
               icon: Icons.workspace_premium_outlined,
               title: 'Subscriptions & Billing',
               subtitle: 'Manage Pro plan, UPI mandates & receipts',
@@ -300,22 +338,38 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildProfileMenuItem({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
+    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
+        color: cardBg,
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? Colors.transparent : AppColors.softLavender,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.softLavender.withValues(alpha: 0.2),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ListTile(
-        leading: Icon(icon, color: AppColors.neonLime),
-        title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-        subtitle: Text(subtitle, style: const TextStyle(color: AppColors.textMutedDark, fontSize: 11)),
-        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white38, size: 14),
+        leading: Icon(icon, color: isDark ? AppColors.neonLime : AppColors.primary),
+        title: Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 14)),
+        subtitle: Text(subtitle, style: TextStyle(color: mutedTextColor, fontSize: 11)),
+        trailing: Icon(Icons.arrow_forward_ios, color: mutedTextColor, size: 14),
         onTap: onTap,
       ),
     );

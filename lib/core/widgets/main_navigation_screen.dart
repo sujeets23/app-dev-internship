@@ -30,6 +30,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final List<Widget> screens = [
       HomeDashboardScreen(onTabSelected: _onTabSelected),
       const DiscoverScreen(),
@@ -39,57 +42,69 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.softWhite,
       body: IndexedStack(
         index: _currentIndex,
         children: screens,
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppColors.surfaceDark,
+          color: isDark ? AppColors.surfaceDark : Colors.white,
           border: Border(
             top: BorderSide(
-              color: Colors.white.withValues(alpha: 0.08),
-              width: 1,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : AppColors.softLavender.withValues(alpha: 0.9),
+              width: 1.2,
             ),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.softLavender.withValues(alpha: 0.25),
+              blurRadius: 12,
+              offset: const Offset(0, -2),
+            ),
+          ],
         ),
         child: SafeArea(
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
             onTap: _onTabSelected,
-            backgroundColor: AppColors.surfaceDark,
+            backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
             type: BottomNavigationBarType.fixed,
-            selectedItemColor: AppColors.neonLime,
-            unselectedItemColor: AppColors.textMutedDark,
+            selectedItemColor: isDark ? AppColors.accent : AppColors.primary,
+            unselectedItemColor: isDark
+                ? AppColors.textMutedDark
+                : AppColors.charcoal.withValues(alpha: 0.45),
             selectedFontSize: 11,
             unselectedFontSize: 11,
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800),
+            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
             elevation: 0,
             items: const [
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
+                activeIcon: Icon(Icons.home_rounded),
                 label: 'Home',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.style_outlined),
-                activeIcon: Icon(Icons.style),
+                activeIcon: Icon(Icons.style_rounded),
                 label: 'Discover',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.chat_bubble_outline),
-                activeIcon: Icon(Icons.chat_bubble),
+                icon: Icon(Icons.favorite_outline_rounded),
+                activeIcon: Icon(Icons.favorite_rounded),
                 label: 'Matches',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.auto_awesome_outlined),
-                activeIcon: Icon(Icons.auto_awesome),
+                activeIcon: Icon(Icons.auto_awesome_rounded),
                 label: 'Date Planner',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
+                icon: Icon(Icons.person_outline_rounded),
+                activeIcon: Icon(Icons.person_rounded),
                 label: 'Profile',
               ),
             ],

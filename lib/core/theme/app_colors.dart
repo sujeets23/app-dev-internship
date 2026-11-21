@@ -1,8 +1,25 @@
 import 'package:flutter/material.dart';
 
 /// Distinctive, modern palette for Date²
+/// Inspired by the user reference design:
+/// - Lavender backgrounds (#E5D5FF, #DCCBFF)
+/// - Blush pink (#F28DB7, #F7A5C7, #FFCCDF)
+/// - Peach (#F8C0AE) & Coral (#ED907B)
+/// - Butter yellow (#FFE95C) & Neon lime (#E2FF85)
+/// - Charcoal (#17151C) & Soft white (#FFF9F5)
 class AppColors {
-  // Brand Triad (User Brand Identity)
+  // Brand Identity Primary & Accents
+  static const Color softLavender = Color(0xFFE5D5FF);
+  static const Color lightLavender = Color(0xFFDCCBFF);
+  static const Color blushPink = Color(0xFFF28DB7);
+  static const Color softPinkNew = Color(0xFFF7A5C7);
+  static const Color peach = Color(0xFFF8C0AE);
+  static const Color coral = Color(0xFFED907B);
+  static const Color butterYellow = Color(0xFFFFE95C);
+  static const Color charcoal = Color(0xFF17151C);
+  static const Color softWhite = Color(0xFFFFF9F5);
+
+  // Brand Triad
   static const Color primary = Color(0xFF5000F4); // Electric Violet
   static const Color primaryLight = Color(0xFFECE4FE);
   static const Color primaryDark = Color(0xFF3800B0);
@@ -16,17 +33,43 @@ class AppColors {
   static const Color accentLight = Color(0xFFF6FFD6);
   static const Color accentDark = Color(0xFF98BD1C);
 
-  // Gradient (Top Hero gradient: Violet to Pink)
-  static const Color gradientStart = Color(0xFF5000F4);
-  static const Color gradientEnd = Color(0xFFFFCCDF);
+  // Hero & Card Gradients
+  static const Color gradientStart = Color(0xFFE5D5FF);
+  static const Color gradientEnd = Color(0xFFF28DB7);
+  static const Color gradientPeachStart = Color(0xFFF8C0AE);
+  static const Color gradientPeachEnd = Color(0xFFFFE95C);
 
-  // Neutral Backgrounds & Surfaces (Light)
-  static const Color background = Color(0xFFFAF9FD);
+  static const LinearGradient lavenderBlushGradient = LinearGradient(
+    colors: [softLavender, blushPink],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient blushPeachGradient = LinearGradient(
+    colors: [blushPink, peach],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient peachYellowGradient = LinearGradient(
+    colors: [peach, butterYellow],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient violetPinkGradient = LinearGradient(
+    colors: [primary, blushPink],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // Backgrounds & Surfaces (Light)
+  static const Color background = Color(0xFFFAF8FF);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceMuted = Color(0xFFF3EDFD);
   static const Color surfaceElevated = Color(0xFFFFFFFF);
 
-  // Neutral Backgrounds & Surfaces (Dark)
+  // Backgrounds & Surfaces (Dark)
   static const Color backgroundDark = Color(0xFF0F0B1E);
   static const Color surfaceDark = Color(0xFF1B1433);
   static const Color surfaceMutedDark = Color(0xFF261D45);
@@ -38,9 +81,9 @@ class AppColors {
   static const Color borderDark = Color(0xFF3B2E63);
 
   // Text Colors
-  static const Color textPrimary = Color(0xFF120826);
-  static const Color textSecondary = Color(0xFF675B82);
-  static const Color textTertiary = Color(0xFF9E94B8);
+  static const Color textPrimary = Color(0xFF17151C); // Charcoal
+  static const Color textSecondary = Color(0xFF5A526B);
+  static const Color textTertiary = Color(0xFF948B9E);
   static const Color textInverse = Color(0xFFFFFFFF);
 
   static const Color textPrimaryDark = Color(0xFFF6F3FF);

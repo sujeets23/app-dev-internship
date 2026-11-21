@@ -33,13 +33,19 @@ class _SubscriptionPricingScreenState
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surfaceDark,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? AppColors.surfaceDark
+          : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final textColor = isDark ? Colors.white : AppColors.charcoal;
+            final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+
             return Padding(
               padding: EdgeInsets.only(
                 left: 20,
@@ -53,95 +59,114 @@ class _SubscriptionPricingScreenState
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.shield_outlined, color: AppColors.neonLime),
+                      const Icon(Icons.shield_outlined, color: AppColors.primary),
                       const SizedBox(width: 8),
                       Text(
                         'Razorpay Secure Checkout',
                         style: AppTypography.headlineMedium.copyWith(
-                          color: Colors.white,
+                          color: textColor,
                           fontSize: 18,
                           fontStyle: FontStyle.italic,
                         ),
                       ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text('TEST MODE', style: TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold)),
-                      ),
                     ],
                   ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Upgrading to ${plan.title} (₹${plan.pricePerMonth.toInt()}/month)',
+                    style: TextStyle(color: mutedTextColor, fontSize: 13),
+                  ),
                   const SizedBox(height: 16),
+                  Text(
+                    'SELECT UPI PAYMENT METHOD',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: isDark ? AppColors.neonLime : AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildPaymentOption(
+                    'Google Pay (Tez)',
+                    Icons.account_balance_wallet,
+                    selectedMethod == 'Google Pay',
+                    () => setSheetState(() => selectedMethod = 'Google Pay'),
+                  ),
+                  const SizedBox(height: 6),
+                  _buildPaymentOption(
+                    'PhonePe UPI',
+                    Icons.payment,
+                    selectedMethod == 'PhonePe',
+                    () => setSheetState(() => selectedMethod = 'PhonePe'),
+                  ),
+                  const SizedBox(height: 6),
+                  _buildPaymentOption(
+                    'Paytm / Any UPI App',
+                    Icons.qr_code,
+                    selectedMethod == 'Paytm',
+                    () => setSheetState(() => selectedMethod = 'Paytm'),
+                  ),
+                  const SizedBox(height: 16),
+                  // AutoPay Toggle
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.backgroundDark,
+                      color: isDark ? AppColors.surfaceElevatedDark : AppColors.softLavender.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '${plan.title} (Monthly)',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        const Icon(Icons.autorenew, color: AppColors.primary, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Enable UPI AutoPay Mandate',
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              Text(
+                                'Renews automatically with 48h advance reminder & 1-tap cancel.',
+                                style: TextStyle(color: mutedTextColor, fontSize: 10),
+                              ),
+                            ],
+                          ),
                         ),
-                        Text(
-                          '₹${plan.pricePerMonth.toInt()}/mo',
-                          style: const TextStyle(color: AppColors.neonLime, fontWeight: FontWeight.bold, fontSize: 16),
+                        Switch(
+                          value: enableAutoPay,
+                          activeThumbColor: AppColors.butterYellow,
+                          activeTrackColor: AppColors.blushPink,
+                          onChanged: (val) => setSheetState(() => enableAutoPay = val),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'SELECT UPI PAYMENT METHOD',
-                    style: TextStyle(
-                      color: AppColors.neonLime,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11,
-                      letterSpacing: 1.1,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildPaymentRadioTile('Google Pay', Icons.account_balance_wallet, selectedMethod, (val) {
-                    setSheetState(() => selectedMethod = val);
-                  }),
-                  _buildPaymentRadioTile('PhonePe UPI', Icons.payment, selectedMethod, (val) {
-                    setSheetState(() => selectedMethod = val);
-                  }),
-                  _buildPaymentRadioTile('Paytm UPI', Icons.qr_code, selectedMethod, (val) {
-                    setSheetState(() => selectedMethod = val);
-                  }),
-
-                  const SizedBox(height: 14),
-                  // AutoPay Toggle
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Recurring UPI AutoPay Mandate', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                    subtitle: const Text('Never miss matches. Cancel anytime with 1-tap in billing settings.', style: TextStyle(color: AppColors.textMutedDark, fontSize: 11)),
-                    value: enableAutoPay,
-                    activeColor: AppColors.neonLime,
-                    onChanged: (val) => setSheetState(() => enableAutoPay = val),
-                  ),
-
-                  const SizedBox(height: 20),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.electricViolet,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.butterYellow,
+                      foregroundColor: AppColors.charcoal,
                       minimumSize: const Size.fromHeight(50),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 2,
                     ),
                     onPressed: _isProcessing
                         ? null
-                        : () async {
+                        : () {
                             Navigator.pop(ctx);
                             _executePayment(plan.tier, selectedMethod, enableAutoPay);
                           },
-                    child: Text('Pay ₹${plan.pricePerMonth.toInt()} & Authorize Plan', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(
+                      'Pay ₹${plan.pricePerMonth.toInt()} via $selectedMethod',
+                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                    ),
                   ),
                 ],
               ),
@@ -152,25 +177,31 @@ class _SubscriptionPricingScreenState
     );
   }
 
-  Widget _buildPaymentRadioTile(String name, IconData icon, String current, Function(String) onSelect) {
-    final isSelected = current == name;
+  Widget _buildPaymentOption(String name, IconData icon, bool isSelected, VoidCallback onTap) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceElevatedDark : AppColors.softLavender.withValues(alpha: 0.35);
+    final textColor = isDark ? Colors.white : AppColors.charcoal;
+
     return InkWell(
-      onTap: () => onSelect(name),
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.electricViolet.withValues(alpha: 0.2) : AppColors.backgroundDark,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: isSelected ? AppColors.electricViolet : Colors.white12),
+          color: cardBg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : Colors.transparent,
+            width: 1.5,
+          ),
         ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? AppColors.neonLime : Colors.white70, size: 20),
+            Icon(icon, color: isSelected ? AppColors.primary : Colors.grey, size: 20),
             const SizedBox(width: 12),
-            Text(name, style: TextStyle(color: isSelected ? Colors.white : Colors.white70, fontWeight: FontWeight.bold)),
+            Text(name, style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
             const Spacer(),
-            if (isSelected) const Icon(Icons.check_circle, color: AppColors.neonLime, size: 18),
+            if (isSelected) const Icon(Icons.check_circle, color: AppColors.primary, size: 18),
           ],
         ),
       ),
@@ -237,27 +268,33 @@ class _SubscriptionPricingScreenState
     final plans = ref.watch(availablePlansProvider);
     final billingAsync = ref.watch(billingProfileProvider);
     final activeTier = billingAsync.value?.activeTier ?? SubscriptionTier.free;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
+    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_new, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Date² Subscriptions',
           style: AppTypography.headlineMedium.copyWith(
-            color: Colors.white,
+            color: textColor,
             fontWeight: FontWeight.bold,
             fontStyle: FontStyle.italic,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.receipt_long, color: AppColors.neonLime),
+            icon: Icon(Icons.receipt_long, color: isDark ? AppColors.neonLime : AppColors.primary),
             tooltip: 'Billing Ledger',
             onPressed: () {
               Navigator.push(
@@ -276,19 +313,25 @@ class _SubscriptionPricingScreenState
             // Current Plan Pill
             Row(
               children: [
-                const Text('Current Status: ', style: TextStyle(color: AppColors.textMutedDark, fontSize: 13)),
+                Text('Current Status: ', style: TextStyle(color: mutedTextColor, fontSize: 13)),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceDark,
+                    color: isDark ? AppColors.surfaceDark : AppColors.softLavender.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.neonLime),
+                    border: Border.all(
+                      color: isDark ? AppColors.neonLime : AppColors.primary,
+                    ),
                   ),
                   child: Text(
                     activeTier == SubscriptionTier.pro
                         ? 'PRO MEMBER 👑'
                         : (activeTier == SubscriptionTier.basic ? 'BASIC MEMBER ⭐' : 'FREE TIER'),
-                    style: const TextStyle(color: AppColors.neonLime, fontWeight: FontWeight.bold, fontSize: 12),
+                    style: TextStyle(
+                      color: isDark ? AppColors.neonLime : AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
@@ -306,7 +349,7 @@ class _SubscriptionPricingScreenState
               'ONE-TIME MICRO-UNLOCKS (₹29 - ₹49)',
               style: AppTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.bold,
-                color: AppColors.neonLime,
+                color: isDark ? AppColors.neonLime : AppColors.primary,
                 letterSpacing: 1.1,
               ),
             ),
@@ -338,27 +381,31 @@ class _SubscriptionPricingScreenState
   Widget _buildPlanCard(SubscriptionPlan plan, SubscriptionTier currentTier) {
     final isCurrent = plan.tier == currentTier;
     final isPro = plan.isRecommended;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
+    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
       decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
+        color: cardBg,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isPro
-              ? AppColors.neonLime
-              : (isCurrent ? AppColors.electricViolet : Colors.white10),
+              ? AppColors.blushPink
+              : (isCurrent ? AppColors.primary : (isDark ? Colors.white10 : AppColors.softLavender)),
           width: isPro ? 2 : 1,
         ),
-        boxShadow: isPro
-            ? [
-                BoxShadow(
-                  color: AppColors.electricViolet.withValues(alpha: 0.3),
-                  blurRadius: 16,
-                  spreadRadius: 2,
-                ),
-              ]
-            : null,
+        boxShadow: [
+          BoxShadow(
+            color: isPro
+                ? AppColors.blushPink.withValues(alpha: 0.25)
+                : AppColors.softLavender.withValues(alpha: 0.2),
+            blurRadius: isPro ? 16 : 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,15 +413,20 @@ class _SubscriptionPricingScreenState
           if (isPro)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 6),
+              padding: const EdgeInsets.symmetric(vertical: 7),
               decoration: const BoxDecoration(
-                color: AppColors.neonLime,
+                color: AppColors.butterYellow,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
               ),
               child: const Text(
                 '★ RECOMMENDED BEST VALUE ★',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1),
+                style: TextStyle(
+                  color: AppColors.charcoal,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 11,
+                  letterSpacing: 1,
+                ),
               ),
             ),
           Padding(
@@ -388,7 +440,7 @@ class _SubscriptionPricingScreenState
                     Text(
                       plan.title,
                       style: AppTypography.headlineMedium.copyWith(
-                        color: Colors.white,
+                        color: textColor,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -396,7 +448,7 @@ class _SubscriptionPricingScreenState
                     Text(
                       plan.pricePerMonth == 0 ? 'FREE' : '₹${plan.pricePerMonth.toInt()}/mo',
                       style: TextStyle(
-                        color: isPro ? AppColors.neonLime : Colors.white,
+                        color: isPro ? AppColors.primary : textColor,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -406,7 +458,7 @@ class _SubscriptionPricingScreenState
                 const SizedBox(height: 6),
                 Text(
                   plan.description,
-                  style: const TextStyle(color: AppColors.textMutedDark, fontSize: 12),
+                  style: TextStyle(color: mutedTextColor, fontSize: 12),
                 ),
                 const SizedBox(height: 16),
                 ...plan.features.map(
@@ -415,12 +467,12 @@ class _SubscriptionPricingScreenState
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.check, color: AppColors.neonLime, size: 16),
+                        const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 16),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             f,
-                            style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
+                            style: TextStyle(color: textColor.withValues(alpha: 0.85), fontSize: 12, height: 1.3),
                           ),
                         ),
                       ],
@@ -431,16 +483,20 @@ class _SubscriptionPricingScreenState
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isCurrent
-                        ? Colors.white12
-                        : (isPro ? AppColors.electricViolet : AppColors.surfaceDark),
-                    foregroundColor: isCurrent ? Colors.white54 : Colors.white,
-                    side: isCurrent ? null : const BorderSide(color: AppColors.electricViolet),
+                        ? (isDark ? Colors.white12 : Colors.grey.shade200)
+                        : (isPro ? AppColors.butterYellow : AppColors.softLavender.withValues(alpha: 0.6)),
+                    foregroundColor: isCurrent
+                        ? (isDark ? Colors.white54 : Colors.grey)
+                        : AppColors.charcoal,
                     minimumSize: const Size.fromHeight(46),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: isPro ? 1 : 0,
                   ),
                   onPressed: isCurrent ? null : () => _openCheckoutSheet(plan),
                   child: Text(
-                    isCurrent ? 'Current Plan' : 'Subscribe (${plan.pricePerMonth == 0 ? "Free" : "₹${plan.pricePerMonth.toInt()}/mo"})',
+                    isCurrent
+                        ? 'Current Plan'
+                        : 'Subscribe (${plan.pricePerMonth == 0 ? "Free" : "₹${plan.pricePerMonth.toInt()}/mo"})',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -459,37 +515,52 @@ class _SubscriptionPricingScreenState
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
+    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
+        color: cardBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(
+          color: isDark ? Colors.white10 : AppColors.softLavender,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.softLavender.withValues(alpha: 0.2),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: AppColors.electricViolet.withValues(alpha: 0.2),
-            child: Icon(icon, color: AppColors.neonLime, size: 20),
+            backgroundColor: AppColors.softLavender.withValues(alpha: 0.5),
+            child: Icon(icon, color: AppColors.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(color: AppColors.textMutedDark, fontSize: 11)),
+                Text(subtitle, style: TextStyle(color: mutedTextColor, fontSize: 11)),
               ],
             ),
           ),
           const SizedBox(width: 8),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.neonLime,
-              foregroundColor: Colors.black,
+              backgroundColor: AppColors.butterYellow,
+              foregroundColor: AppColors.charcoal,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              elevation: 0,
             ),
             onPressed: onTap,
             child: Text(price, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
