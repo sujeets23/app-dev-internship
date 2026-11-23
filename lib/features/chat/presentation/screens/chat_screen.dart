@@ -124,14 +124,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
-                builder: (ctx) => Material(
-                  color: AppColors.surfaceDark,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
+                builder: (ctx) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                         ListTile(
                           leading: const CircleAvatar(
                             backgroundColor: AppColors.neonLime,
@@ -182,7 +179,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       ],
                     ),
                   ),
-                ),
               );
             },
           ),
@@ -508,45 +504,41 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => Material(
-        color: AppColors.surfaceDark,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.shield_outlined, color: AppColors.neonLime),
-              title: const Text('Safety & Verification Details', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profile verified with Live Biometric Assurance.')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.block, color: Colors.orangeAccent),
-              title: const Text('Unmatch User', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.report_problem_outlined, color: Colors.redAccent),
-              title: const Text('Report Safety Concern', style: TextStyle(color: Colors.redAccent)),
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Incident reported to Trust & Safety team.'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+      builder: (ctx) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.shield_outlined, color: AppColors.neonLime),
+            title: const Text('Safety & Verification Details', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Profile verified with Live Biometric Assurance.')),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.block, color: Colors.orangeAccent),
+            title: const Text('Unmatch User', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(ctx);
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.report_problem_outlined, color: Colors.redAccent),
+            title: const Text('Report Safety Concern', style: TextStyle(color: Colors.redAccent)),
+            onTap: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Incident reported to Trust & Safety team.'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

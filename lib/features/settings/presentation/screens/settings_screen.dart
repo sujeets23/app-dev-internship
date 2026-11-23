@@ -194,11 +194,16 @@ class SettingsScreen extends StatelessWidget {
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      child: Material(
+      decoration: BoxDecoration(
         color: AppColors.surfaceDark,
         borderRadius: BorderRadius.circular(12),
-        clipBehavior: Clip.antiAlias,
+      ),
+      child: Material(
+        color: Colors.transparent,
         child: ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           leading: Icon(icon, color: AppColors.neonLime, size: 22),
           title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
           subtitle: Text(subtitle, style: const TextStyle(color: AppColors.textMutedDark, fontSize: 11)),
