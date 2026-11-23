@@ -363,7 +363,6 @@ class ProfileScreen extends ConsumerWidget {
       ),
       child: Material(
         color: cardBg,
-        borderRadius: BorderRadius.circular(14),
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
