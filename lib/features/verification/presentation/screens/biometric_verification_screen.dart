@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
 import 'package:inclusive_dating/core/widgets/secondary_button.dart';
+import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
 import '../../domain/models/biometric_verification_model.dart';
 import '../providers/biometric_verification_provider.dart';
 import 'verification_result_screen.dart';
@@ -47,6 +48,12 @@ class _BiometricVerificationScreenState
         (previous, next) {
       if (next.status == BiometricVerificationStatus.verified ||
           next.status == BiometricVerificationStatus.failed) {
+        if (next.status == BiometricVerificationStatus.verified) {
+          ref.read(authProvider.notifier).setFaceVerified(
+                next.result?.verificationId ?? 'VERIF-B3D-PROOF',
+              );
+        }
+
         if (widget.isCompanionFlow &&
             next.status == BiometricVerificationStatus.verified) {
           // Return proof back to companion KYC flow

@@ -1,29 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
 import 'package:inclusive_dating/core/widgets/main_navigation_screen.dart';
-import 'signup_screen.dart';
+import 'package:inclusive_dating/core/widgets/primary_button.dart';
+import 'package:inclusive_dating/features/verification/presentation/screens/government_id_verification_screen.dart';
+import 'package:inclusive_dating/features/verification/presentation/screens/security_check_intro_screen.dart';
+import '../providers/auth_provider.dart';
 import 'forgot_password_screen.dart';
+import 'otp_verification_screen.dart';
+import 'signup_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailPhoneController = TextEditingController(text: 'alex@example.com');
-  final _passwordController = TextEditingController(text: 'Password123!');
+  final _identifierController =
+      TextEditingController(text: 'ananya@date2.app');
+  final _passwordController =
+      TextEditingController(text: 'Date2Secure!2026');
+
   bool _obscurePassword = true;
-  bool _rememberMe = true;
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _emailPhoneController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -32,36 +40,59 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 600));
+
+    final identifier = _identifierController.text.trim();
+    final password = _passwordController.text;
+
+    final success = await ref.read(authProvider.notifier).login(
+          identifier: identifier,
+          password: password,
+        );
 
     if (mounted) {
       setState(() => _isLoading = false);
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => const MainNavigationScreen(initialIndex: 0),
-        ),
-        (route) => false,
-      );
-    }
-  }
 
-  void _handleBiometricLogin() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (mounted) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✓ Biometric authentication successful!'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (_) => const MainNavigationScreen(initialIndex: 0),
-        ),
-        (route) => false,
-      );
+      if (success) {
+        final authState = ref.read(authProvider);
+
+        // Enforce sequential verification rules:
+        if (!authState.isEmailVerified) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => OtpVerificationScreen(
+                contactTarget: authState.email ?? identifier,
+                isEmailVerification: true,
+              ),
+            ),
+          );
+        } else if (!authState.isFaceVerified) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => const SecurityCheckIntroScreen(),
+            ),
+          );
+        } else if (!authState.isDocVerified) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => const GovernmentIdVerificationScreen(),
+            ),
+          );
+        } else {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (_) => const MainNavigationScreen(initialIndex: 0),
+            ),
+            (route) => false,
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid username/email or password.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
@@ -71,7 +102,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
     final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
     final textColor = isDark ? Colors.white : AppColors.charcoal;
-    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+    final mutedTextColor =
+        isDark ? AppColors.textMutedDark : AppColors.textSecondary;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -82,22 +114,6 @@ class _LoginScreenState extends State<LoginScreen> {
           icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (_) => const MainNavigationScreen(initialIndex: 0),
-                ),
-                (route) => false,
-              );
-            },
-            child: const Text(
-              'Skip',
-              style: TextStyle(color: AppColors.blushPink, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -108,297 +124,162 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Brand Header with Date² Logo
-                const Date2LogoWidget(
-                  height: 44,
-                  showContainer: true,
+                const Center(
+                  child: Date2LogoWidget(
+                    height: 44,
+                    showContainer: true,
+                  ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 22),
 
-                // Editorial Title
+                // Welcome Back Title
                 Text(
                   'Welcome Back',
                   style: AppTypography.displayMedium.copyWith(
                     color: textColor,
                     fontWeight: FontWeight.w800,
                     fontStyle: FontStyle.italic,
-                    letterSpacing: -0.5,
+                    fontSize: 26,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
-                  'Enter your credentials to access your verified profile and connections.',
-                  style: TextStyle(color: mutedTextColor, fontSize: 13, height: 1.4),
-                ),
-                const SizedBox(height: 32),
-
-                // Email / Phone Field
-                Text(
-                  'EMAIL OR MOBILE NUMBER',
-                  style: AppTypography.bodySmall.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.neonLime : AppColors.primary,
-                    letterSpacing: 1.1,
+                  'Log in with your username or registered email.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: mutedTextColor,
+                    fontSize: 13,
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _emailPhoneController,
-                  style: TextStyle(color: textColor, fontSize: 14),
-                  decoration: InputDecoration(
-                    hintText: 'alex@example.com or +91 9876543210',
-                    hintStyle: TextStyle(color: mutedTextColor.withValues(alpha: 0.7)),
-                    prefixIcon: Icon(Icons.person_outline_rounded, color: AppColors.primary),
-                    filled: true,
-                    fillColor: cardBg,
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(
-                        color: isDark ? Colors.transparent : AppColors.softLavender,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: AppColors.primary,
-                        width: 1.5,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  ),
-                  validator: (val) {
-                    if (val == null || val.trim().isEmpty) {
-                      return 'Please enter your email or phone number';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Password Field
-                Text(
-                  'PASSWORD',
-                  style: AppTypography.bodySmall.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.neonLime : AppColors.primary,
-                    letterSpacing: 1.1,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  style: TextStyle(color: textColor, fontSize: 14),
-                  decoration: InputDecoration(
-                    hintText: '••••••••••••',
-                    hintStyle: TextStyle(color: mutedTextColor.withValues(alpha: 0.7)),
-                    prefixIcon: Icon(Icons.lock_outline_rounded, color: AppColors.primary),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: mutedTextColor,
-                      ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                    filled: true,
-                    fillColor: cardBg,
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(
-                        color: isDark ? Colors.transparent : AppColors.softLavender,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: AppColors.primary,
-                        width: 1.5,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  ),
-                  validator: (val) {
-                    if (val == null || val.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-
-                // Remember Me & Forgot Password Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: Checkbox(
-                            value: _rememberMe,
-                            activeColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                            onChanged: (val) => setState(() => _rememberMe = val ?? true),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Remember Me',
-                          style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-                        );
-                      },
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          color: AppColors.blushPink,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
                 const SizedBox(height: 28),
 
-                // Primary Login Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.butterYellow,
-                      foregroundColor: AppColors.charcoal,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 1,
-                    ),
-                    onPressed: _isLoading ? null : _handleLogin,
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: AppColors.charcoal,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            'Log In',
-                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-                          ),
+                // USERNAME OR EMAIL INPUT
+                Text(
+                  'USERNAME OR EMAIL',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? AppColors.neonLime : AppColors.primary,
+                    letterSpacing: 0.8,
                   ),
                 ),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: _identifierController,
+                  autocorrect: false,
+                  decoration: InputDecoration(
+                    hintText: 'e.g. ananya_24 or name@example.com',
+                    prefixIcon: const Icon(Icons.person_outline_rounded, size: 20),
+                    filled: true,
+                    fillColor: cardBg,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your username or email';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 18),
+
+                // PASSWORD INPUT
+                Text(
+                  'PASSWORD',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? AppColors.neonLime : AppColors.primary,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your password',
+                    prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.grey,
+                        size: 20,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                    filled: true,
+                    fillColor: cardBg,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your password';
+                    }
+                    return null;
+                  },
+                ),
+
+                // Forgot Password link
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ForgotPasswordScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 14),
 
-                // Biometrics Quick Button
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: textColor,
-                      side: BorderSide(
-                        color: isDark ? Colors.white24 : AppColors.softLavender,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                    onPressed: _isLoading ? null : _handleBiometricLogin,
-                    icon: const Icon(Icons.fingerprint_rounded, size: 22, color: AppColors.primary),
-                    label: const Text(
-                      'Log in with Biometrics',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                    ),
-                  ),
+                // LOG IN BUTTON
+                PrimaryButton(
+                  label: _isLoading ? 'Authenticating...' : 'Log In',
+                  icon: Icons.login_rounded,
+                  onPressed: _isLoading ? null : _handleLogin,
                 ),
-                const SizedBox(height: 32),
 
-                // Divider OR
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: isDark ? Colors.white10 : AppColors.softLavender)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: Text(
-                        'OR CONTINUE WITH',
-                        style: TextStyle(
-                          color: mutedTextColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                    Expanded(child: Divider(color: isDark ? Colors.white10 : AppColors.softLavender)),
-                  ],
-                ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
-                // Social Logins
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: textColor,
-                          side: BorderSide(
-                            color: isDark ? Colors.white24 : AppColors.softLavender,
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        ),
-                        onPressed: () => _handleLogin(),
-                        icon: const Icon(Icons.g_mobiledata_rounded, size: 26, color: Colors.redAccent),
-                        label: const Text('Google', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: textColor,
-                          side: BorderSide(
-                            color: isDark ? Colors.white24 : AppColors.softLavender,
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        ),
-                        onPressed: () => _handleLogin(),
-                        icon: const Icon(Icons.apple_rounded, size: 22, color: AppColors.charcoal),
-                        label: const Text('Apple', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 36),
-
-                // Sign Up Link
+                // SIGNUP LINK
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Don't have an account? ",
-                        style: TextStyle(color: mutedTextColor, fontSize: 13),
+                        "Don't have an account?",
+                        style: TextStyle(
+                          color: mutedTextColor,
+                          fontSize: 13,
+                        ),
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const SignUpScreen(),
+                            ),
                           );
                         },
                         child: const Text(
                           'Sign Up',
                           style: TextStyle(
                             color: AppColors.primary,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),
                         ),
@@ -406,7 +287,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
               ],
             ),
           ),

@@ -34,6 +34,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         MaterialPageRoute(
           builder: (_) => OtpVerificationScreen(
             contactTarget: _contactController.text.trim(),
+            isEmailVerification: false,
           ),
         ),
       );

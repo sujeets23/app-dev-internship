@@ -5,6 +5,7 @@ import 'package:inclusive_dating/core/widgets/primary_button.dart';
 import 'package:inclusive_dating/core/widgets/secondary_button.dart';
 import '../../domain/models/biometric_verification_model.dart';
 import 'biometric_verification_screen.dart';
+import 'government_id_verification_screen.dart';
 
 class VerificationResultScreen extends ConsumerWidget {
   final BiometricVerificationResult? result;
@@ -157,12 +158,18 @@ class VerificationResultScreen extends ConsumerWidget {
 
                 if (isSuccess)
                   PrimaryButton(
-                    label: 'Continue to App',
-                    icon: Icons.check_rounded,
+                    label: 'Proceed to Government ID',
+                    icon: Icons.badge_outlined,
                     backgroundColor: AppColors.neonLime,
                     textColor: const Color(0xFF120826),
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const GovernmentIdVerificationScreen(),
+                        ),
+                      );
                     },
                   )
                 else ...[

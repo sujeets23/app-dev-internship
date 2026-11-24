@@ -4,7 +4,8 @@ import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'login_screen.dart';
 
 class PasswordResetScreen extends StatefulWidget {
-  const PasswordResetScreen({super.key});
+  final String? emailTarget;
+  const PasswordResetScreen({super.key, this.emailTarget});
 
   @override
   State<PasswordResetScreen> createState() => _PasswordResetScreenState();
@@ -38,8 +39,8 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
         barrierDismissible: false,
         builder: (dialogCtx) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: const [
+          title: const Row(
+            children: [
               Icon(Icons.check_circle_rounded, color: AppColors.success, size: 28),
               SizedBox(width: 8),
               Text('Password Updated!'),

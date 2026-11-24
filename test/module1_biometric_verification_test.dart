@@ -257,7 +257,7 @@ void main() {
 
       expect(find.text('Identity Verified!'), findsOneWidget);
       expect(find.text('Proof ID: VERIF-B3D-TEST'), findsOneWidget);
-      expect(find.text('Continue to App'), findsOneWidget);
+      expect(find.text('Proceed to Government ID'), findsOneWidget);
       expect(find.byIcon(Icons.verified_user_rounded), findsOneWidget);
     });
 
