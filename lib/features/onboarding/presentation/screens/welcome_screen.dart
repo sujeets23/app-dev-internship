@@ -56,7 +56,7 @@ class WelcomeScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppColors.surfaceMutedDark
-                          : AppColors.softLavender.withValues(alpha: 0.5),
+                          : AppColors.primaryLight,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
@@ -75,10 +75,10 @@ class WelcomeScreen extends ConsumerWidget {
               const SizedBox(height: 8),
 
               // Brand Tagline
-              Text(
+              const Text(
                 AppConstants.appTagline,
                 style: TextStyle(
-                  color: isDark ? AppColors.neonLime : AppColors.primary,
+                  color: AppColors.primary,
                   fontWeight: FontWeight.w700,
                   fontSize: 12,
                   letterSpacing: 0.5,
@@ -93,19 +93,11 @@ class WelcomeScreen extends ConsumerWidget {
                 height: 160,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(22),
-                  gradient: const LinearGradient(
-                    colors: [
-                      AppColors.primary,
-                      AppColors.deepViolet,
-                      AppColors.blushPink,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: AppColors.blueVioletPinkGradient,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.25),
-                      blurRadius: 16,
+                      color: AppColors.primary.withValues(alpha: 0.22),
+                      blurRadius: 18,
                       offset: const Offset(0, 6),
                     ),
                   ],
@@ -189,7 +181,7 @@ class WelcomeScreen extends ConsumerWidget {
               _buildBenefitItem(
                 context,
                 icon: Icons.verified_user_rounded,
-                iconColor: AppColors.neonLime,
+                iconColor: AppColors.primaryViolet,
                 title: 'Verified & Safer Experiences',
                 description: 'Live biometric verification, mutual video consent, and privacy shields.',
               ),
@@ -230,10 +222,10 @@ class WelcomeScreen extends ConsumerWidget {
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
                       );
                     },
-                    child: Text(
+                    child: const Text(
                       'Log In',
                       style: TextStyle(
-                        color: isDark ? AppColors.neonLime : AppColors.primary,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w800,
                         fontSize: 13.5,
                       ),
@@ -254,10 +246,10 @@ class WelcomeScreen extends ConsumerWidget {
                       ),
                     );
                   },
-                  child: Text(
+                  child: const Text(
                     'Explore as Guest ➔',
                     style: TextStyle(
-                      color: isDark ? AppColors.neonLime : AppColors.primary,
+                      color: AppColors.primary,
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
                     ),

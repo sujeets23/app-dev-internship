@@ -46,11 +46,7 @@ class Date2LogoWidget extends StatelessWidget {
           vertical: height * 0.22,
         ),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.primary, AppColors.secondary],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+          gradient: AppColors.brandHeroGradient,
           borderRadius: BorderRadius.circular(height * 0.4),
           boxShadow: [
             BoxShadow(
@@ -69,7 +65,7 @@ class Date2LogoWidget extends StatelessWidget {
               Text(
                 'Date Smart • Connect Meaningfully',
                 style: TextStyle(
-                  color: AppColors.neonLime,
+                  color: Colors.white,
                   fontSize: height * 0.22,
                   fontWeight: FontWeight.w700,
                   fontStyle: FontStyle.italic,
@@ -111,7 +107,7 @@ class Date2LogoWidget extends StatelessWidget {
   }
 
   Widget _buildFallbackWordmark(BuildContext context) {
-    final textColor = color ?? AppColors.neonLime;
+    final textColor = color ?? AppColors.primary;
     return RichText(
       text: TextSpan(
         style: TextStyle(

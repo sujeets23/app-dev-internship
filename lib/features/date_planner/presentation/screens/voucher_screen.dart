@@ -61,15 +61,13 @@ class VoucherScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       gradient: isRedeemed
                           ? null
-                          : const LinearGradient(
-                              colors: [AppColors.electricViolet, Color(0xFF6E28D9)],
-                            ),
-                      color: isRedeemed ? const Color(0xFF333340) : null,
+                          : AppColors.blueVioletGradient,
+                      color: isRedeemed ? AppColors.surfaceMutedDark : null,
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.stars, color: AppColors.neonLime, size: 26),
+                        const Icon(Icons.stars, color: Colors.white, size: 26),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(

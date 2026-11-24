@@ -198,8 +198,9 @@ class DiscoverScreen extends ConsumerWidget {
                           children: [
                             // Undo
                             _buildActionButton(
+                              context: context,
                               icon: Icons.undo_rounded,
-                              iconColor: const Color(0xFFF4A261),
+                              iconColor: AppColors.peach,
                               size: 46,
                               onTap: state.history.isNotEmpty
                                   ? () => notifier.undoSwipe()
@@ -208,6 +209,7 @@ class DiscoverScreen extends ConsumerWidget {
 
                             // Pass
                             _buildActionButton(
+                              context: context,
                               icon: Icons.close_rounded,
                               iconColor: AppColors.secondary,
                               size: 58,
@@ -216,6 +218,7 @@ class DiscoverScreen extends ConsumerWidget {
 
                             // Superlike
                             _buildActionButton(
+                              context: context,
                               icon: Icons.star_rounded,
                               iconColor: AppColors.primary,
                               size: 48,
@@ -224,8 +227,9 @@ class DiscoverScreen extends ConsumerWidget {
 
                             // Like
                             _buildActionButton(
+                              context: context,
                               icon: Icons.favorite_rounded,
-                              iconColor: AppColors.accent,
+                              iconColor: AppColors.primary,
                               size: 58,
                               onTap: () => notifier.swipe(SwipeDirection.right),
                             ),
@@ -239,19 +243,22 @@ class DiscoverScreen extends ConsumerWidget {
   }
 
   Widget _buildActionButton({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required double size,
     required VoidCallback? onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: const Color(0xFF1B1433),
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
         shape: BoxShape.circle,
         border: Border.all(
-          color: onTap != null ? iconColor.withValues(alpha: 0.5) : Colors.white10,
+          color: onTap != null ? iconColor.withValues(alpha: 0.5) : (isDark ? AppColors.borderDark : AppColors.border),
           width: 1.5,
         ),
         boxShadow: onTap != null
@@ -321,8 +328,8 @@ class DiscoverScreen extends ConsumerWidget {
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Reset Deck'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: const Color(0xFF120826),
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),

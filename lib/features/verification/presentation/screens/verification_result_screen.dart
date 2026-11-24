@@ -15,9 +15,10 @@ class VerificationResultScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bool isSuccess = result?.isSuccess ?? false;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0B1E),
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -34,11 +35,11 @@ class VerificationResultScreen extends ConsumerWidget {
                   height: 104,
                   decoration: BoxDecoration(
                     color: isSuccess
-                        ? AppColors.neonLime.withValues(alpha: 0.15)
+                        ? AppColors.success.withValues(alpha: 0.15)
                         : AppColors.error.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSuccess ? AppColors.neonLime : AppColors.error,
+                      color: isSuccess ? AppColors.success : AppColors.error,
                       width: 2.5,
                     ),
                   ),
@@ -47,7 +48,7 @@ class VerificationResultScreen extends ConsumerWidget {
                       isSuccess
                           ? Icons.verified_user_rounded
                           : Icons.gpp_bad_rounded,
-                      color: isSuccess ? AppColors.neonLime : AppColors.error,
+                      color: isSuccess ? AppColors.success : AppColors.error,
                       size: 54,
                     ),
                   ),
@@ -58,8 +59,8 @@ class VerificationResultScreen extends ConsumerWidget {
                 Text(
                   isSuccess ? 'Identity Verified!' : 'Verification Incomplete',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                     fontWeight: FontWeight.w800,
                     fontSize: 26,
                     fontStyle: FontStyle.italic,
@@ -74,8 +75,8 @@ class VerificationResultScreen extends ConsumerWidget {
                           ? 'Your identity has been confirmed via 3D active liveness. Your profile now proudly displays the Verified Shield Badge.'
                           : 'Face alignment or liveness verification was incomplete. Please ensure good lighting and clear face alignment.'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white70,
+                  style: TextStyle(
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                     fontSize: 14,
                     height: 1.45,
                   ),
@@ -88,9 +89,9 @@ class VerificationResultScreen extends ConsumerWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
+                      color: isDark ? AppColors.surfaceMutedDark : AppColors.surface,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.white12),
+                      border: Border.all(color: isDark ? AppColors.borderDark : AppColors.border),
                     ),
                     child: Column(
                       children: [
@@ -98,12 +99,12 @@ class VerificationResultScreen extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(Icons.security,
-                                color: AppColors.neonLime, size: 16),
+                                color: AppColors.primary, size: 16),
                             const SizedBox(width: 8),
                             Text(
                               'Proof ID: ${result!.verificationId}',
                               style: const TextStyle(
-                                color: AppColors.neonLime,
+                                color: AppColors.primary,
                                 fontFamily: 'monospace',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
@@ -115,8 +116,8 @@ class VerificationResultScreen extends ConsumerWidget {
                           const SizedBox(height: 4),
                           Text(
                             result!.cryptographicProofHash!,
-                            style: const TextStyle(
-                              color: Colors.white38,
+                            style: TextStyle(
+                              color: isDark ? Colors.white38 : AppColors.textTertiary,
                               fontFamily: 'monospace',
                               fontSize: 10,
                             ),
@@ -132,19 +133,19 @@ class VerificationResultScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: isDark ? AppColors.surfaceMutedDark : AppColors.surface,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white10),
+                    border: Border.all(color: isDark ? AppColors.borderDark : AppColors.border),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.lock_rounded, color: Colors.white54, size: 18),
-                      SizedBox(width: 10),
+                      Icon(Icons.lock_rounded, color: isDark ? Colors.white54 : AppColors.textSecondary, size: 18),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           'Zero-Persistence Guarantee: All raw facial frames have been wiped from volatile memory. No selfies are saved to device storage or databases.',
                           style: TextStyle(
-                            color: Colors.white60,
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                             fontSize: 11,
                             height: 1.35,
                           ),
@@ -160,8 +161,8 @@ class VerificationResultScreen extends ConsumerWidget {
                   PrimaryButton(
                     label: 'Proceed to Government ID',
                     icon: Icons.badge_outlined,
-                    backgroundColor: AppColors.neonLime,
-                    textColor: const Color(0xFF120826),
+                    backgroundColor: AppColors.primary,
+                    textColor: Colors.white,
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,

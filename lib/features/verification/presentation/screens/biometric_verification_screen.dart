@@ -72,7 +72,7 @@ class _BiometricVerificationScreenState
         state.alignmentStatus == FaceAlignmentStatus.aligned;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0C071C),
+      backgroundColor: AppColors.backgroundDark,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -537,8 +537,8 @@ class _BiometricVerificationScreenState
                               Expanded(
                                 child: PrimaryButton(
                                   label: 'Capture & Verify',
-                                  backgroundColor: AppColors.neonLime,
-                                  textColor: const Color(0xFF120826),
+                                  backgroundColor: AppColors.primary,
+                                  textColor: Colors.white,
                                   onPressed: state.status ==
                                           BiometricVerificationStatus
                                               .challenging
@@ -666,8 +666,8 @@ class _BiometricVerificationScreenState
             const SizedBox(height: 24),
             PrimaryButton(
               label: 'Grant Camera Permission',
-              backgroundColor: AppColors.neonLime,
-              textColor: const Color(0xFF120826),
+              backgroundColor: AppColors.primary,
+              textColor: Colors.white,
               onPressed: () => notifier.requestCameraPermission(),
             ),
           ],

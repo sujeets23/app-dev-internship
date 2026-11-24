@@ -89,7 +89,7 @@ class _SwipeableCardState extends State<SwipeableCard> {
                           : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800',
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
-                        color: const Color(0xFF1E1438),
+                        color: AppColors.surfaceMutedDark,
                         child: const Center(
                           child: Icon(Icons.person, color: Colors.white24, size: 80),
                         ),
@@ -193,13 +193,13 @@ class _SwipeableCardState extends State<SwipeableCard> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.accent,
+                                color: AppColors.primaryLight,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 '${widget.profile.matchPercentage}% MATCH',
                                 style: const TextStyle(
-                                  color: Color(0xFF120826),
+                                  color: AppColors.primary,
                                   fontWeight: FontWeight.w900,
                                   fontSize: 11,
                                 ),

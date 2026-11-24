@@ -26,18 +26,18 @@ class MatchCelebrationDialog extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF281358), Color(0xFF0F0724)],
+            colors: [AppColors.surfaceDark, AppColors.backgroundDark],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
           borderRadius: BorderRadius.circular(32),
           border: Border.all(
-            color: AppColors.accent.withValues(alpha: 0.5),
+            color: AppColors.primary.withValues(alpha: 0.6),
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.5),
+              color: AppColors.primary.withValues(alpha: 0.35),
               blurRadius: 36,
               spreadRadius: 4,
             ),
@@ -50,13 +50,13 @@ class MatchCelebrationDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.accent,
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Text(
                 'IT\'S A MUTUAL MATCH!',
                 style: TextStyle(
-                  color: Color(0xFF120826),
+                  color: Colors.white,
                   fontWeight: FontWeight.w900,
                   fontSize: 13,
                   letterSpacing: 1.2,
@@ -144,8 +144,8 @@ class MatchCelebrationDialog extends StatelessWidget {
 
             PrimaryButton(
               label: 'Send a Message',
-              backgroundColor: AppColors.accent,
-              textColor: const Color(0xFF120826),
+              backgroundColor: AppColors.primary,
+              textColor: Colors.white,
               icon: Icons.chat_bubble_rounded,
               onPressed: onSendMessage,
             ),

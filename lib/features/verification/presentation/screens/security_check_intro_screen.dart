@@ -47,19 +47,9 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF5000F4), Color(0xFFFFCCDF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: AppColors.brandHeroGradient,
                   borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.25),
-                      blurRadius: 14,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  boxShadow: AppColors.primaryGlow,
                 ),
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +175,7 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(Icons.privacy_tip_outlined,
-                        color: Color(0xFF22C55E), size: 22),
+                        color: AppColors.success, size: 22),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -254,7 +244,7 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isCompleted
-              ? const Color(0xFF22C55E).withValues(alpha: 0.6)
+              ? AppColors.success.withValues(alpha: 0.6)
               : AppColors.border,
           width: isCompleted ? 1.4 : 1.0,
         ),
@@ -266,14 +256,14 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
             height: 38,
             decoration: BoxDecoration(
               color: isCompleted
-                  ? const Color(0xFF22C55E).withValues(alpha: 0.15)
+                  ? AppColors.success.withValues(alpha: 0.15)
                   : AppColors.primaryLight,
               shape: BoxShape.circle,
             ),
             child: Icon(
               isCompleted ? Icons.check_circle_rounded : icon,
               color: isCompleted
-                  ? const Color(0xFF22C55E)
+                  ? AppColors.success
                   : AppColors.primary,
               size: 20,
             ),
@@ -297,7 +287,7 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
                       const Text(
                         '✓',
                         style: TextStyle(
-                          color: Color(0xFF22C55E),
+                          color: AppColors.success,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

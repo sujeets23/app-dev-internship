@@ -96,9 +96,9 @@ class ProfileDetailSheet extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     _buildPill(profile.gender, AppColors.primaryLight, AppColors.primary),
-                    _buildPill(profile.pronouns, AppColors.secondaryLight, const Color(0xFF9E385D)),
-                    _buildPill(profile.orientation, AppColors.accentLight, const Color(0xFF5D7A04)),
-                    _buildPill('${profile.distanceKm} km away', Colors.grey.withValues(alpha: 0.15), Colors.grey.shade700),
+                    _buildPill(profile.pronouns, AppColors.secondaryLight, AppColors.secondaryDark),
+                    _buildPill(profile.orientation, AppColors.primaryLight, AppColors.primaryViolet),
+                    _buildPill('${profile.distanceKm} km away', AppColors.surfaceMuted, AppColors.textSecondary),
                   ],
                 ),
 
@@ -218,8 +218,8 @@ class ProfileDetailSheet extends StatelessWidget {
                   flex: 2,
                   child: PrimaryButton(
                     label: 'Like Profile',
-                    backgroundColor: AppColors.accent,
-                    textColor: const Color(0xFF120826),
+                    backgroundColor: AppColors.primary,
+                    textColor: Colors.white,
                     icon: Icons.favorite_rounded,
                     onPressed: () {
                       Navigator.of(context).pop();

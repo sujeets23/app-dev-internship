@@ -74,19 +74,10 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFE5D5FF), Color(0xFFF8C0AE)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: AppColors.softPastelCardGradient,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.peach.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                border: Border.all(color: AppColors.border, width: 1.1),
+                boxShadow: AppColors.softShadow,
               ),
               child: Row(
                 children: [

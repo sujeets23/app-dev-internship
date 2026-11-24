@@ -268,11 +268,7 @@ class _CompanionKycScreenState extends State<CompanionKycScreen> {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF5000F4), Color(0xFFFFCCDF)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: AppColors.brandHeroGradient,
             borderRadius: BorderRadius.circular(22),
           ),
           child: const Column(
@@ -501,7 +497,7 @@ class _CompanionKycScreenState extends State<CompanionKycScreen> {
                   hasSelfie
                       ? Icons.verified_rounded
                       : Icons.camera_front_rounded,
-                  color: hasSelfie ? const Color(0xFF22C55E) : AppColors.neonLime,
+                  color: hasSelfie ? AppColors.success : AppColors.primary,
                   size: 44,
                 ),
               ),
@@ -511,7 +507,7 @@ class _CompanionKycScreenState extends State<CompanionKycScreen> {
                     ? '3D Liveness Verification Confirmed!'
                     : 'Camera Ready for Live Scan',
                 style: TextStyle(
-                  color: hasSelfie ? const Color(0xFF1B6A45) : Colors.white,
+                  color: hasSelfie ? AppColors.success : (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary),
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -523,7 +519,7 @@ class _CompanionKycScreenState extends State<CompanionKycScreen> {
                     : 'Tap below to launch the camera overlay and complete the randomized liveness challenge.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: hasSelfie ? Colors.black87 : Colors.white70,
+                  color: hasSelfie ? AppColors.textSecondary : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppColors.textSecondary),
                   fontSize: 12,
                 ),
               ),
@@ -531,8 +527,8 @@ class _CompanionKycScreenState extends State<CompanionKycScreen> {
               if (!hasSelfie)
                 PrimaryButton(
                   label: 'Launch Biometric Camera',
-                  backgroundColor: AppColors.neonLime,
-                  textColor: const Color(0xFF120826),
+                  backgroundColor: AppColors.primary,
+                  textColor: Colors.white,
                   icon: Icons.camera_alt_rounded,
                   onPressed: _startLiveBiometricSelfie,
                 )

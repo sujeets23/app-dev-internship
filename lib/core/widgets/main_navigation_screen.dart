@@ -42,27 +42,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.softWhite,
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       body: IndexedStack(
         index: _currentIndex,
         children: screens,
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceDark : Colors.white,
+          color: isDark ? AppColors.surfaceDark : AppColors.surface,
           border: Border(
             top: BorderSide(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : AppColors.softLavender.withValues(alpha: 0.9),
-              width: 1.2,
+              color: isDark ? AppColors.borderDark : AppColors.border,
+              width: 1.0,
             ),
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.softLavender.withValues(alpha: 0.25),
-              blurRadius: 12,
-              offset: const Offset(0, -2),
+              color: const Color(0xFF1C2134).withValues(alpha: isDark ? 0.25 : 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, -3),
             ),
           ],
         ),
@@ -70,15 +68,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
             onTap: _onTabSelected,
-            backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+            backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surface,
             type: BottomNavigationBarType.fixed,
-            selectedItemColor: isDark ? AppColors.accent : AppColors.primary,
+            selectedItemColor: AppColors.primary,
             unselectedItemColor: isDark
-                ? AppColors.textMutedDark
-                : AppColors.charcoal.withValues(alpha: 0.45),
+                ? AppColors.textTertiaryDark
+                : AppColors.textTertiary,
             selectedFontSize: 11,
             unselectedFontSize: 11,
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800),
+            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700),
             unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
             elevation: 0,
             items: const [

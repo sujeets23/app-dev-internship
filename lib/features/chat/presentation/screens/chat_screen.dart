@@ -301,6 +301,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Widget _buildMessageItem(ChatMessage msg) {
     final isMe = msg.isMe;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
@@ -314,17 +315,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: isMe && !msg.isFlagged
-                  ? const LinearGradient(
-                      colors: [AppColors.electricViolet, Color(0xFF7032FA)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
+                  ? AppColors.blueVioletGradient
                   : null,
               color: isMe
                   ? null
                   : (msg.isFlagged
-                      ? Colors.red.withValues(alpha: 0.2)
-                      : AppColors.cardBackgroundDark),
+                      ? Colors.red.withValues(alpha: 0.15)
+                      : (isDark ? AppColors.surfaceMutedDark : AppColors.surfaceMuted)),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
                 topRight: const Radius.circular(16),
@@ -333,7 +330,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
               border: msg.isFlagged
                   ? Border.all(color: Colors.redAccent.withValues(alpha: 0.5))
-                  : null,
+                  : (isMe ? null : Border.all(color: isDark ? AppColors.borderDark : AppColors.border, width: 1.0)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -346,8 +343,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   msg.text,
                   style: TextStyle(
                     color: msg.isFlagged
-                        ? Colors.red[200]
-                        : (isMe ? Colors.white : Colors.white.withValues(alpha: 0.95)),
+                        ? Colors.red[300]
+                        : (isMe ? Colors.white : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)),
                     fontSize: 14,
                     height: 1.35,
                     fontStyle: msg.isFlagged ? FontStyle.italic : FontStyle.normal,
