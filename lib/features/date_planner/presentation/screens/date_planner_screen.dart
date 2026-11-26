@@ -46,10 +46,12 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
-    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
-    final textColor = isDark ? Colors.white : AppColors.charcoal;
-    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedTextColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -60,8 +62,7 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
           'AI Date Planner',
           style: AppTypography.headlineMedium.copyWith(
             color: textColor,
-            fontWeight: FontWeight.w800,
-            fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
@@ -70,18 +71,22 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // AI Planner Intro Hero Banner
+            // AI Planner Intro Hero Banner (Glanceable Glacier Card)
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                gradient: AppColors.softPastelCardGradient,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.border, width: 1.1),
+                gradient: isDark ? null : AppColors.glacierPrismGradient,
+                color: isDark ? AppColors.encreElevated : null,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.glacierBorder,
+                  width: 1.1,
+                ),
                 boxShadow: AppColors.softShadow,
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.auto_awesome, color: AppColors.primary, size: 36),
+                  Icon(Icons.auto_awesome, color: accent, size: 36),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -90,16 +95,15 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
                         Text(
                           'Curate Your Perfect Date',
                           style: AppTypography.headlineMedium.copyWith(
-                            color: AppColors.charcoal,
+                            color: textColor,
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontStyle: FontStyle.italic,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'AI customizes chronological stops within your exact budget, highlighting queer-friendly partner discounts.',
-                          style: TextStyle(color: Color(0xFF3B3347), fontSize: 12),
+                          style: TextStyle(color: mutedTextColor, fontSize: 12),
                         ),
                       ],
                     ),
@@ -118,14 +122,14 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
                   'MAX BUDGET LIMIT',
                   style: AppTypography.bodySmall.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.neonLime : AppColors.primary,
-                    letterSpacing: 1.1,
+                    color: accent,
+                    letterSpacing: 1.0,
                   ),
                 ),
                 Text(
                   '₹${inputs.budget.toInt()}',
                   style: TextStyle(
-                    color: isDark ? AppColors.neonLime : AppColors.primary,
+                    color: accent,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -135,9 +139,9 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
             const SizedBox(height: 4),
             SliderTheme(
               data: SliderTheme.of(context).copyWith(
-                activeTrackColor: AppColors.blushPink,
-                thumbColor: AppColors.butterYellow,
-                inactiveTrackColor: AppColors.softLavender,
+                activeTrackColor: accent,
+                thumbColor: isDark ? AppColors.accentTeal : AppColors.primary,
+                inactiveTrackColor: AppColors.adaptiveBorder(isDark),
               ),
               child: Slider(
                 value: inputs.budget,
@@ -165,8 +169,8 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
               'SELECT NEIGHBORHOOD',
               style: AppTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.neonLime : AppColors.primary,
-                letterSpacing: 1.1,
+                color: accent,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: 8),
@@ -176,7 +180,7 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
                 color: cardBg,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: isDark ? Colors.transparent : AppColors.softLavender,
+                  color: AppColors.adaptiveBorder(isDark),
                 ),
               ),
               child: DropdownButtonHideUnderline(
@@ -204,8 +208,8 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
               'CHOOSE DATE VIBE',
               style: AppTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.neonLime : AppColors.primary,
-                letterSpacing: 1.1,
+                color: accent,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: 8),
@@ -217,16 +221,19 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
                 return ChoiceChip(
                   label: Text(v),
                   selected: isSelected,
-                  selectedColor: AppColors.butterYellow,
+                  selectedColor:
+                      isDark ? AppColors.accent : AppColors.glacierLight,
                   backgroundColor: cardBg,
                   labelStyle: TextStyle(
-                    color: isSelected ? AppColors.charcoal : textColor,
+                    color: isSelected
+                        ? (isDark ? AppColors.encreDeep : AppColors.glacierInk)
+                        : textColor,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   ),
                   side: BorderSide(
                     color: isSelected
-                        ? AppColors.butterYellow
-                        : (isDark ? Colors.white12 : AppColors.softLavender),
+                        ? accent
+                        : AppColors.adaptiveBorder(isDark),
                   ),
                   onSelected: (_) {
                     ref.read(datePlannerInputsProvider.notifier).setVibe(v);
@@ -242,8 +249,8 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
               'DIETARY PREFERENCE',
               style: AppTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.neonLime : AppColors.primary,
-                letterSpacing: 1.1,
+                color: accent,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: 8),
@@ -255,16 +262,19 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
                 return ChoiceChip(
                   label: Text(d),
                   selected: isSelected,
-                  selectedColor: AppColors.blushPink,
+                  selectedColor:
+                      isDark ? AppColors.accent : AppColors.primary,
                   backgroundColor: cardBg,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : textColor,
+                    color: isSelected
+                        ? AppColors.adaptiveOnAccent(isDark)
+                        : textColor,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   ),
                   side: BorderSide(
                     color: isSelected
-                        ? AppColors.blushPink
-                        : (isDark ? Colors.white12 : AppColors.softLavender),
+                        ? accent
+                        : AppColors.adaptiveBorder(isDark),
                   ),
                   onSelected: (_) {
                     ref.read(datePlannerInputsProvider.notifier).setDietary(d);
@@ -280,11 +290,11 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.butterYellow,
-                  foregroundColor: AppColors.charcoal,
+                  backgroundColor: accent,
+                  foregroundColor: AppColors.adaptiveOnAccent(isDark),
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
                 ),
                 onPressed: isLoading
                     ? null
@@ -306,12 +316,15 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
                         }
                       },
                 icon: isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(color: AppColors.charcoal, strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                          color: AppColors.adaptiveOnAccent(isDark),
+                          strokeWidth: 2,
+                        ),
                       )
-                    : const Icon(Icons.auto_awesome, color: AppColors.charcoal),
+                    : Icon(Icons.auto_awesome, color: AppColors.adaptiveOnAccent(isDark)),
                 label: Text(
                   isLoading ? 'Generating AI Itinerary...' : 'Generate Date Plan',
                   style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),

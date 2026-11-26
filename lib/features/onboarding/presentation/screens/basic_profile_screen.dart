@@ -48,12 +48,13 @@ class _BasicProfileScreenState extends ConsumerState<BasicProfileScreen> {
       lastDate: maxDate,
       helpText: 'SELECT YOUR DATE OF BIRTH',
       builder: (context, child) {
+        final isDarkPicker = Theme.of(context).brightness == Brightness.dark;
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: AppColors.primary,
-                  onPrimary: Colors.white,
-                  surface: Theme.of(context).cardTheme.color ?? Colors.white,
+                  primary: AppColors.adaptiveAccent(isDarkPicker),
+                  onPrimary: AppColors.adaptiveOnAccent(isDarkPicker),
+                  surface: isDarkPicker ? AppColors.surfaceDark : AppColors.surface,
                 ),
           ),
           child: child!,

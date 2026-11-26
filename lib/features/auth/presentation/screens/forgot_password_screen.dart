@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
+import 'package:inclusive_dating/core/widgets/primary_button.dart';
+import '../providers/auth_provider.dart';
 import 'otp_verification_screen.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _contactController = TextEditingController(text: 'alex@example.com');
+  final _contactController = TextEditingController();
   bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -21,43 +26,58 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  void _handleSendOtp() async {
+  Future<void> _handleSendOtp() async {
+    setState(() => _errorMessage = null);
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 600));
+    final email = _contactController.text.trim().toLowerCase();
+    final sent =
+        await ref.read(authRepositoryProvider).sendPasswordResetOtp(email);
 
-    if (mounted) {
-      setState(() => _isLoading = false);
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (sent) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => OtpVerificationScreen(
-            contactTarget: _contactController.text.trim(),
+            contactTarget: email,
             isEmailVerification: false,
           ),
         ),
       );
+    } else {
+      setState(() {
+        _errorMessage =
+            'Unable to send mock reset OTP to $email. Please verify the address.';
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
-    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
-    final textColor = isDark ? Colors.white : AppColors.charcoal;
-    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedTextColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: bgColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -68,43 +88,43 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon Illustration
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.softLavender.withValues(alpha: 0.5),
+                    color: AppColors.adaptiveHighlightBg(isDark),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.lock_reset_rounded,
-                    color: AppColors.primary,
+                    color: accent,
                     size: 36,
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // Title
                 Text(
                   'Reset Password',
                   style: AppTypography.displayMedium.copyWith(
                     color: textColor,
-                    fontWeight: FontWeight.w800,
-                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Enter the email address or phone number associated with your account, and we will send a 6-digit verification code.',
-                  style: TextStyle(color: mutedTextColor, fontSize: 13, height: 1.45),
+                  'Enter your registered email address to request a 6-digit password reset code (Demo Mode — no real email is sent).',
+                  style: TextStyle(
+                    color: mutedTextColor,
+                    fontSize: 13,
+                    height: 1.45,
+                  ),
                 ),
                 const SizedBox(height: 28),
 
-                // Contact Target Input
                 Text(
-                  'EMAIL OR PHONE NUMBER',
+                  'REGISTERED EMAIL',
                   style: AppTypography.bodySmall.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.neonLime : AppColors.primary,
+                    color: accent,
                     letterSpacing: 1.1,
                   ),
                 ),
@@ -112,78 +132,72 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 TextFormField(
                   controller: _contactController,
                   keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
                   style: TextStyle(color: textColor, fontSize: 14),
                   decoration: InputDecoration(
-                    hintText: 'alex@example.com or +91 9876543210',
-                    hintStyle: TextStyle(color: mutedTextColor.withValues(alpha: 0.7)),
-                    prefixIcon: const Icon(Icons.alternate_email, color: AppColors.primary),
+                    hintText: 'your.name@example.com',
+                    prefixIcon: Icon(
+                      Icons.alternate_email,
+                      color: accent,
+                    ),
                     filled: true,
                     fillColor: cardBg,
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(
-                        color: isDark ? Colors.transparent : AppColors.softLavender,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   ),
                   validator: (val) {
                     if (val == null || val.trim().isEmpty) {
-                      return 'Please enter your registered email or phone';
+                      return 'Please enter your registered email';
                     }
-                    if (!val.contains('@') && val.trim().length < 8) {
-                      return 'Please enter a valid email or phone number';
+                    if (!RegExp(r'^[\w\.\+\-]+@[\w\-]+\.[a-zA-Z]{2,}$')
+                        .hasMatch(val.trim())) {
+                      return 'Please enter a valid email address';
                     }
                     return null;
                   },
                 ),
 
-                const SizedBox(height: 32),
-
-                // Send OTP Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleSendOtp,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                if (_errorMessage != null) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.error.withValues(alpha: 0.16)
+                          : AppColors.errorLight,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      _errorMessage!,
+                      style: TextStyle(
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.error,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Text(
-                            'Send Verification Code',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                          ),
                   ),
+                ],
+
+                const SizedBox(height: 32),
+
+                PrimaryButton(
+                  label: _isLoading
+                      ? 'Sending Code...'
+                      : 'Send Verification Code',
+                  icon: Icons.mark_email_read_outlined,
+                  isLoading: _isLoading,
+                  onPressed: _isLoading ? null : _handleSendOtp,
                 ),
 
                 const SizedBox(height: 20),
 
-                // Return to login
                 Center(
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(
                       'Remember password? Log In',
                       style: TextStyle(
-                        color: isDark ? AppColors.neonLime : AppColors.primary,
+                        color: AppColors.adaptiveAccent(isDark),
                         fontWeight: FontWeight.w700,
                       ),
                     ),

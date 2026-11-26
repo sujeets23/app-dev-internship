@@ -1,10 +1,15 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:inclusive_dating/core/routing/app_router.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
+import 'package:inclusive_dating/features/auth/domain/models/auth_state.dart';
 import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
+import 'package:inclusive_dating/features/auth/presentation/screens/login_screen.dart';
 import 'biometric_verification_screen.dart';
+import 'government_id_verification_screen.dart';
 
 class SecurityCheckIntroScreen extends ConsumerWidget {
   const SecurityCheckIntroScreen({super.key});
@@ -14,20 +19,24 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
     final authState = ref.watch(authProvider);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
-    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
     final mutedTextColor =
-        isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
 
-    return Scaffold(
+    final Widget content = Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: bgColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: Text(
           'Security Check',
           style: AppTypography.headlineMedium.copyWith(
@@ -36,6 +45,26 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
             fontSize: 18,
           ),
         ),
+        actions: [
+          if (!Navigator.canPop(context))
+            TextButton(
+              onPressed: () async {
+                await ref.read(authProvider.notifier).logout();
+                if (!context.mounted) return;
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              },
+              child: Text(
+                'Log Out',
+                style: TextStyle(
+                  color: AppColors.adaptiveAccent(isDark),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -43,13 +72,13 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Card
+              // Header Card (Glanceable Deep Encre banner with Cyan highlight)
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: AppColors.brandHeroGradient,
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: AppColors.primaryGlow,
+                  gradient: AppColors.encrePrismGradient,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: AppColors.primaryShadow,
                 ),
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,23 +86,25 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
                     Row(
                       children: [
                         Icon(Icons.verified_user_rounded,
-                            color: Colors.white, size: 30),
+                            color: AppColors.accent, size: 30),
                         SizedBox(width: 10),
-                        Text(
-                          'Identity Assurance',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Text(
+                            'Identity Assurance',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     SizedBox(height: 10),
                     Text(
-                      'Date² is an affirming, verified community. Complete these 3 steps to eliminate bots and protect all members.',
+                      'Date² is an affirming, verified community. Complete the live face scan, active liveness check, and Government ID verification before unlocking Personal Info.',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textSecondaryDark,
                         fontSize: 13,
                         height: 1.4,
                       ),
@@ -84,25 +115,27 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
 
               const SizedBox(height: 24),
 
-              // Progress Overview Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'VERIFICATION PIPELINE',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? AppColors.neonLime : AppColors.primary,
-                      letterSpacing: 0.9,
+                  Expanded(
+                    child: Text(
+                      'VERIFICATION PIPELINE',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.adaptiveAccent(isDark),
+                        letterSpacing: 0.9,
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Text(
-                    '${(authState.verificationProgress * 100).toInt()}% COMPLETED',
-                    style: const TextStyle(
+                    '${(authState.verificationProgress * 100).toInt()}% DONE',
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                      color: AppColors.adaptiveAccent(isDark),
                     ),
                   ),
                 ],
@@ -113,112 +146,175 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(6),
                 child: LinearProgressIndicator(
                   value: authState.verificationProgress,
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                  valueColor:
-                      const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  backgroundColor: isDark
+                      ? AppColors.surfaceMutedDark
+                      : AppColors.border,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.adaptiveAccent(isDark),
+                  ),
                   minHeight: 6,
                 ),
               ),
 
               const SizedBox(height: 22),
 
-              // Step 1: Email Verified Badge
               _buildStepCard(
+                context: context,
                 stepNumber: '1',
                 title: 'Email Address Verified',
                 subtitle: authState.email ?? 'Verified email address',
                 isCompleted: authState.isEmailVerified,
                 icon: Icons.mark_email_read_rounded,
+                cardBg: cardBg,
+                textColor: textColor,
               ),
 
-              // Step 2: Live Face Scan
               _buildStepCard(
+                context: context,
                 stepNumber: '2',
-                title: 'Live 3D Face Scan',
-                subtitle:
-                    'Oval alignment with distance and ambient lighting quality checks.',
+                title: kIsWeb
+                    ? 'Live Webcam Face Scan (Demo Mode)'
+                    : 'Live 3D Face Scan',
+                subtitle: kIsWeb
+                    ? 'Browser getUserMedia webcam oval alignment with distance and lighting checks (2D landmarks).'
+                    : 'Front-camera oval alignment with distance and ambient lighting quality checks.',
                 isCompleted: authState.isFaceVerified,
                 icon: Icons.face_rounded,
+                cardBg: cardBg,
+                textColor: textColor,
               ),
 
-              // Step 3: Active Liveness Detection
               _buildStepCard(
+                context: context,
                 stepNumber: '3',
                 title: 'Active Liveness Detection',
                 subtitle:
-                    'Randomized anti-spoofing challenges (blink twice, turn head 15°).',
+                    'Randomized on-device prompts (blink twice, turn head ~15° left/right).',
                 isCompleted: authState.isFaceVerified,
                 icon: Icons.visibility_rounded,
+                cardBg: cardBg,
+                textColor: textColor,
               ),
 
-              // Step 4: Government ID Verification
               _buildStepCard(
+                context: context,
                 stepNumber: '4',
                 title: 'Government ID Verification',
                 subtitle:
-                    'Official country-aware photo ID capture and document alignment.',
+                    'Country-aware document selection, rear-camera capture or PDF/image upload.',
                 isCompleted: authState.isDocVerified,
                 icon: Icons.badge_outlined,
+                cardBg: cardBg,
+                textColor: textColor,
               ),
 
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
 
-              // Privacy & Camera Permission Guarantee
+              // Privacy & Camera Permission Notice
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.white10 : Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(
+                      color: isDark ? AppColors.borderDark : AppColors.border),
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
                   children: [
-                    const Icon(Icons.privacy_tip_outlined,
-                        color: AppColors.success, size: 22),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Strict Biometric Privacy Mandate',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.privacy_tip_outlined,
+                            color: AppColors.success, size: 22),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Strict Biometric Privacy',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: textColor,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Camera frames are processed strictly in memory and never saved to your gallery or permanent storage. Future backend uploads require transient embedding extraction without raw-selfie storage.',
+                                style: TextStyle(
+                                  color: mutedTextColor,
+                                  fontSize: 11,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Camera access is required for real-time 3D landmark analysis. Images are processed in volatile memory and wiped immediately. No raw selfies are stored.',
-                            style: TextStyle(
-                              color: mutedTextColor,
-                              fontSize: 11,
-                              height: 1.35,
-                            ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 20),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.camera_alt_outlined,
+                            color: AppColors.adaptiveAccent(isDark), size: 22),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Camera Permission Needed Next',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: textColor,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'On the next screen, we request camera access exclusively for guided face scan and Government ID framing.',
+                                style: TextStyle(
+                                  color: mutedTextColor,
+                                  fontSize: 11,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
 
-              // Continue Button
               PrimaryButton(
                 label: authState.isFaceVerified
                     ? 'Continue to Government ID'
                     : 'Start Live Face Scan',
-                icon: Icons.camera_alt_rounded,
+                icon: authState.isFaceVerified
+                    ? Icons.badge_outlined
+                    : Icons.camera_alt_rounded,
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const BiometricVerificationScreen(),
-                    ),
-                  );
+                  if (authState.isFaceVerified) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const GovernmentIdVerificationScreen(),
+                      ),
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const BiometricVerificationScreen(),
+                      ),
+                    );
+                  }
                 },
               ),
               const SizedBox(height: 16),
@@ -227,25 +323,34 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
         ),
       ),
     );
+
+    return VerificationRouteGuard(
+      requiredStep: AuthFlowStep.securityCheck,
+      child: content,
+    );
   }
 
   Widget _buildStepCard({
+    required BuildContext context,
     required String stepNumber,
     required String title,
     required String subtitle,
     required bool isCompleted,
     required IconData icon,
+    required Color cardBg,
+    required Color textColor,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isCompleted
               ? AppColors.success.withValues(alpha: 0.6)
-              : AppColors.border,
+              : (isDark ? AppColors.borderDark : AppColors.border),
           width: isCompleted ? 1.4 : 1.0,
         ),
       ),
@@ -257,14 +362,14 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: isCompleted
                   ? AppColors.success.withValues(alpha: 0.15)
-                  : AppColors.primaryLight,
+                  : AppColors.adaptiveHighlightBg(isDark),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isCompleted ? Icons.check_circle_rounded : icon,
               color: isCompleted
                   ? AppColors.success
-                  : AppColors.primary,
+                  : AppColors.adaptiveAccent(isDark),
               size: 20,
             ),
           ),
@@ -275,11 +380,14 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                    Flexible(
+                      child: Text(
+                        '$stepNumber. $title',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: textColor,
+                        ),
                       ),
                     ),
                     if (isCompleted) ...[
@@ -297,8 +405,10 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondary,
                     fontSize: 11,
                   ),
                 ),

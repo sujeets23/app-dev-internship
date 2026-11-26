@@ -7,13 +7,19 @@ class NotificationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? AppColors.backgroundDark : AppColors.background;
+    final textPrimary = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final textSecondary = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final textMuted = isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
+
     final List<Map<String, dynamic>> notifications = [
       {
         'title': 'Mutual Match Celebration! 🎉',
         'subtitle': 'You and Aarya liked each other\'s profiles. Start a conversation or propose an AI Date Plan!',
         'time': '10m ago',
         'icon': Icons.favorite,
-        'color': AppColors.softPink,
+        'color': isDark ? AppColors.accent : AppColors.primary,
         'unread': true,
       },
       {
@@ -21,7 +27,7 @@ class NotificationsScreen extends StatelessWidget {
         'subtitle': 'Your AI Date Plan generated a 10% instant bill discount pass for Bandra West.',
         'time': '1h ago',
         'icon': Icons.confirmation_number_outlined,
-        'color': AppColors.neonLime,
+        'color': AppColors.accentTeal,
         'unread': true,
       },
       {
@@ -29,7 +35,7 @@ class NotificationsScreen extends StatelessWidget {
         'subtitle': 'Companion check-in completed. Live GPS protection and emergency SOS active.',
         'time': '1d ago',
         'icon': Icons.security,
-        'color': AppColors.electricViolet,
+        'color': AppColors.success,
         'unread': false,
       },
       {
@@ -37,26 +43,25 @@ class NotificationsScreen extends StatelessWidget {
         'subtitle': 'Your face landmarks and liveness checks passed successfully.',
         'time': '2d ago',
         'icon': Icons.verified,
-        'color': AppColors.neonLime,
+        'color': AppColors.success,
         'unread': false,
       },
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: scaffoldBg,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_new, color: textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Notifications',
           style: AppTypography.headlineMedium.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontStyle: FontStyle.italic,
+            color: textPrimary,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
@@ -66,23 +71,30 @@ class NotificationsScreen extends StatelessWidget {
         itemBuilder: (context, index) {
           final n = notifications[index];
           final unread = n['unread'] as bool;
+          final badgeColor = n['color'] as Color;
 
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: unread ? AppColors.surfaceDark : AppColors.cardBackgroundDark,
+              color: unread
+                  ? (isDark ? AppColors.surfaceElevatedDark : AppColors.glacierLight)
+                  : (isDark ? AppColors.surfaceDark : AppColors.surface),
               borderRadius: BorderRadius.circular(14),
-              border: unread
-                  ? Border.all(color: (n['color'] as Color).withValues(alpha: 0.4))
-                  : null,
+              border: Border.all(
+                color: unread
+                    ? (isDark ? AppColors.accent.withValues(alpha: 0.45) : AppColors.glacierBorder)
+                    : (isDark ? AppColors.borderDark : AppColors.border),
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  backgroundColor: (n['color'] as Color).withValues(alpha: 0.2),
-                  child: Icon(n['icon'] as IconData, color: n['color'] as Color, size: 20),
+                  backgroundColor: isDark
+                      ? badgeColor.withValues(alpha: 0.2)
+                      : AppColors.surface,
+                  child: Icon(n['icon'] as IconData, color: badgeColor, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -95,23 +107,23 @@ class NotificationsScreen extends StatelessWidget {
                           Flexible(
                             child: Text(
                               n['title'] as String,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                              style: TextStyle(
+                                color: textPrimary,
+                                fontWeight: FontWeight.w700,
                                 fontSize: 13,
                               ),
                             ),
                           ),
                           Text(
                             n['time'] as String,
-                            style: const TextStyle(color: AppColors.textMutedDark, fontSize: 11),
+                            style: TextStyle(color: textMuted, fontSize: 11),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
                         n['subtitle'] as String,
-                        style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.35),
+                        style: TextStyle(color: textSecondary, fontSize: 12, height: 1.35),
                       ),
                     ],
                   ),

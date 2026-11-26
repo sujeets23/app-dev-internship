@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
-/// Visually distinctive selectable tile for onboarding options
+/// Clean selectable tile aligned with Glanceable's Glacier-active filter & list cards
 class SelectionPillTile extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -25,18 +25,19 @@ class SelectionPillTile extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    final Color accentColor = AppColors.adaptiveAccent(isDark);
     final Color backgroundColor = isSelected
         ? (isDark
-            ? AppColors.primary.withValues(alpha: 0.16)
-            : AppColors.primaryLight.withValues(alpha: 0.65))
-        : (isDark ? AppColors.surfaceMutedDark : AppColors.surface);
+            ? AppColors.accent.withValues(alpha: 0.14)
+            : AppColors.glacierLight)
+        : (isDark ? AppColors.surfaceDark : AppColors.surface);
 
     final Color borderColor = isSelected
-        ? AppColors.primary
+        ? accentColor
         : (isDark ? AppColors.borderDark : AppColors.border);
 
     final Color titleColor = isSelected
-        ? (isDark ? AppColors.textPrimaryDark : AppColors.primaryDark)
+        ? (isDark ? AppColors.textPrimaryDark : AppColors.glacierInk)
         : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary);
 
     return AnimatedContainer(
@@ -45,25 +46,17 @@ class SelectionPillTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: borderColor,
-          width: isSelected ? 1.8 : 1.2,
+          width: isSelected ? 1.6 : 1.0,
         ),
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.08),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : null,
+        boxShadow: isSelected ? AppColors.softShadow : null,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -75,17 +68,19 @@ class SelectionPillTile extends StatelessWidget {
                     height: 38,
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppColors.primary.withValues(alpha: 0.12)
+                          ? (isDark
+                              ? AppColors.accent.withValues(alpha: 0.2)
+                              : AppColors.secondary)
                           : (isDark
-                              ? AppColors.surfaceDark
-                              : AppColors.surfaceMuted),
+                              ? AppColors.surfaceMutedDark
+                              : AppColors.surfaceWarm),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       leadingIcon,
                       size: 20,
                       color: isSelected
-                          ? AppColors.primary
+                          ? accentColor
                           : (isDark
                               ? AppColors.textSecondaryDark
                               : AppColors.textSecondary),
@@ -102,7 +97,8 @@ class SelectionPillTile extends StatelessWidget {
                         title,
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: titleColor,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w500,
                           fontSize: 16,
                         ),
                       ),
@@ -127,23 +123,24 @@ class SelectionPillTile extends StatelessWidget {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary : Colors.transparent,
+                    color: isSelected ? accentColor : Colors.transparent,
                     shape: isMultiSelect ? BoxShape.rectangle : BoxShape.circle,
-                    borderRadius: isMultiSelect ? BorderRadius.circular(6) : null,
+                    borderRadius:
+                        isMultiSelect ? BorderRadius.circular(6) : null,
                     border: Border.all(
                       color: isSelected
-                          ? AppColors.primary
+                          ? accentColor
                           : (isDark
                               ? AppColors.borderDark
                               : AppColors.textTertiary),
-                      width: 1.6,
+                      width: 1.5,
                     ),
                   ),
                   child: isSelected
-                      ? const Icon(
+                      ? Icon(
                           Icons.check,
                           size: 16,
-                          color: Colors.white,
+                          color: AppColors.adaptiveOnAccent(isDark),
                         )
                       : null,
                 ),

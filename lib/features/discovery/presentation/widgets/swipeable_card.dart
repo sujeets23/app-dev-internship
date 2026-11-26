@@ -88,7 +88,7 @@ class _SwipeableCardState extends State<SwipeableCard> {
                           ? widget.profile.photoUrls[_activePhotoIndex]
                           : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800',
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (context, error, stackTrace) => Container(
                         color: AppColors.surfaceMutedDark,
                         child: const Center(
                           child: Icon(Icons.person, color: Colors.white24, size: 80),
@@ -154,9 +154,8 @@ class _SwipeableCardState extends State<SwipeableCard> {
                               '${widget.profile.name}, ${widget.profile.age}',
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w700,
                                 fontSize: 28,
-                                fontStyle: FontStyle.italic,
                               ),
                             ),
                             if (widget.profile.isVerified) ...[
@@ -193,14 +192,14 @@ class _SwipeableCardState extends State<SwipeableCard> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.primaryLight,
-                                borderRadius: BorderRadius.circular(12),
+                                color: AppColors.accent,
+                                borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
                                 '${widget.profile.matchPercentage}% MATCH',
                                 style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.encreDeep,
+                                  fontWeight: FontWeight.w800,
                                   fontSize: 11,
                                 ),
                               ),

@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.inclusivedating.app.inclusive_dating"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 37 // Required by permission_handler_android (min SDK 37)
     // ndkVersion is not needed for standard Flutter app and avoids downloading 1.5GB NDK
 
 
@@ -20,7 +20,7 @@ android {
         applicationId = "com.inclusivedating.app.inclusive_dating"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)

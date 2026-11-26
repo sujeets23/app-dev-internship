@@ -25,59 +25,47 @@ class MatchCelebrationDialog extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.surfaceDark, AppColors.backgroundDark],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          borderRadius: BorderRadius.circular(32),
+          gradient: AppColors.encrePrismGradient,
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.6),
-            width: 2,
+            color: AppColors.accent.withValues(alpha: 0.45),
+            width: 1.5,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.35),
-              blurRadius: 36,
-              spreadRadius: 4,
-            ),
-          ],
+          boxShadow: AppColors.cardShadow,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Floating Match Badge
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
               decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(20),
+                color: AppColors.accent,
+                borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
-                'IT\'S A MUTUAL MATCH!',
+                'IT\'S A MUTUAL MATCH',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 13,
-                  letterSpacing: 1.2,
+                  color: AppColors.encreDeep,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                  letterSpacing: 1.0,
                 ),
               ),
             ),
 
             const SizedBox(height: 24),
 
-            // Profile Pictures Heart Overlay
             SizedBox(
               height: 120,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Positioned(
+                  const Positioned(
                     left: 40,
                     child: CircleAvatar(
                       radius: 46,
                       backgroundColor: AppColors.accent,
-                      child: const CircleAvatar(
+                      child: CircleAvatar(
                         radius: 43,
                         backgroundImage: NetworkImage(
                           'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
@@ -89,7 +77,7 @@ class MatchCelebrationDialog extends StatelessWidget {
                     right: 40,
                     child: CircleAvatar(
                       radius: 46,
-                      backgroundColor: AppColors.secondary,
+                      backgroundColor: AppColors.glacierBorder,
                       child: CircleAvatar(
                         radius: 43,
                         backgroundImage: NetworkImage(
@@ -103,14 +91,15 @@ class MatchCelebrationDialog extends StatelessWidget {
                   Container(
                     width: 44,
                     height: 44,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.primary,
                       shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.accent, width: 1.5),
                     ),
                     child: const Icon(
                       Icons.favorite_rounded,
                       color: AppColors.accent,
-                      size: 26,
+                      size: 24,
                     ),
                   ),
                 ],
@@ -134,7 +123,7 @@ class MatchCelebrationDialog extends StatelessWidget {
             Text(
               '${match.profile.matchPercentage}% Compatibility based on shared values',
               style: const TextStyle(
-                color: AppColors.secondary,
+                color: AppColors.accent,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -144,8 +133,8 @@ class MatchCelebrationDialog extends StatelessWidget {
 
             PrimaryButton(
               label: 'Send a Message',
-              backgroundColor: AppColors.primary,
-              textColor: Colors.white,
+              backgroundColor: AppColors.accent,
+              textColor: AppColors.encreDeep,
               icon: Icons.chat_bubble_rounded,
               onPressed: onSendMessage,
             ),
@@ -155,7 +144,7 @@ class MatchCelebrationDialog extends StatelessWidget {
             SecondaryButton(
               label: 'Keep Swiping',
               textColor: Colors.white,
-              borderColor: Colors.white24,
+              borderColor: AppColors.encreBorderDark,
               onPressed: onKeepSwiping,
             ),
           ],

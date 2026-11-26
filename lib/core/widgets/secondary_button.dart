@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
-/// Clean secondary / outlined action button
+/// Clean secondary outlined button following Glanceable's white / stone-bordered variant
 class SecondaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -24,8 +24,10 @@ class SecondaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final Color resolvedFg =
+        textColor ?? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary);
 
-    Widget content = Row(
+    final Widget content = Row(
       mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -33,16 +35,19 @@ class SecondaryButton extends StatelessWidget {
           Icon(
             icon,
             size: 18,
-            color: textColor ?? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+            color: resolvedFg,
           ),
           const SizedBox(width: 8),
         ],
-        Text(
-          label,
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: textColor ?? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
+        Flexible(
+          child: Text(
+            label,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: resolvedFg,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
           ),
         ),
       ],
@@ -54,12 +59,14 @@ class SecondaryButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
+          backgroundColor: isDark ? Colors.transparent : AppColors.surface,
           side: BorderSide(
-            color: borderColor ?? (isDark ? AppColors.borderDark : AppColors.border),
-            width: 1.4,
+            color: borderColor ??
+                (isDark ? AppColors.borderDark : AppColors.borderWarm),
+            width: 1.2,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20),
         ),

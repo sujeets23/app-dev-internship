@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/constants/app_constants.dart';
+import 'package:inclusive_dating/core/routing/app_router.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
-import 'package:inclusive_dating/core/widgets/main_navigation_screen.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
+import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
 import 'package:inclusive_dating/features/auth/presentation/screens/login_screen.dart';
 import 'package:inclusive_dating/features/auth/presentation/screens/signup_screen.dart';
 import '../providers/onboarding_provider.dart';
@@ -55,17 +56,22 @@ class WelcomeScreen extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: isDark
-                          ? AppColors.surfaceMutedDark
-                          : AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(12),
+                          ? AppColors.encreElevated
+                          : AppColors.glacierLight,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.borderDark
+                            : AppColors.glacierBorder,
+                      ),
                     ),
-                    child: const Text(
+                    child: Text(
                       AppConstants.appName,
                       style: TextStyle(
-                        color: AppColors.primary,
+                        color: AppColors.adaptiveAccent(isDark),
                         fontWeight: FontWeight.w800,
                         fontSize: 12,
-                        letterSpacing: 0.8,
+                        letterSpacing: 0.6,
                       ),
                     ),
                   ),
@@ -75,32 +81,25 @@ class WelcomeScreen extends ConsumerWidget {
               const SizedBox(height: 8),
 
               // Brand Tagline
-              const Text(
+              Text(
                 AppConstants.appTagline,
                 style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
+                  color: AppColors.adaptiveAccent(isDark),
+                  fontWeight: FontWeight.w600,
                   fontSize: 12,
-                  letterSpacing: 0.5,
-                  fontStyle: FontStyle.italic,
+                  letterSpacing: 0.2,
                 ),
               ),
 
               const SizedBox(height: 14),
 
-              // Editorial Photography & Brand Hero Visual
+              // Editorial Glanceable-inspired Brand Hero Visual
               Container(
                 height: 160,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(22),
-                  gradient: AppColors.blueVioletPinkGradient,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.22),
-                      blurRadius: 18,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(18),
+                  gradient: AppColors.encrePrismGradient,
+                  boxShadow: AppColors.primaryShadow,
                 ),
                 child: Stack(
                   children: [
@@ -109,17 +108,19 @@ class WelcomeScreen extends ConsumerWidget {
                         'assets/images/date2_logo.png',
                         height: 70,
                         fit: BoxFit.contain,
+                        color: AppColors.accent,
+                        colorBlendMode: BlendMode.srcIn,
                       ),
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(22),
+                        borderRadius: BorderRadius.circular(18),
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withValues(alpha: 0.55),
+                            AppColors.encreDeep.withValues(alpha: 0.55),
                           ],
                         ),
                       ),
@@ -129,9 +130,9 @@ class WelcomeScreen extends ConsumerWidget {
                         'Authentic Dating & Verified Companionship',
                         style: TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           fontSize: 13,
-                          letterSpacing: 0.3,
+                          letterSpacing: 0.1,
                         ),
                       ),
                     ),
@@ -141,14 +142,13 @@ class WelcomeScreen extends ConsumerWidget {
 
               const SizedBox(height: 18),
 
-              // MAIN SECTION: Editorial Headline
+              // MAIN SECTION: Clean Architectural Headline
               Text(
                 'Meet someone who gets you.',
                 style: AppTypography.displayMedium.copyWith(
-                  fontWeight: FontWeight.w800,
-                  fontStyle: FontStyle.italic,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.charcoal,
-                  letterSpacing: -0.5,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                  letterSpacing: -0.7,
                   height: 1.15,
                 ),
               ),
@@ -161,7 +161,7 @@ class WelcomeScreen extends ConsumerWidget {
                 style: TextStyle(
                   color: isDark
                       ? AppColors.textSecondaryDark
-                      : AppColors.secondaryText,
+                      : AppColors.textSecondary,
                   fontSize: 13.5,
                   height: 1.4,
                 ),
@@ -173,7 +173,7 @@ class WelcomeScreen extends ConsumerWidget {
               _buildBenefitItem(
                 context,
                 icon: Icons.favorite_rounded,
-                iconColor: AppColors.primary,
+                iconColor: AppColors.adaptiveAccent(isDark),
                 title: 'Meaningful Connections',
                 description: 'Discover people who appreciate who you are with authentic affirmation.',
               ),
@@ -181,7 +181,7 @@ class WelcomeScreen extends ConsumerWidget {
               _buildBenefitItem(
                 context,
                 icon: Icons.verified_user_rounded,
-                iconColor: AppColors.primaryViolet,
+                iconColor: isDark ? AppColors.accentTeal : AppColors.glacierInk,
                 title: 'Verified & Safer Experiences',
                 description: 'Live biometric verification, mutual video consent, and privacy shields.',
               ),
@@ -189,7 +189,7 @@ class WelcomeScreen extends ConsumerWidget {
               _buildBenefitItem(
                 context,
                 icon: Icons.auto_awesome_rounded,
-                iconColor: AppColors.blushPink,
+                iconColor: isDark ? AppColors.glacierBorder : AppColors.primarySoft,
                 title: 'Dates Designed Around You',
                 description: 'AI date planning within your exact budget and curated partner venues.',
               ),
@@ -212,7 +212,7 @@ class WelcomeScreen extends ConsumerWidget {
                   Text(
                     'Already a member? ',
                     style: TextStyle(
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.secondaryText,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                       fontSize: 13.5,
                     ),
                   ),
@@ -222,11 +222,11 @@ class WelcomeScreen extends ConsumerWidget {
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       'Log In',
                       style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w800,
+                        color: AppColors.adaptiveAccent(isDark),
+                        fontWeight: FontWeight.w700,
                         fontSize: 13.5,
                       ),
                     ),
@@ -236,36 +236,18 @@ class WelcomeScreen extends ConsumerWidget {
 
               const SizedBox(height: 6),
 
-              // Tertiary Action: "Explore as Guest"
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const MainNavigationScreen(initialIndex: 0),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    'Explore as Guest ➔',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ),
-
-              if (state.hasSavedDraft && state.profile.firstName.isNotEmpty) ...[
+              if (!isInsideFlow && state.hasSavedDraft && state.profile.firstName.isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Center(
                   child: TextButton.icon(
                     icon: const Icon(Icons.refresh_rounded, size: 16),
-                    label: Text('Resume Setup (${state.profile.firstName})'),
+                    label: Text('Resume Verification (${state.profile.firstName})'),
                     onPressed: () {
-                      final step = ref.read(onboardingLocalStorageProvider).loadCurrentStep();
-                      ref.read(onboardingProvider.notifier).goToStep(step > 0 ? step : 1);
+                      final authState = ref.read(authProvider);
+                      final target = AppRouter.resolveNextRequiredScreen(authState);
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => target),
+                      );
                     },
                   ),
                 ),
@@ -312,14 +294,14 @@ class WelcomeScreen extends ConsumerWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
-                  color: isDark ? Colors.white : AppColors.charcoal,
+                  color: isDark ? Colors.white : AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 1),
               Text(
                 description,
                 style: TextStyle(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.secondaryText,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                   fontSize: 11.5,
                   height: 1.3,
                 ),

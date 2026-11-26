@@ -106,7 +106,7 @@ class _CompanionBookingFlowScreenState
       if (mounted) {
         setState(() => _isSubmitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
         );
       }
     }
@@ -118,21 +118,32 @@ class _CompanionBookingFlowScreenState
       return _buildConfirmationScreen(_confirmedBooking!);
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final insetBg = isDark ? AppColors.surfaceElevatedDark : AppColors.glacierLight;
+    final border = isDark ? AppColors.borderDark : AppColors.border;
+    final glacierBorder = isDark ? AppColors.borderDark : AppColors.glacierBorder;
+    final textPrimary = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final textSecondary = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final textMuted = isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
+    final accent = AppColors.adaptiveAccent(isDark);
+    final onAccent = AppColors.adaptiveOnAccent(isDark);
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: scaffoldBg,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_new, color: textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Book Safety Escrow',
           style: AppTypography.headlineMedium.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontStyle: FontStyle.italic,
+            color: textPrimary,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
@@ -145,9 +156,9 @@ class _CompanionBookingFlowScreenState
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white10),
+                border: Border.all(color: border),
               ),
               child: Row(
                 children: [
@@ -162,15 +173,19 @@ class _CompanionBookingFlowScreenState
                       children: [
                         Text(
                           widget.companion.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                          style: TextStyle(
+                            color: textPrimary,
+                            fontWeight: FontWeight.w700,
                             fontSize: 15,
                           ),
                         ),
                         Text(
                           '₹${widget.companion.hourlyRate.toInt()}/hr • Escrow Protected',
-                          style: const TextStyle(color: AppColors.neonLime, fontSize: 12),
+                          style: TextStyle(
+                            color: isDark ? AppColors.accent : AppColors.accentTeal,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
@@ -182,20 +197,21 @@ class _CompanionBookingFlowScreenState
             const SizedBox(height: 20),
 
             // Step 1: Event Category
-            _buildSectionHeader('1. EVENT CATEGORY (PUBLIC EVENTS ONLY)'),
+            _buildSectionHeader(context, '1. EVENT CATEGORY (PUBLIC EVENTS ONLY)'),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: border),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: _selectedCategory,
                   isExpanded: true,
-                  dropdownColor: AppColors.surfaceDark,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  dropdownColor: cardBg,
+                  style: TextStyle(color: textPrimary, fontSize: 14),
                   items: _eventCategories.map((cat) {
                     return DropdownMenuItem(value: cat, child: Text(cat));
                   }).toList(),
@@ -209,7 +225,7 @@ class _CompanionBookingFlowScreenState
             const SizedBox(height: 20),
 
             // Step 2: Date & Time Picker
-            _buildSectionHeader('2. DATE & START TIME'),
+            _buildSectionHeader(context, '2. DATE & START TIME'),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -227,16 +243,17 @@ class _CompanionBookingFlowScreenState
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceDark,
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: border),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.calendar_today, color: AppColors.softPink, size: 16),
+                          Icon(Icons.calendar_today, color: accent, size: 16),
                           const SizedBox(width: 8),
                           Text(
                             '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            style: TextStyle(color: textPrimary, fontSize: 13),
                           ),
                         ],
                       ),
@@ -256,16 +273,17 @@ class _CompanionBookingFlowScreenState
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceDark,
+                        color: cardBg,
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: border),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.access_time, color: AppColors.neonLime, size: 16),
+                          Icon(Icons.access_time, color: accent, size: 16),
                           const SizedBox(width: 8),
                           Text(
                             _selectedTime.format(context),
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            style: TextStyle(color: textPrimary, fontSize: 13),
                           ),
                         ],
                       ),
@@ -278,15 +296,15 @@ class _CompanionBookingFlowScreenState
             const SizedBox(height: 20),
 
             // Step 3: Duration Selection
-            _buildSectionHeader('3. BOOKING DURATION: $_durationHours HOURS'),
+            _buildSectionHeader(context, '3. BOOKING DURATION: $_durationHours HOURS'),
             const SizedBox(height: 4),
             Slider(
               value: _durationHours.toDouble(),
               min: 1,
               max: 6,
               divisions: 5,
-              activeColor: AppColors.neonLime,
-              inactiveColor: Colors.white24,
+              activeColor: accent,
+              inactiveColor: border,
               label: '$_durationHours Hours',
               onChanged: (val) => setState(() => _durationHours = val.toInt()),
             ),
@@ -294,14 +312,14 @@ class _CompanionBookingFlowScreenState
             const SizedBox(height: 16),
 
             // Step 4: Public Venue Selection with Map Preview
-            _buildSectionHeader('4. PUBLIC VENUE SELECTION'),
+            _buildSectionHeader(context, '4. PUBLIC VENUE SELECTION'),
             const SizedBox(height: 8),
             Container(
               height: 120,
               decoration: BoxDecoration(
-                color: const Color(0xFF1B2230),
+                color: insetBg,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.neonLime.withValues(alpha: 0.4)),
+                border: Border.all(color: glacierBorder),
               ),
               child: Stack(
                 children: [
@@ -309,15 +327,22 @@ class _CompanionBookingFlowScreenState
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.location_on, color: AppColors.neonLime, size: 32),
+                        Icon(Icons.location_on, color: accent, size: 32),
                         const SizedBox(height: 4),
                         Text(
                           _selectedVenue,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                          style: TextStyle(color: textPrimary, fontWeight: FontWeight.w700, fontSize: 12),
                         ),
                         const SizedBox(height: 2),
-                        const Text('GPS Geofence Verified Public Space', style: TextStyle(color: AppColors.softPink, fontSize: 10)),
+                        Text(
+                          'GPS Geofence Verified Public Space',
+                          style: TextStyle(
+                            color: isDark ? AppColors.accent : AppColors.accentTeal,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -328,15 +353,16 @@ class _CompanionBookingFlowScreenState
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: border),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: _selectedVenue,
                   isExpanded: true,
-                  dropdownColor: AppColors.surfaceDark,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  dropdownColor: cardBg,
+                  style: TextStyle(color: textPrimary, fontSize: 13),
                   items: _publicVenues.map((v) {
                     return DropdownMenuItem<String>(
                       value: v['name'] as String,
@@ -363,22 +389,22 @@ class _CompanionBookingFlowScreenState
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.electricViolet.withValues(alpha: 0.5)),
+                border: Border.all(color: glacierBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.lock_outline, color: AppColors.neonLime, size: 18),
+                      Icon(Icons.lock_outline, color: accent, size: 18),
                       const SizedBox(width: 6),
                       Text(
                         'SAFETY ESCROW BREAKDOWN',
                         style: AppTypography.bodySmall.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.neonLime,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? AppColors.accent : textSecondary,
                           letterSpacing: 1.1,
                         ),
                       ),
@@ -388,33 +414,33 @@ class _CompanionBookingFlowScreenState
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Rate (₹${widget.companion.hourlyRate.toInt()} × $_durationHours hrs)', style: const TextStyle(color: Colors.white70)),
-                      Text('₹${_totalEscrowAmount.toInt()}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      Text('Rate (₹${widget.companion.hourlyRate.toInt()} × $_durationHours hrs)', style: TextStyle(color: textSecondary)),
+                      Text('₹${_totalEscrowAmount.toInt()}', style: TextStyle(color: textPrimary, fontWeight: FontWeight.w700)),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Safety Operations & GPS Escrow Fee', style: TextStyle(color: Colors.white70)),
-                      Text('₹0 (Waived)', style: TextStyle(color: AppColors.neonLime, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  const Divider(color: Colors.white10, height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Total Held in Escrow', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text('Safety Operations & GPS Escrow Fee', style: TextStyle(color: textSecondary)),
+                      const Text('₹0 (Waived)', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                  Divider(color: border, height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Total Held in Escrow', style: TextStyle(color: textPrimary, fontWeight: FontWeight.w700, fontSize: 15)),
                       Text(
                         '₹${_totalEscrowAmount.toInt()}',
-                        style: const TextStyle(color: AppColors.neonLime, fontWeight: FontWeight.bold, fontSize: 18),
+                        style: TextStyle(color: accent, fontWeight: FontWeight.w800, fontSize: 18),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     '🛡️ Payment is safely locked in Date² Escrow. Funds are only released to the companion AFTER the event completes successfully.',
-                    style: TextStyle(color: AppColors.textMutedDark, fontSize: 11),
+                    style: TextStyle(color: textMuted, fontSize: 11),
                   ),
                 ],
               ),
@@ -425,17 +451,17 @@ class _CompanionBookingFlowScreenState
             // Submit Button
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.electricViolet,
-                foregroundColor: Colors.white,
+                backgroundColor: accent,
+                foregroundColor: onAccent,
                 minimumSize: const Size.fromHeight(54),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               onPressed: _isSubmitting ? null : _submitBooking,
               child: _isSubmitting
-                  ? const CircularProgressIndicator(color: Colors.white)
+                  ? CircularProgressIndicator(color: onAccent)
                   : Text(
                       'Lock Escrow & Confirm Booking (₹${_totalEscrowAmount.toInt()})',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                     ),
             ),
           ],
@@ -445,14 +471,25 @@ class _CompanionBookingFlowScreenState
   }
 
   Widget _buildConfirmationScreen(CompanionBooking booking) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final insetBg = isDark ? AppColors.backgroundDark : AppColors.glacierLight;
+    final glacierBorder = isDark ? AppColors.accent : AppColors.glacierBorder;
+    final textPrimary = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final textSecondary = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final textMuted = isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
+    final accent = AppColors.adaptiveAccent(isDark);
+    final onAccent = AppColors.adaptiveOnAccent(isDark);
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: scaffoldBg,
         elevation: 0,
-        title: const Text('Booking Confirmed', style: TextStyle(color: Colors.white)),
+        title: Text('Booking Confirmed', style: TextStyle(color: textPrimary, fontWeight: FontWeight.w700)),
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: Icon(Icons.close, color: textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -463,25 +500,24 @@ class _CompanionBookingFlowScreenState
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: AppColors.neonLime.withValues(alpha: 0.15),
+                color: isDark ? AppColors.success.withValues(alpha: 0.15) : AppColors.successLight,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.verified, color: AppColors.neonLime, size: 54),
+              child: const Icon(Icons.verified, color: AppColors.success, size: 54),
             ),
             const SizedBox(height: 16),
             Text(
               'Escrow Locked & Booking Confirmed!',
               textAlign: TextAlign.center,
               style: AppTypography.headlineMedium.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontStyle: FontStyle.italic,
+                color: textPrimary,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Booking ID: ${booking.id}',
-              style: const TextStyle(color: AppColors.textMutedDark, fontSize: 12),
+              style: TextStyle(color: textMuted, fontSize: 12),
             ),
             const SizedBox(height: 24),
 
@@ -489,17 +525,17 @@ class _CompanionBookingFlowScreenState
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.neonLime, width: 1.5),
+                border: Border.all(color: glacierBorder, width: 1.5),
               ),
               child: Column(
                 children: [
-                  const Text(
+                  Text(
                     'COMPANION CHECK-IN PASS',
                     style: TextStyle(
-                      color: AppColors.neonLime,
-                      fontWeight: FontWeight.bold,
+                      color: isDark ? AppColors.accent : AppColors.primary,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: 1.2,
                       fontSize: 12,
                     ),
@@ -512,34 +548,35 @@ class _CompanionBookingFlowScreenState
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
                     ),
-                    child: const Icon(Icons.qr_code_2, size: 120, color: Colors.black),
+                    child: const Icon(Icons.qr_code_2, size: 120, color: AppColors.primary),
                   ),
                   const SizedBox(height: 14),
-                  const Text('Check-in 4-Digit OTP', style: TextStyle(color: AppColors.textMutedDark, fontSize: 12)),
+                  Text('Check-in 4-Digit OTP', style: TextStyle(color: textMuted, fontSize: 12)),
                   const SizedBox(height: 4),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.backgroundDark,
+                      color: insetBg,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.softPink),
+                      border: Border.all(color: glacierBorder),
                     ),
                     child: Text(
                       booking.checkInOtp,
-                      style: const TextStyle(
-                        color: AppColors.softPink,
+                      style: TextStyle(
+                        color: accent,
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                         letterSpacing: 6,
                       ),
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
+                  Text(
                     'Present this OTP to your companion upon arrival at the public venue.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white70, fontSize: 11),
+                    style: TextStyle(color: textSecondary, fontSize: 11),
                   ),
                 ],
               ),
@@ -550,13 +587,13 @@ class _CompanionBookingFlowScreenState
             // Simulate Companion Check-In Action
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.neonLime,
-                foregroundColor: Colors.black,
+                backgroundColor: accent,
+                foregroundColor: onAccent,
                 minimumSize: const Size.fromHeight(50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               icon: const Icon(Icons.check_circle_outline),
-              label: const Text('Simulate Companion Check-in (OTP 7492)', style: TextStyle(fontWeight: FontWeight.bold)),
+              label: const Text('Simulate Companion Check-in (OTP 7492)', style: TextStyle(fontWeight: FontWeight.w700)),
               onPressed: () async {
                 try {
                   await ref.read(activeBookingProvider.notifier).checkIn('7492');
@@ -564,7 +601,7 @@ class _CompanionBookingFlowScreenState
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('✅ Check-in verified! Live GPS Tracking & Safety HUD is now active.'),
-                        backgroundColor: AppColors.electricViolet,
+                        backgroundColor: AppColors.primary,
                       ),
                     );
                     Navigator.pop(context);
@@ -572,7 +609,7 @@ class _CompanionBookingFlowScreenState
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                      SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
                     );
                   }
                 }
@@ -584,12 +621,13 @@ class _CompanionBookingFlowScreenState
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       title,
       style: AppTypography.bodySmall.copyWith(
-        fontWeight: FontWeight.bold,
-        color: AppColors.neonLime,
+        fontWeight: FontWeight.w700,
+        color: isDark ? AppColors.accent : AppColors.textSecondary,
         letterSpacing: 1.1,
       ),
     );

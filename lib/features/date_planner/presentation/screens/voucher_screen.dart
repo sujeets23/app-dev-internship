@@ -14,22 +14,28 @@ class VoucherScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activePlan = ref.watch(datePlanStateProvider).value ?? plan;
     final isRedeemed = activePlan.isVoucherRedeemed;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_new, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Digital Partner Voucher',
           style: AppTypography.headlineMedium.copyWith(
-            color: Colors.white,
+            color: textColor,
             fontWeight: FontWeight.bold,
-            fontStyle: FontStyle.italic,
           ),
         ),
       ),
@@ -40,18 +46,15 @@ class VoucherScreen extends ConsumerWidget {
             // Voucher Ticket Card
             Container(
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
-                borderRadius: BorderRadius.circular(24),
+                color: cardBg,
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isRedeemed ? Colors.white24 : AppColors.softPink,
-                  width: 2,
+                  color: isRedeemed
+                      ? AppColors.adaptiveBorder(isDark)
+                      : (isDark ? AppColors.accent : AppColors.glacierBorder),
+                  width: 1.5,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: (isRedeemed ? Colors.black : AppColors.softPink).withValues(alpha: 0.2),
-                    blurRadius: 16,
-                  ),
-                ],
+                boxShadow: AppColors.cardShadow,
               ),
               child: Column(
                 children: [
@@ -59,33 +62,37 @@ class VoucherScreen extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     decoration: BoxDecoration(
-                      gradient: isRedeemed
-                          ? null
-                          : AppColors.blueVioletGradient,
-                      color: isRedeemed ? AppColors.surfaceMutedDark : null,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+                      gradient: isRedeemed ? null : AppColors.encrePrismGradient,
+                      color: isRedeemed
+                          ? (isDark ? AppColors.surfaceMutedDark : AppColors.surfaceMuted)
+                          : null,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.stars, color: Colors.white, size: 26),
+                        Icon(
+                          Icons.stars,
+                          color: isRedeemed ? mutedColor : AppColors.accent,
+                          size: 26,
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
                                 'OFFICIAL PARTNER PASS',
                                 style: TextStyle(
-                                  color: AppColors.neonLime,
+                                  color: isRedeemed ? mutedColor : AppColors.accent,
                                   fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.2,
+                                  letterSpacing: 1.0,
                                   fontSize: 11,
                                 ),
                               ),
                               Text(
                                 '10% Instant Bill Discount',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: isRedeemed ? textColor : Colors.white,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
                                 ),
@@ -110,18 +117,19 @@ class VoucherScreen extends ConsumerWidget {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.border),
                           ),
                           child: isRedeemed
                               ? const Center(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.check_circle, color: Colors.green, size: 64),
+                                      Icon(Icons.check_circle, color: AppColors.success, size: 64),
                                       SizedBox(height: 4),
                                       Text(
                                         'REDEEMED',
                                         style: TextStyle(
-                                          color: Colors.green,
+                                          color: AppColors.success,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14,
                                         ),
@@ -129,7 +137,7 @@ class VoucherScreen extends ConsumerWidget {
                                     ],
                                   ),
                                 )
-                              : const Icon(Icons.qr_code_2, size: 136, color: Colors.black),
+                              : const Icon(Icons.qr_code_2, size: 136, color: AppColors.encreDeep),
                         ),
 
                         const SizedBox(height: 16),
@@ -138,17 +146,17 @@ class VoucherScreen extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: AppColors.backgroundDark,
+                            color: AppColors.adaptiveHighlightBg(isDark),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.white12),
+                            border: Border.all(color: AppColors.adaptiveBorder(isDark)),
                           ),
                           child: Text(
                             activePlan.digitalVoucherCode ?? 'DATE2-PARTNER-7892X',
-                            style: const TextStyle(
-                              color: AppColors.neonLime,
+                            style: TextStyle(
+                              color: accent,
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 1.5,
+                              letterSpacing: 1.4,
                             ),
                           ),
                         ),
@@ -156,37 +164,37 @@ class VoucherScreen extends ConsumerWidget {
                         const SizedBox(height: 16),
 
                         // Partner Venue Details
-                        const Text(
+                        Text(
                           'Valid at Partner Venues:',
-                          style: TextStyle(color: AppColors.textMutedDark, fontSize: 12),
+                          style: TextStyle(color: mutedColor, fontSize: 12),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'Subko Coffee • Olive Bistro • Kala Ghoda Art Cafe',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
+                          style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 13),
                         ),
 
                         const SizedBox(height: 16),
-                        const Divider(color: Colors.white10),
+                        Divider(color: AppColors.adaptiveBorder(isDark)),
                         const SizedBox(height: 8),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Status:', style: TextStyle(color: AppColors.textMutedDark, fontSize: 12)),
+                            Text('Status:', style: TextStyle(color: mutedColor, fontSize: 12)),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: isRedeemed
-                                    ? Colors.green.withValues(alpha: 0.2)
-                                    : AppColors.neonLime.withValues(alpha: 0.2),
+                                    ? AppColors.success.withValues(alpha: 0.16)
+                                    : AppColors.adaptiveHighlightBg(isDark),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 isRedeemed ? 'REDEEMED' : 'READY TO SCAN',
                                 style: TextStyle(
-                                  color: isRedeemed ? Colors.green : AppColors.neonLime,
+                                  color: isRedeemed ? AppColors.success : accent,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 11,
                                 ),
@@ -207,8 +215,8 @@ class VoucherScreen extends ConsumerWidget {
             if (!isRedeemed)
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.electricViolet,
-                  foregroundColor: Colors.white,
+                  backgroundColor: accent,
+                  foregroundColor: AppColors.adaptiveOnAccent(isDark),
                   minimumSize: const Size.fromHeight(52),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
@@ -218,9 +226,9 @@ class VoucherScreen extends ConsumerWidget {
                   final ok = await ref.read(datePlanStateProvider.notifier).redeemVoucher();
                   if (ok && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('🎉 10% discount verified & redeemed successfully!'),
-                        backgroundColor: AppColors.electricViolet,
+                      SnackBar(
+                        content: const Text('🎉 10% discount verified & redeemed successfully!'),
+                        backgroundColor: isDark ? AppColors.encreElevated : AppColors.primary,
                       ),
                     );
                   }
@@ -230,18 +238,18 @@ class VoucherScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.15),
+                  color: AppColors.success.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.withValues(alpha: 0.4)),
+                  border: Border.all(color: AppColors.success.withValues(alpha: 0.45)),
                 ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.check_circle, color: Colors.green),
+                    Icon(Icons.check_circle, color: AppColors.success),
                     SizedBox(width: 8),
                     Text(
                       'Voucher has been applied to your bill!',
-                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),

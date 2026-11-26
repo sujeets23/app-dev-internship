@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:inclusive_dating/core/routing/app_router.dart';
+import 'package:inclusive_dating/features/auth/domain/models/auth_state.dart';
+import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
 import '../providers/onboarding_provider.dart';
 import 'basic_profile_screen.dart';
 import 'connection_preferences_screen.dart';
@@ -18,9 +21,16 @@ class OnboardingFlowScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
+    final guardEnforced = ref.watch(authGuardEnforcedProvider);
+    final isVerified = ref.watch(authProvider.select((s) => s.isFullyVerified));
+
+    final int effectiveStep =
+        (guardEnforced && isVerified && state.currentStep == 0)
+            ? 1
+            : state.currentStep;
 
     Widget currentScreen;
-    switch (state.currentStep) {
+    switch (effectiveStep) {
       case 0:
         currentScreen = const WelcomeScreen(
           key: ValueKey('step_0_welcome'),
@@ -54,24 +64,27 @@ class OnboardingFlowScreen extends ConsumerWidget {
         break;
     }
 
-    return PopScope(
-      canPop: state.currentStep == 0,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && state.currentStep > 0) {
-          notifier.previousStep();
-        }
-      },
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 260),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+    return VerificationRouteGuard(
+      requiredStep: AuthFlowStep.personalInfo,
+      child: PopScope(
+        canPop: effectiveStep <= 1,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop && effectiveStep > 1) {
+            notifier.previousStep();
+          }
         },
-        child: currentScreen,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 260),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+          child: currentScreen,
+        ),
       ),
     );
   }

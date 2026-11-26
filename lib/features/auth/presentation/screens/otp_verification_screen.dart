@@ -2,22 +2,26 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:inclusive_dating/core/routing/app_router.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
 import 'package:inclusive_dating/features/verification/presentation/screens/security_check_intro_screen.dart';
 import '../../domain/models/auth_state.dart';
 import '../providers/auth_provider.dart';
+import 'login_screen.dart';
 import 'password_reset_screen.dart';
 
 class OtpVerificationScreen extends ConsumerStatefulWidget {
   final String contactTarget;
   final bool isEmailVerification;
+  final bool showAccountCreatedNotice;
 
   const OtpVerificationScreen({
     super.key,
     required this.contactTarget,
     this.isEmailVerification = true,
+    this.showAccountCreatedNotice = false,
   });
 
   @override
@@ -29,99 +33,240 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
   final List<TextEditingController> _controllers =
       List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  final List<FocusNode> _listenerFocusNodes =
+      List.generate(6, (_) => FocusNode(skipTraversal: true));
 
+  late String _activeTarget;
   int _countdown = 30;
   Timer? _timer;
   bool _isLoading = false;
+  bool _isResending = false;
   String? _errorMessage;
   bool _isSuccess = false;
+  bool _showDevCode = true;
 
   @override
   void initState() {
     super.initState();
+    _activeTarget = widget.contactTarget;
     _startTimer();
-    // Pre-populate with mock demo OTP for smooth developer testing
-    _controllers[0].text = '4';
-    _controllers[1].text = '9';
-    _controllers[2].text = '2';
-    _controllers[3].text = '1';
-    _controllers[4].text = '8';
-    _controllers[5].text = '6';
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureDemoOtpReady();
+    });
+  }
+
+  Future<void> _ensureDemoOtpReady() async {
+    if (!mounted) return;
+    await ref.read(authProvider.notifier).ensureDemoOtpIssued(
+          email: _activeTarget,
+          isPasswordReset: !widget.isEmailVerification,
+        );
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _startTimer() {
     _countdown = 30;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (_countdown > 0) {
-        setState(() => _countdown--);
-      } else {
+      if (!mounted) {
         t.cancel();
+        return;
       }
+      setState(() {
+        if (_countdown > 0) {
+          _countdown--;
+        }
+      });
     });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    for (var c in _controllers) {
+    for (final c in _controllers) {
       c.dispose();
     }
-    for (var f in _focusNodes) {
+    for (final f in _focusNodes) {
       f.dispose();
+    }
+    for (final lf in _listenerFocusNodes) {
+      lf.dispose();
     }
     super.dispose();
   }
 
   void _onDigitChanged(int index, String value) {
-    if (value.isNotEmpty) {
-      if (value.length > 1) {
-        // Handle clipboard paste
-        _handlePastedCode(value);
-        return;
-      }
-      if (index < 5) {
-        _focusNodes[index + 1].requestFocus();
-      } else {
-        _focusNodes[index].unfocus();
-      }
+    setState(() => _errorMessage = null);
+
+    if (value.isEmpty) return;
+
+    if (value.length > 1) {
+      _handlePastedCode(value);
+      return;
+    }
+
+    if (index < 5) {
+      _focusNodes[index + 1].requestFocus();
+    } else {
+      _focusNodes[index].unfocus();
+    }
+  }
+
+  void _onKeyEvent(int index, KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.backspace &&
+        _controllers[index].text.isEmpty &&
+        index > 0) {
+      _controllers[index - 1].clear();
+      _focusNodes[index - 1].requestFocus();
+      setState(() {});
     }
   }
 
   void _handlePastedCode(String pasted) {
     final digits = pasted.replaceAll(RegExp(r'\D'), '');
-    for (int i = 0; i < 6 && i < digits.length; i++) {
-      _controllers[i].text = digits[i];
+    for (int i = 0; i < 6; i++) {
+      _controllers[i].text = i < digits.length ? digits[i] : '';
     }
     if (digits.length >= 6) {
       _focusNodes[5].unfocus();
+    } else if (digits.isNotEmpty) {
+      _focusNodes[digits.length.clamp(0, 5)].requestFocus();
+    }
+    setState(() {});
+  }
+
+  Future<void> _pasteFromClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    if (data?.text != null && data!.text!.isNotEmpty) {
+      _handlePastedCode(data.text!);
     }
   }
 
-  void _resendCode() async {
-    if (_countdown > 0) return;
+  Future<void> _showEditEmailDialog() async {
+    final editController = TextEditingController(text: _activeTarget);
+    final formKey = GlobalKey<FormState>();
+
+    final updated = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Edit Email Address'),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: editController,
+            keyboardType: TextInputType.emailAddress,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'New Email Address',
+              hintText: 'name@example.com',
+            ),
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) return 'Email is required';
+              if (!RegExp(r'^[\w\.\+\-]+@[\w\-]+\.[a-zA-Z]{2,}$')
+                  .hasMatch(v.trim())) {
+                return 'Enter a valid email address';
+              }
+              return null;
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(dialogContext, editController.text.trim());
+              }
+            },
+            child: const Text('Update & Resend'),
+          ),
+        ],
+      ),
+    );
+
+    editController.dispose();
+
+    if (updated != null && updated.isNotEmpty && mounted) {
+      setState(() {
+        _activeTarget = updated;
+        _isResending = true;
+        _errorMessage = null;
+      });
+
+      final status = widget.isEmailVerification
+          ? await ref.read(authProvider.notifier).editEmailAndResendOtp(updated)
+          : (await ref.read(authRepositoryProvider).sendPasswordResetOtp(updated)
+              ? EmailOtpStatus.waiting
+              : EmailOtpStatus.deliveryFailed);
+
+      if (!mounted) return;
+      setState(() {
+        _isResending = false;
+        if (status == EmailOtpStatus.deliveryFailed) {
+          _errorMessage = 'Mock delivery failed for $updated.';
+        } else {
+          _startTimer();
+        }
+      });
+    }
+  }
+
+  Future<void> _resendCode() async {
+    if (_countdown > 0 || _isResending) return;
     setState(() {
-      _isLoading = true;
+      _isResending = true;
       _errorMessage = null;
     });
 
-    await Future.delayed(const Duration(milliseconds: 600));
+    final status = widget.isEmailVerification
+        ? await ref
+            .read(authProvider.notifier)
+            .sendOrResendOtp(overrideEmail: _activeTarget)
+        : (await ref
+                .read(authRepositoryProvider)
+                .sendPasswordResetOtp(_activeTarget)
+            ? EmailOtpStatus.waiting
+            : EmailOtpStatus.deliveryFailed);
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
+    if (!mounted) return;
+    setState(() {
+      _isResending = false;
+      if (status == EmailOtpStatus.deliveryFailed) {
+        _errorMessage =
+            'Demo SMTP delivery failed for $_activeTarget. Edit email or retry.';
+      } else if (status == EmailOtpStatus.serviceUnavailable) {
+        _errorMessage = 'OTP delivery service temporarily unavailable.';
+      } else {
         _startTimer();
-      });
+      }
+    });
+
+    if (_errorMessage == null && mounted) {
+      final refreshedOtp = ref.read(authRepositoryProvider).getDemoOtpSnapshot(
+            _activeTarget,
+            isPasswordReset: !widget.isEmailVerification,
+          );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('A fresh 6-digit mock code was sent to ${widget.contactTarget}.'),
-          backgroundColor: const Color(0xFF1B6A45),
+          content: Text(
+            refreshedOtp != null
+                ? 'Demo Mode (No SMTP): New 6-digit demo OTP generated for $_activeTarget (${refreshedOtp.code}).'
+                : 'Verification code resent to $_activeTarget.',
+          ),
+          backgroundColor: AppColors.success,
         ),
       );
     }
   }
 
-  void _handleVerifyOtp() async {
+  Future<void> _handleVerifyOtp() async {
+    if (_isLoading || _isResending || _isSuccess) return;
     final code = _controllers.map((c) => c.text).join();
     if (code.length < 6) {
       setState(() {
@@ -135,90 +280,125 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
       _errorMessage = null;
     });
 
+    final EmailOtpStatus status;
     if (widget.isEmailVerification) {
-      final status =
-          await ref.read(authProvider.notifier).verifyEmailOtp(code);
+      status = await ref.read(authProvider.notifier).verifyEmailOtp(code);
+    } else {
+      status = await ref
+          .read(authRepositoryProvider)
+          .verifyPasswordResetOtp(_activeTarget, code);
+    }
 
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+    if (!mounted) return;
+    setState(() => _isLoading = false);
 
-      switch (status) {
-        case EmailOtpStatus.success:
-          setState(() => _isSuccess = true);
-          await Future.delayed(const Duration(milliseconds: 400));
-          if (!mounted) return;
-          // Sequential Flow: Move immediately to Security Check Introduction Screen
+    switch (status) {
+      case EmailOtpStatus.success:
+        setState(() => _isSuccess = true);
+        await Future.delayed(const Duration(milliseconds: 350));
+        if (!mounted) return;
+
+        if (widget.isEmailVerification) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (_) => const SecurityCheckIntroScreen(),
             ),
           );
-          break;
-        case EmailOtpStatus.expiredOtp:
-          setState(() {
-            _errorMessage = 'This OTP has expired. Please tap Resend to receive a fresh code.';
-          });
-          break;
-        case EmailOtpStatus.invalidOtp:
-          setState(() {
-            _errorMessage = 'Invalid verification code. Use demo code: 492186.';
-          });
-          break;
-        case EmailOtpStatus.serviceUnavailable:
-          setState(() {
-            _errorMessage = 'Verification service temporarily unavailable. Please retry shortly.';
-          });
-          break;
-        case EmailOtpStatus.deliveryFailed:
-          setState(() {
-            _errorMessage = 'Failed to deliver OTP to ${widget.contactTarget}. Check address.';
-          });
-          break;
-        default:
-          setState(() {
-            _errorMessage = 'Verification error. Please retry.';
-          });
-      }
-    } else {
-      // Password reset verification
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-
-      if (code == '492186' || code == '123456') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) =>
-                PasswordResetScreen(emailTarget: widget.contactTarget),
-          ),
-        );
-      } else {
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PasswordResetScreen(emailTarget: _activeTarget),
+            ),
+          );
+        }
+        break;
+      case EmailOtpStatus.expiredOtp:
         setState(() {
-          _errorMessage = 'Invalid reset code. Use demo code: 492186.';
+          _errorMessage =
+              'This OTP has expired. Tap Resend Code to request a fresh code.';
         });
-      }
+        break;
+      case EmailOtpStatus.invalidOtp:
+        setState(() {
+          _errorMessage =
+              'Invalid code entered. Check the 6-digit code in the Demo Testing box and try again.';
+        });
+        break;
+      case EmailOtpStatus.serviceUnavailable:
+        setState(() {
+          _errorMessage =
+              'Verification service temporarily unavailable. Please retry shortly.';
+        });
+        break;
+      case EmailOtpStatus.deliveryFailed:
+        setState(() {
+          _errorMessage =
+              'Delivery failed for $_activeTarget. Check address or edit email.';
+        });
+        break;
+      case EmailOtpStatus.waiting:
+      case EmailOtpStatus.otpEntered:
+      case EmailOtpStatus.verifying:
+      case EmailOtpStatus.resending:
+        setState(() {
+          _errorMessage = 'Verification could not complete. Please retry.';
+        });
+        break;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
-    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
-    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
     final mutedTextColor =
-        isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
 
-    return Scaffold(
+    final demoSnapshot = ref.read(authRepositoryProvider).getDemoOtpSnapshot(
+          _activeTarget,
+          isPasswordReset: !widget.isEmailVerification,
+        );
+    final now = DateTime.now();
+    final int remainingValiditySec = demoSnapshot == null
+        ? 0
+        : demoSnapshot.expiresAt.difference(now).inSeconds.clamp(0, 3600);
+    final bool isDemoExpired = demoSnapshot != null && demoSnapshot.isExpiredAt(now);
+
+    final screen = Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: bgColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
+        actions: [
+          if (widget.isEmailVerification && !Navigator.canPop(context))
+            TextButton(
+              onPressed: () async {
+                await ref.read(authProvider.notifier).logout();
+                if (!context.mounted) return;
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              },
+              child: Text(
+                'Switch Account',
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -226,101 +406,171 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon Badge
+              if (widget.showAccountCreatedNotice) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.success.withValues(alpha: 0.14)
+                        : AppColors.successLight,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppColors.success.withValues(alpha: 0.45),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.success,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Account created! Verify your email using the local Demo OTP below to proceed to Security Check.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: textColor,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               Container(
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
+                  color: AppColors.adaptiveHighlightBg(isDark),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.mark_email_read_rounded,
-                  color: AppColors.primary,
+                  color: accent,
                   size: 32,
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Title
               Text(
-                'Verify Your Email',
+                widget.isEmailVerification
+                    ? 'Verify Your Email'
+                    : 'Verify Reset Code',
                 style: AppTypography.displayMedium.copyWith(
                   color: textColor,
-                  fontWeight: FontWeight.w800,
-                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w700,
                   fontSize: 26,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
-                'We sent a 6-digit confirmation code to:',
+                'Demo OTP verification target:',
                 style: AppTypography.bodyMedium.copyWith(
                   color: mutedTextColor,
                   fontSize: 13,
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                widget.contactTarget,
-                style: TextStyle(
-                  color: isDark ? AppColors.neonLime : AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // 6-Digit OTP Field Row
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(6, (index) {
-                  return SizedBox(
-                    width: 46,
-                    height: 56,
-                    child: TextField(
-                      controller: _controllers[index],
-                      focusNode: _focusNodes[index],
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      maxLength: 1,
+                children: [
+                  Expanded(
+                    child: Text(
+                      _activeTarget,
                       style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: textColor,
+                        color: accent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: InputDecoration(
-                        counterText: '',
-                        filled: true,
-                        fillColor: cardBg,
-                        contentPadding: EdgeInsets.zero,
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: _errorMessage != null
-                                ? AppColors.error
-                                : AppColors.border,
-                            width: 1.4,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: AppColors.primary,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      onChanged: (val) => _onDigitChanged(index, val),
                     ),
-                  );
-                }),
+                  ),
+                  TextButton.icon(
+                    onPressed: _isResending ? null : _showEditEmailDialog,
+                    icon: const Icon(Icons.edit_outlined, size: 15),
+                    label: const Text(
+                      'Edit Email',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // 6-Digit OTP Input Row with Backspace + Paste support
+              Row(
+                children: [
+                  for (int index = 0; index < 6; index++) ...[
+                    Expanded(
+                      child: SizedBox(
+                        height: 56,
+                        child: KeyboardListener(
+                          focusNode: _listenerFocusNodes[index],
+                          onKeyEvent: (event) => _onKeyEvent(index, event),
+                          child: TextField(
+                            controller: _controllers[index],
+                            focusNode: _focusNodes[index],
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: textColor,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            decoration: InputDecoration(
+                              counterText: '',
+                              filled: true,
+                              fillColor: cardBg,
+                              contentPadding: EdgeInsets.zero,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: _errorMessage != null
+                                      ? AppColors.error
+                                      : (isDark
+                                          ? AppColors.borderDark
+                                          : AppColors.border),
+                                  width: 1.4,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: accent,
+                                  width: 2.0,
+                                ),
+                              ),
+                            ),
+                            onChanged: (val) => _onDigitChanged(index, val),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (index < 5) const SizedBox(width: 6),
+                  ],
+                ],
               ),
 
-              // Error feedback
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: _pasteFromClipboard,
+                    icon: const Icon(Icons.content_paste_rounded, size: 15),
+                    label: const Text('Paste Code', style: TextStyle(fontSize: 12)),
+                  ),
+                ],
+              ),
+
               if (_errorMessage != null) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     const Icon(Icons.error_outline_rounded,
@@ -340,89 +590,207 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                 ),
               ],
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-              // Demo Testing Info Banner
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.2),
+              // Development / Demo Testing Helper Card (hidden in ProductionAuthRepository)
+              if (demoSnapshot != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.surfaceMutedDark
+                        : AppColors.glacierLight,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? AppColors.borderDark
+                          : AppColors.glacierBorder,
+                    ),
                   ),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.info_outline_rounded,
-                        color: AppColors.primary, size: 18),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Demo Testing Mode: Pre-filled with demo OTP 492186. (Test expired state using 000000).',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.science_outlined, color: accent, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'DEMO / DEV TESTING (No Real SMTP Sent)',
+                              style: TextStyle(
+                                color: isDark
+                                    ? AppColors.accent
+                                    : AppColors.glacierInk,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () =>
+                                setState(() => _showDevCode = !_showDevCode),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              child: Text(
+                                _showDevCode ? 'Hide' : 'Show',
+                                style: TextStyle(
+                                  color: accent,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _showDevCode
+                            ? 'Generated Demo OTP: ${demoSnapshot.code} • ${isDemoExpired ? "EXPIRED — tap Resend" : "Valid for ${remainingValiditySec}s"}'
+                            : 'Tap "Show" to view the locally generated 6-digit demo OTP.',
                         style: TextStyle(
-                          color: AppColors.primaryDark,
-                          fontSize: 11,
-                          height: 1.3,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.glacierInk,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        'QA simulation triggers: 000000 (expired), 888888 (service outage), 999999 (delivery failed).',
+                        style: TextStyle(
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondary,
+                          fontSize: 10.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () =>
+                                _handlePastedCode(demoSnapshot.code),
+                            child: Text(
+                              'Fill Demo OTP (${demoSnapshot.code})',
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                          ),
+                          if (!isDemoExpired)
+                            OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              onPressed: () async {
+                                await ref
+                                    .read(authProvider.notifier)
+                                    .expireDemoOtpForTesting(
+                                      email: _activeTarget,
+                                      isPasswordReset:
+                                          !widget.isEmailVerification,
+                                    );
+                                if (mounted) {
+                                  setState(() {});
+                                }
+                              },
+                              child: const Text(
+                                'Expire OTP (Test)',
+                                style: TextStyle(fontSize: 11),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 20),
+              ],
 
-              const SizedBox(height: 28),
-
-              // Verify Button
               PrimaryButton(
                 label: _isLoading
                     ? 'Verifying Code...'
-                    : (_isSuccess ? 'Verified ✓' : 'Verify Email'),
+                    : (_isSuccess
+                        ? 'Verified ✓'
+                        : (widget.isEmailVerification
+                            ? 'Verify Email'
+                            : 'Verify Reset Code')),
                 icon: Icons.check_circle_rounded,
-                backgroundColor: _isSuccess
-                    ? const Color(0xFF22C55E)
-                    : AppColors.primary,
+                isLoading: _isLoading,
+                backgroundColor: _isSuccess ? AppColors.success : null,
                 onPressed: _isLoading ? null : _handleVerifyOtp,
               ),
 
               const SizedBox(height: 24),
 
-              // Resend Timer Row
               Center(
-                child: _countdown > 0
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.timer_outlined,
-                              size: 16, color: mutedTextColor),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Resend code in ${_countdown}s',
-                            style: TextStyle(
-                              color: mutedTextColor,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                child: _isResending
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : TextButton.icon(
-                        icon: const Icon(Icons.refresh_rounded, size: 18),
-                        label: const Text(
-                          'Resend Code',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
+                    : _countdown > 0
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.timer_outlined,
+                                  size: 16, color: mutedTextColor),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Resend code in ${_countdown}s',
+                                style: TextStyle(
+                                  color: mutedTextColor,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          )
+                        : TextButton.icon(
+                            icon: const Icon(Icons.refresh_rounded, size: 18),
+                            label: Text(
+                              'Resend Code',
+                              style: TextStyle(
+                                color: accent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                            onPressed: _resendCode,
                           ),
-                        ),
-                        onPressed: _resendCode,
-                      ),
               ),
             ],
           ),
         ),
       ),
     );
+
+    if (widget.isEmailVerification) {
+      return VerificationRouteGuard(
+        requiredStep: AuthFlowStep.emailOtp,
+        child: screen,
+      );
+    }
+    return screen;
   }
 }

@@ -1,12 +1,22 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:inclusive_dating/core/routing/app_router.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
+import 'package:inclusive_dating/core/widgets/secondary_button.dart';
+import 'package:inclusive_dating/features/auth/domain/models/auth_state.dart';
 import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
+import 'package:inclusive_dating/features/auth/presentation/screens/login_screen.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:inclusive_dating/features/onboarding/presentation/screens/onboarding_flow_screen.dart';
+import '../../data/government_id_repository.dart';
 import '../../domain/models/government_id_model.dart';
+import '../widgets/reusable_document_capture_widget.dart';
+
+final governmentIdRepositoryProvider = Provider<IGovernmentIdRepository>((ref) {
+  return MockGovernmentIdRepository();
+});
 
 class GovernmentIdVerificationScreen extends ConsumerStatefulWidget {
   const GovernmentIdVerificationScreen({super.key});
@@ -23,122 +33,133 @@ class _GovernmentIdVerificationScreenState
 
   GovernmentIdCountry _selectedCountry = GovernmentIdCountry.india;
   String _selectedDocType = 'Aadhaar Card';
-  final TextEditingController _docNumberController =
-      TextEditingController(text: 'XXXX-XXXX-4921');
+  final TextEditingController _docNumberController = TextEditingController();
 
-  bool _flashEnabled = false;
-  bool _frontCaptured = false;
-  bool _backCaptured = false;
-  Uint8List? _frontBytes;
-  Uint8List? _backBytes;
+  CapturedDocumentSide? _frontSide;
+  CapturedDocumentSide? _backSide;
 
-  final DocumentQualityFeedback _quality = const DocumentQualityFeedback();
-  bool _consentAffirmed = true;
+  bool _consentAffirmed = false;
   bool _isSubmitting = false;
-  String? _proofId;
+  GovIdSubmissionResult? _submissionResult;
 
   @override
   void dispose() {
     _docNumberController.dispose();
-    _frontBytes?.fillRange(0, _frontBytes!.length, 0);
-    _backBytes?.fillRange(0, _backBytes!.length, 0);
+    _frontSide?.secureWipe();
+    _backSide?.secureWipe();
     super.dispose();
   }
 
-  void _simulateCapture(bool isFront) {
-    final dummy = Uint8List(512);
-    for (int i = 0; i < dummy.length; i++) {
-      dummy[i] = (i % 256);
-    }
-
-    setState(() {
-      if (isFront) {
-        _frontCaptured = true;
-        _frontBytes = dummy;
-      } else {
-        _backCaptured = true;
-        _backBytes = dummy;
-      }
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${isFront ? "Front" : "Back"} of $_selectedDocType captured in volatile memory.',
-        ),
-        duration: const Duration(seconds: 1),
-        backgroundColor: const Color(0xFF1B6A45),
-      ),
-    );
-  }
-
-  void _handleSubmitDocument() async {
+  Future<void> _handleSubmitDocument() async {
     if (!_consentAffirmed) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please affirm the document authenticity consent.'),
+          content: Text('Please affirm the document privacy and authenticity consent.'),
           backgroundColor: AppColors.error,
         ),
       );
       return;
     }
 
+    setState(() => _isSubmitting = true);
+
+    final data = GovernmentIdData(
+      country: _selectedCountry,
+      documentType: _selectedDocType,
+      documentNumber: _docNumberController.text.trim(),
+      frontImageBytes: _frontSide?.bytes,
+      backImageBytes: _backSide?.bytes,
+      isFrontPdf: _frontSide?.isPdf ?? false,
+      isBackPdf: _backSide?.isPdf ?? false,
+      quality: _frontSide?.quality ?? const DocumentQualityFeedback(),
+    );
+
+    final repo = ref.read(governmentIdRepositoryProvider);
+    final result = await repo.submitDocument(data);
+
+    // Clear screen references immediately after repository wipe
+    _frontSide?.secureWipe();
+    _backSide?.secureWipe();
+
+    if (!mounted) return;
+
+    ref.read(authProvider.notifier).setDocStatus(
+          result.status,
+          country: _selectedCountry.countryName,
+          docType: _selectedDocType,
+          docId: result.referenceId,
+        );
+
     setState(() {
-      _isSubmitting = true;
+      _isSubmitting = false;
+      _submissionResult = result;
+      _currentStage = GovIdVerificationStage.statusResult;
     });
+  }
 
-    await Future.delayed(const Duration(milliseconds: 1000));
+  Future<void> _refreshPendingStatus() async {
+    final refId = _submissionResult?.referenceId;
+    if (refId == null) return;
+    setState(() => _isSubmitting = true);
+    final result =
+        await ref.read(governmentIdRepositoryProvider).fetchKycStatus(refId);
+    if (!mounted) return;
 
-    if (mounted) {
-      final proof =
-          'DOC-${_selectedCountry.name.toUpperCase().substring(0, 2)}-${DateTime.now().millisecondsSinceEpoch}';
+    ref.read(authProvider.notifier).setDocStatus(
+          result.status,
+          country: _selectedCountry.countryName,
+          docType: _selectedDocType,
+          docId: result.referenceId,
+        );
 
-      // Update centralized auth state
-      ref.read(authProvider.notifier).setDocVerified(
-            country: _selectedCountry.countryName,
-            docType: _selectedDocType,
-            docId: proof,
-          );
+    setState(() {
+      _isSubmitting = false;
+      _submissionResult = result;
+    });
+  }
 
-      // Clean volatile memory buffers immediately
-      _frontBytes?.fillRange(0, _frontBytes!.length, 0);
-      _backBytes?.fillRange(0, _backBytes!.length, 0);
-      _frontBytes = null;
-      _backBytes = null;
-
-      setState(() {
-        _isSubmitting = false;
-        _proofId = proof;
-        _currentStage = GovIdVerificationStage.statusResult;
-      });
-    }
+  void _retryFromCapture() {
+    _frontSide?.secureWipe();
+    _backSide?.secureWipe();
+    setState(() {
+      _frontSide = null;
+      _backSide = null;
+      _submissionResult = null;
+      _currentStage = GovIdVerificationStage.documentCapture;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
-    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
 
-    return Scaffold(
+    final bool canGoBackStage = _currentStage.index > 0 &&
+        _currentStage != GovIdVerificationStage.statusResult;
+    final bool showLeading = canGoBackStage || Navigator.canPop(context);
+
+    final screen = Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: bgColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
-          onPressed: () {
-            if (_currentStage.index > 0 &&
-                _currentStage != GovIdVerificationStage.statusResult) {
-              setState(() {
-                _currentStage =
-                    GovIdVerificationStage.values[_currentStage.index - 1];
-              });
-            } else {
-              Navigator.pop(context);
-            }
-          },
-        ),
+        automaticallyImplyLeading: false,
+        leading: showLeading
+            ? IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
+                onPressed: () {
+                  if (canGoBackStage) {
+                    setState(() {
+                      _currentStage = GovIdVerificationStage
+                          .values[_currentStage.index - 1];
+                    });
+                  } else if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  }
+                },
+              )
+            : null,
         title: Text(
           'Government ID Verification',
           style: AppTypography.headlineMedium.copyWith(
@@ -147,14 +168,32 @@ class _GovernmentIdVerificationScreenState
             fontSize: 18,
           ),
         ),
+        actions: [
+          if (!Navigator.canPop(context))
+            TextButton(
+              onPressed: () async {
+                await ref.read(authProvider.notifier).logout();
+                if (!context.mounted) return;
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              },
+              child: Text(
+                'Log Out',
+                style: TextStyle(
+                  color: AppColors.adaptiveAccent(isDark),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+        ],
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Stage Progress Bar (Stages 0 to 4)
             if (_currentStage != GovIdVerificationStage.statusResult)
               _buildStageProgress(),
-
             Expanded(
               child: SingleChildScrollView(
                 padding:
@@ -166,9 +205,16 @@ class _GovernmentIdVerificationScreenState
         ),
       ),
     );
+
+    return VerificationRouteGuard(
+      requiredStep: AuthFlowStep.govId,
+      child: screen,
+    );
   }
 
   Widget _buildStageProgress() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = AppColors.adaptiveAccent(isDark);
     final currentIdx = _currentStage.index;
     const total = 5;
     final progress = (currentIdx + 1) / total;
@@ -181,19 +227,25 @@ class _GovernmentIdVerificationScreenState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'STAGE ${currentIdx + 1} OF $total: ${_getStageTitle(_currentStage).toUpperCase()}',
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
+              Expanded(
+                child: Text(
+                  'STAGE ${currentIdx + 1} OF $total: ${_getStageTitle(_currentStage).toUpperCase()}',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: accent,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               Text(
                 '${(progress * 100).toInt()}%',
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondary,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
@@ -205,9 +257,8 @@ class _GovernmentIdVerificationScreenState
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.primary),
+              backgroundColor: accent.withValues(alpha: 0.16),
+              valueColor: AlwaysStoppedAnimation<Color>(accent),
               minHeight: 5,
             ),
           ),
@@ -252,16 +303,21 @@ class _GovernmentIdVerificationScreenState
 
   // STAGE 1: COUNTRY SELECTION
   Widget _buildStage1Country() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Select Document Issuing Country',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.bold, color: textColor),
         ),
         const SizedBox(height: 6),
         const Text(
-          'We support government-issued photo IDs across multiple countries for verified social matching.',
+          'India is selected by default. Choose any supported issuing region to load eligible official documents.',
           style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
         const SizedBox(height: 20),
@@ -272,11 +328,13 @@ class _GovernmentIdVerificationScreenState
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
               color: isSelected
-                  ? AppColors.primaryLight.withValues(alpha: 0.6)
-                  : Colors.white,
+                  ? AppColors.adaptiveHighlightBg(isDark)
+                  : cardBg,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected ? AppColors.primary : AppColors.border,
+                color: isSelected
+                    ? AppColors.adaptiveAccent(isDark)
+                    : (isDark ? AppColors.borderDark : AppColors.border),
                 width: isSelected ? 1.8 : 1.0,
               ),
             ),
@@ -291,7 +349,11 @@ class _GovernmentIdVerificationScreenState
                   country.countryName,
                   style: TextStyle(
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                    color: isSelected ? AppColors.primaryDark : AppColors.charcoal,
+                    color: isSelected
+                        ? (isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.glacierInk)
+                        : textColor,
                   ),
                 ),
                 subtitle: Text(
@@ -299,12 +361,15 @@ class _GovernmentIdVerificationScreenState
                   style: const TextStyle(fontSize: 11),
                 ),
                 trailing: isSelected
-                    ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+                    ? Icon(Icons.check_circle_rounded,
+                        color: AppColors.adaptiveAccent(isDark))
                     : null,
                 onTap: () {
                   setState(() {
                     _selectedCountry = country;
                     _selectedDocType = country.supportedDocuments.first;
+                    _frontSide = null;
+                    _backSide = null;
                   });
                 },
               ),
@@ -328,16 +393,21 @@ class _GovernmentIdVerificationScreenState
 
   // STAGE 2: DOCUMENT SELECTION
   Widget _buildStage2Document() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Select Document for ${_selectedCountry.countryName}',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.bold, color: textColor),
         ),
         const SizedBox(height: 6),
         const Text(
-          'Choose an unexpired, original government-issued photo ID.',
+          'Only documents valid in your selected region are shown below.',
           style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
         const SizedBox(height: 20),
@@ -350,11 +420,13 @@ class _GovernmentIdVerificationScreenState
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
               color: isSelected
-                  ? AppColors.primaryLight.withValues(alpha: 0.6)
-                  : Colors.white,
+                  ? AppColors.adaptiveHighlightBg(isDark)
+                  : cardBg,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected ? AppColors.primary : AppColors.border,
+                color: isSelected
+                    ? AppColors.adaptiveAccent(isDark)
+                    : (isDark ? AppColors.borderDark : AppColors.border),
                 width: isSelected ? 1.8 : 1.0,
               ),
             ),
@@ -366,27 +438,38 @@ class _GovernmentIdVerificationScreenState
                 ),
                 leading: Icon(
                   Icons.badge_outlined,
-                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                  color: isSelected
+                      ? AppColors.adaptiveAccent(isDark)
+                      : AppColors.textSecondary,
                 ),
                 title: Text(
                   docType,
                   style: TextStyle(
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                    color: isSelected ? AppColors.primaryDark : AppColors.charcoal,
+                    color: isSelected
+                        ? (isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.glacierInk)
+                        : textColor,
                   ),
                 ),
                 subtitle: Text(
                   needsBack ? 'Requires Front & Back capture' : 'Front side only',
                   style: TextStyle(
                     fontSize: 11,
-                    color: needsBack ? Colors.grey : const Color(0xFF1B6A45),
+                    color: needsBack ? AppColors.textSecondary : AppColors.success,
                   ),
                 ),
                 trailing: isSelected
-                    ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+                    ? Icon(Icons.check_circle_rounded,
+                        color: AppColors.adaptiveAccent(isDark))
                     : null,
                 onTap: () {
-                  setState(() => _selectedDocType = docType);
+                  setState(() {
+                    _selectedDocType = docType;
+                    _frontSide = null;
+                    _backSide = null;
+                  });
                 },
               ),
             ),
@@ -398,8 +481,8 @@ class _GovernmentIdVerificationScreenState
         TextField(
           controller: _docNumberController,
           decoration: InputDecoration(
-            labelText: '$_selectedDocType Number',
-            hintText: 'Enter official document number',
+            labelText: '$_selectedDocType Reference / Last 4 Digits',
+            hintText: 'Enter ID reference (or PENDING / REJECT / RETRY for demo)',
             prefixIcon: const Icon(Icons.pin_outlined),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
           ),
@@ -419,99 +502,72 @@ class _GovernmentIdVerificationScreenState
     );
   }
 
-  // STAGE 3: DOCUMENT CAPTURE SCREEN
+  // STAGE 3: REAR CAMERA CAPTURE & PDF/IMAGE UPLOAD
   Widget _buildStage3Capture() {
     final needsBack = GovernmentIdCountry.requiresBackSide(_selectedDocType);
+    final bool ready = _frontSide?.bytes != null &&
+        (!needsBack || _backSide?.bytes != null);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Capture $_selectedDocType',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            IconButton(
-              icon: Icon(
-                _flashEnabled ? Icons.flash_on_rounded : Icons.flash_off_rounded,
-                color: _flashEnabled ? Colors.amber : Colors.grey,
-              ),
-              onPressed: () => setState(() => _flashEnabled = !_flashEnabled),
-              tooltip: 'Toggle Flash',
-            ),
-          ],
+        Text(
+          'Capture $_selectedDocType',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         const Text(
-          'Position your physical card within the alignment guides. Avoid shadows and glare.',
+          'Use the rear camera with edge-alignment guides & flash, or upload a crisp JPG/PNG/PDF directly.',
           style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
         const SizedBox(height: 18),
 
-        // Rear Camera Frame Alignment Overlay Simulation
-        Container(
-          width: double.infinity,
-          height: 190,
-          decoration: BoxDecoration(
-            color: const Color(0xFF161226),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.neonLime, width: 2),
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              CustomPaint(
-                size: const Size(double.infinity, 190),
-                painter: _DocFramePainter(),
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.crop_free_rounded,
-                    size: 48,
-                    color: AppColors.neonLime.withValues(alpha: 0.8),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Align Front of $_selectedDocType here',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 18),
-
-        // Front Card Capture
-        _buildCaptureRow(
+        ReusableDocumentSideCard(
           title: 'Front Side',
-          isCaptured: _frontCaptured,
-          onCapture: () => _simulateCapture(true),
+          documentType: _selectedDocType,
+          capturedSide: _frontSide,
+          onCameraCaptured: () {},
+          onSidePicked: (side) {
+            setState(() {
+              _frontSide?.secureWipe();
+              _frontSide = side;
+            });
+          },
+          onClear: () {
+            setState(() {
+              _frontSide?.secureWipe();
+              _frontSide = null;
+            });
+          },
         ),
 
-        // Back Card Capture (if required)
         if (needsBack) ...[
-          const SizedBox(height: 12),
-          _buildCaptureRow(
+          const SizedBox(height: 14),
+          ReusableDocumentSideCard(
             title: 'Back Side',
-            isCaptured: _backCaptured,
-            onCapture: () => _simulateCapture(false),
+            documentType: _selectedDocType,
+            capturedSide: _backSide,
+            onCameraCaptured: () {},
+            onSidePicked: (side) {
+              setState(() {
+                _backSide?.secureWipe();
+                _backSide = side;
+              });
+            },
+            onClear: () {
+              setState(() {
+                _backSide?.secureWipe();
+                _backSide = null;
+              });
+            },
           ),
         ],
 
-        const SizedBox(height: 26),
+        const SizedBox(height: 24),
         PrimaryButton(
           label: 'Continue to Quality Guidance',
           icon: Icons.fact_check_outlined,
-          onPressed: (_frontCaptured && (!needsBack || _backCaptured))
+          onPressed: ready
               ? () {
                   setState(() {
                     _currentStage = GovIdVerificationStage.qualityGuidance;
@@ -523,29 +579,49 @@ class _GovernmentIdVerificationScreenState
     );
   }
 
-  // STAGE 4: QUALITY GUIDANCE
+  // STAGE 4: GENUINE ON-DEVICE QUALITY GUIDANCE
   Widget _buildStage4Quality() {
+    final frontQuality = _frontSide?.quality ?? const DocumentQualityFeedback();
+    final backQuality = _backSide?.quality;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Document Quality Guidance',
+          'On-Device Quality Guidance',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 6),
         const Text(
-          'Automated on-device pre-checks verify text readability and edge alignment before transmission.',
+          'Real in-memory pixel checks evaluate sharpness, glare, lighting, framing, and orientation. OCR & government authenticity require backend APIs.',
           style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 18),
 
-        _buildQualityCard('Sharpness & Focus', 'No blur detected. Text is crisp and readable.', _quality.isSharp),
-        _buildQualityCard('Glare & Reflection', 'No bright light reflections over document photo or numbers.', _quality.isNoGlare),
-        _buildQualityCard('Full Edges Visible', 'All 4 corners are inside the capture boundary.', _quality.areEdgesVisible),
-        _buildQualityCard('Lighting Contrast', 'Uniform ambient brightness verified.', _quality.isLightingAdequate),
-        _buildQualityCard('Correct Orientation', 'Horizontal aspect ratio properly detected.', _quality.isOrientationCorrect),
+        ReusableDocumentQualitySection(
+          quality: frontQuality,
+          sideLabel: 'Front Side Quality',
+        ),
 
-        const SizedBox(height: 24),
+        if (backQuality != null) ...[
+          const SizedBox(height: 16),
+          ReusableDocumentQualitySection(
+            quality: backQuality,
+            sideLabel: 'Back Side Quality',
+          ),
+        ],
+
+        if (!frontQuality.isCompliant ||
+            (backQuality != null && !backQuality.isCompliant)) ...[
+          const SizedBox(height: 10),
+          SecondaryButton(
+            label: 'Retake Document Photos',
+            icon: Icons.camera_alt_outlined,
+            onPressed: _retryFromCapture,
+          ),
+        ],
+
+        const SizedBox(height: 16),
         PrimaryButton(
           label: 'Proceed to Review & Submit',
           icon: Icons.arrow_forward_rounded,
@@ -562,6 +638,8 @@ class _GovernmentIdVerificationScreenState
   // STAGE 5: REVIEW & SUBMIT
   Widget _buildStage5Review() {
     final needsBack = GovernmentIdCountry.requiresBackSide(_selectedDocType);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -572,61 +650,132 @@ class _GovernmentIdVerificationScreenState
         ),
         const SizedBox(height: 6),
         const Text(
-          'Please verify the details below before submitting for official verification.',
+          'Inspect your document previews and privacy consent before submitting.',
           style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 18),
 
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardBg,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(
+                color: isDark ? AppColors.borderDark : AppColors.border),
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildReviewRow('Country', '${_selectedCountry.flag} ${_selectedCountry.countryName}'),
+              _buildReviewRow(
+                  'Country', '${_selectedCountry.flag} ${_selectedCountry.countryName}'),
               const Divider(height: 20),
               _buildReviewRow('Document Type', _selectedDocType),
+              if (_docNumberController.text.trim().isNotEmpty) ...[
+                const Divider(height: 20),
+                _buildReviewRow('Document Ref', _docNumberController.text.trim()),
+              ],
               const Divider(height: 20),
-              _buildReviewRow('Document Number', _docNumberController.text),
-              const Divider(height: 20),
-              _buildReviewRow('Front Image', 'Captured (Volatile RAM) ✓'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Front Side Preview',
+                      style: TextStyle(fontSize: 12, color: Theme.of(context).brightness == Brightness.dark ? AppColors.textTertiaryDark : AppColors.textTertiary)),
+                  TextButton(
+                    onPressed: () => setState(() {
+                      _currentStage = GovIdVerificationStage.documentCapture;
+                    }),
+                    child: const Text('Edit / Retake'),
+                  ),
+                ],
+              ),
+              if (_frontSide != null && !_frontSide!.isPdf && _frontSide!.bytes != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.memory(
+                    _frontSide!.bytes!,
+                    height: 110,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              else if (_frontSide != null && _frontSide!.isPdf)
+                Text('PDF: ${_frontSide!.fileName ?? "front.pdf"}'),
               if (needsBack) ...[
                 const Divider(height: 20),
-                _buildReviewRow('Back Image', 'Captured (Volatile RAM) ✓'),
+                Text('Back Side Preview',
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).brightness == Brightness.dark ? AppColors.textTertiaryDark : AppColors.textTertiary)),
+                const SizedBox(height: 8),
+                if (_backSide != null && !_backSide!.isPdf && _backSide!.bytes != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.memory(
+                      _backSide!.bytes!,
+                      height: 110,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                else if (_backSide != null && _backSide!.isPdf)
+                  Text('PDF: ${_backSide!.fileName ?? "back.pdf"}'),
               ],
             ],
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         CheckboxListTile(
           value: _consentAffirmed,
-          activeColor: AppColors.primary,
+          activeColor: AppColors.adaptiveAccent(isDark),
+          checkColor: AppColors.adaptiveOnAccent(isDark),
           contentPadding: EdgeInsets.zero,
           title: const Text(
-            'I affirm that this official government document is authentic, belongs to me, and may be validated under Date² safety escrow guidelines.',
+            'I confirm this government ID belongs to me and consent to transient verification processing under Date² privacy standards.',
             style: TextStyle(fontSize: 12, height: 1.3),
           ),
           onChanged: (val) => setState(() => _consentAffirmed = val ?? false),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
 
         PrimaryButton(
           label: _isSubmitting
-              ? 'Encrypting & Submitting...'
+              ? 'Submitting (Demo)...'
               : 'Submit Document for Verification',
           icon: Icons.check_circle_rounded,
+          isLoading: _isSubmitting,
           onPressed: _isSubmitting ? null : _handleSubmitDocument,
         ),
       ],
     );
   }
 
-  // STAGE 6: VERIFICATION STATUS RESULT
+  // STAGE 6: ALL STATUS RESULTS (VERIFIED, PENDING, REJECTED, RETRY)
   Widget _buildStage6Result() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final res = _submissionResult;
+    final status = res?.status ?? GovIdStatus.pendingReview;
+    final bool isVerified = status == GovIdStatus.verified;
+    final bool isPending = status == GovIdStatus.pendingReview ||
+        status == GovIdStatus.submitted;
+    final bool isRetry = status == GovIdStatus.retryRequired;
+
+    final Color statusColor = isVerified
+        ? AppColors.success
+        : (isPending
+            ? AppColors.adaptiveAccent(isDark)
+            : (isRetry ? AppColors.warning : AppColors.error));
+
+    final IconData statusIcon = isVerified
+        ? Icons.verified_user_rounded
+        : (isPending
+            ? Icons.hourglass_top_rounded
+            : (isRetry ? Icons.refresh_rounded : Icons.gpp_bad_rounded));
+
+    final String title = isVerified
+        ? 'Government ID Checked (Demo)'
+        : (isPending
+            ? 'Verification Pending Review'
+            : (isRetry ? 'Retry Capture Required' : 'Document Rejected'));
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -635,41 +784,37 @@ class _GovernmentIdVerificationScreenState
           width: 96,
           height: 96,
           decoration: BoxDecoration(
-            color: const Color(0xFF22C55E).withValues(alpha: 0.15),
+            color: statusColor.withValues(alpha: 0.14),
             shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF22C55E), width: 2.2),
+            border: Border.all(color: statusColor, width: 2.2),
           ),
-          child: const Icon(
-            Icons.verified_user_rounded,
-            color: Color(0xFF22C55E),
-            size: 50,
-          ),
+          child: Icon(statusIcon, color: statusColor, size: 50),
         ),
         const SizedBox(height: 20),
-        const Text(
-          'Government ID Verified!',
+        Text(
+          title,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Text(
-          'Your $_selectedDocType has passed optical alignment and cryptographic validation.',
+          res?.message ?? 'Document verification status unavailable.',
           textAlign: TextAlign.center,
           style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
         const SizedBox(height: 18),
 
-        if (_proofId != null)
+        if (res?.referenceId != null)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.primaryLight,
+              color: isDark ? AppColors.encreElevated : AppColors.glacierLight,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              'Proof ID: $_proofId',
-              style: const TextStyle(
-                color: AppColors.primary,
+              'Reference ID: ${res!.referenceId}',
+              style: TextStyle(
+                color: AppColors.adaptiveAccent(isDark),
                 fontFamily: 'monospace',
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
@@ -677,188 +822,79 @@ class _GovernmentIdVerificationScreenState
             ),
           ),
 
-        const SizedBox(height: 22),
+        const SizedBox(height: 20),
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? AppColors.surfaceDark : AppColors.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.adaptiveBorder(isDark)),
           ),
           child: const Row(
             children: [
-              Icon(Icons.lock_rounded, color: Color(0xFF22C55E), size: 20),
+              Icon(Icons.lock_rounded, color: AppColors.success, size: 20),
               SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Zero-Persistence Mandate: Document image bytes were evaluated in volatile RAM and securely wiped. No raw ID scans are retained.',
+                  'Privacy Notice: Temporary document captures and local byte buffers have been cleared. Backend OCR & official KYC matching require live API integration.',
                   style: TextStyle(fontSize: 11, height: 1.35),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 28),
 
-        // Sequential Flow: Move to Personal Info (Onboarding Profile)
-        PrimaryButton(
-          label: 'Proceed to Personal Info',
-          icon: Icons.person_outline_rounded,
-          backgroundColor: AppColors.primary,
-          onPressed: () {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const OnboardingFlowScreen()),
-              (route) => false,
-            );
-          },
-        ),
+        if (isVerified)
+          PrimaryButton(
+            label: 'Proceed to Personal Info',
+            icon: Icons.person_outline_rounded,
+            onPressed: () {
+              if (ref.read(onboardingProvider).currentStep == 0) {
+                ref.read(onboardingProvider.notifier).startOnboarding();
+              }
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const OnboardingFlowScreen()),
+                (route) => false,
+              );
+            },
+          )
+        else if (isPending) ...[
+          PrimaryButton(
+            label: _isSubmitting ? 'Checking Status...' : 'Check KYC Status',
+            icon: Icons.refresh_rounded,
+            isLoading: _isSubmitting,
+            onPressed: _isSubmitting ? null : _refreshPendingStatus,
+          ),
+          const SizedBox(height: 12),
+          SecondaryButton(
+            label: 'Edit & Resubmit Document',
+            onPressed: _retryFromCapture,
+          ),
+        ] else
+          PrimaryButton(
+            label: 'Retake & Resubmit Document',
+            icon: Icons.camera_alt_rounded,
+            onPressed: _retryFromCapture,
+          ),
       ],
-    );
-  }
-
-  Widget _buildCaptureRow({
-    required String title,
-    required bool isCaptured,
-    required VoidCallback onCapture,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isCaptured ? const Color(0xFF22C55E) : AppColors.border,
-          width: isCaptured ? 1.6 : 1.0,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: isCaptured
-                  ? const Color(0xFF22C55E).withValues(alpha: 0.15)
-                  : AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              isCaptured ? Icons.check_circle_rounded : Icons.camera_alt_outlined,
-              color: isCaptured ? const Color(0xFF22C55E) : AppColors.primary,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-                Text(
-                  isCaptured ? 'Captured in volatile RAM ✓' : 'Tap to scan card',
-                  style: TextStyle(
-                    color: isCaptured ? const Color(0xFF1B6A45) : Colors.grey,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          TextButton(
-            onPressed: onCapture,
-            child: Text(
-              isCaptured ? 'Retake' : 'Capture',
-              style: TextStyle(
-                color: isCaptured ? Colors.grey : AppColors.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQualityCard(String title, String desc, bool passed) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: passed ? const Color(0xFF22C55E).withValues(alpha: 0.5) : Colors.orange,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            passed ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
-            color: passed ? const Color(0xFF22C55E) : Colors.orange,
-            size: 20,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                Text(desc, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildReviewRow(String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(label, style: TextStyle(color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiary, fontSize: 12)),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          ),
+        ),
       ],
     );
   }
-}
-
-class _DocFramePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.neonLime
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
-
-    const cornerLength = 24.0;
-    const padding = 16.0;
-
-    const left = padding;
-    const top = padding;
-    final right = size.width - padding;
-    final bottom = size.height - padding;
-
-    // Top-Left corner
-    canvas.drawLine(const Offset(left, top), const Offset(left + cornerLength, top), paint);
-    canvas.drawLine(const Offset(left, top), const Offset(left, top + cornerLength), paint);
-
-    // Top-Right corner
-    canvas.drawLine(Offset(right, top), Offset(right - cornerLength, top), paint);
-    canvas.drawLine(Offset(right, top), Offset(right, top + cornerLength), paint);
-
-    // Bottom-Left corner
-    canvas.drawLine(Offset(left, bottom), Offset(left + cornerLength, bottom), paint);
-    canvas.drawLine(Offset(left, bottom), Offset(left, bottom - cornerLength), paint);
-
-    // Bottom-Right corner
-    canvas.drawLine(Offset(right, bottom), Offset(right - cornerLength, bottom), paint);
-    canvas.drawLine(Offset(right, bottom), Offset(right, bottom - cornerLength), paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

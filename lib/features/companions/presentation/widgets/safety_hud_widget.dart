@@ -20,18 +20,18 @@ class SafetyHudWidget extends ConsumerWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isSos
-            ? Colors.red.withValues(alpha: 0.9)
+            ? AppColors.error.withValues(alpha: 0.92)
             : AppColors.surfaceDark,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isSos ? Colors.redAccent : AppColors.neonLime,
+          color: isSos ? AppColors.error : AppColors.accent,
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: (isSos ? Colors.red : AppColors.neonLime).withValues(alpha: 0.15),
-            blurRadius: 10,
-            spreadRadius: 2,
+            color: (isSos ? AppColors.error : AppColors.encreDeep).withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -45,7 +45,7 @@ class SafetyHudWidget extends ConsumerWidget {
                 height: 10,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSos ? Colors.white : AppColors.neonLime,
+                  color: isSos ? Colors.white : AppColors.accent,
                 ),
               ),
               const SizedBox(width: 8),
@@ -56,8 +56,8 @@ class SafetyHudWidget extends ConsumerWidget {
                       : 'SAFETY ESCROW HUD • GPS MONITORING ON',
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: isSos ? Colors.white : AppColors.neonLime,
+                    fontWeight: FontWeight.w700,
+                    color: isSos ? Colors.white : AppColors.accent,
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -73,7 +73,7 @@ class SafetyHudWidget extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.redAccent,
+                      color: AppColors.error,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Row(
@@ -86,7 +86,7 @@ class SafetyHudWidget extends ConsumerWidget {
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -112,12 +112,12 @@ class SafetyHudWidget extends ConsumerWidget {
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 13,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
                       '${booking.publicVenueName} • OTP: ${booking.checkInOtp}',
-                      style: const TextStyle(color: AppColors.textMutedDark, fontSize: 11),
+                      style: const TextStyle(color: AppColors.textSecondaryDark, fontSize: 11),
                     ),
                   ],
                 ),
@@ -129,11 +129,11 @@ class SafetyHudWidget extends ConsumerWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Booking completed! Escrow released to companion.'),
-                        backgroundColor: AppColors.electricViolet,
+                        backgroundColor: AppColors.primary,
                       ),
                     );
                   },
-                  child: const Text('End Booking', style: TextStyle(color: AppColors.softPink, fontSize: 12)),
+                  child: const Text('End Booking', style: TextStyle(color: AppColors.accent, fontSize: 12)),
                 ),
             ],
           ),

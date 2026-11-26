@@ -60,14 +60,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(conversationMessagesProvider(widget.conversationId));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.surfaceDark,
+        backgroundColor: surfaceColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: textColor, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         titleSpacing: 0,
@@ -88,24 +95,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         child: Text(
                           widget.participantName,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: textColor,
                           ),
                         ),
                       ),
                       if (widget.isVerified) ...[
                         const SizedBox(width: 4),
-                        const Icon(Icons.verified, color: AppColors.neonLime, size: 16),
+                        Icon(
+                          Icons.verified,
+                          color: isDark ? AppColors.accent : AppColors.accentTeal,
+                          size: 16,
+                        ),
                       ],
                     ],
                   ),
-                  const Text(
+                  Text(
                     'Online • End-to-end moderated',
                     style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.neonLime,
+                      color: isDark ? AppColors.accent : AppColors.accentInk,
                     ),
                   ),
                 ],
@@ -115,12 +126,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.videocam, color: AppColors.neonLime),
+            icon: Icon(Icons.videocam, color: accent),
             tooltip: 'Mutual Consent Video Call',
             onPressed: () {
               showModalBottomSheet(
                 context: context,
-                backgroundColor: AppColors.surfaceDark,
+                backgroundColor: surfaceColor,
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
@@ -130,14 +141,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                         ListTile(
-                          leading: const CircleAvatar(
-                            backgroundColor: AppColors.neonLime,
-                            child: Icon(Icons.call_made_rounded, color: Colors.black),
+                          leading: CircleAvatar(
+                            backgroundColor: accent,
+                            child: Icon(
+                              Icons.call_made_rounded,
+                              color: AppColors.adaptiveOnAccent(isDark),
+                            ),
                           ),
                           title: Text('Call ${widget.participantName}',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          subtitle: const Text('Start outgoing WebRTC call with mutual consent',
-                              style: TextStyle(color: Colors.white60, fontSize: 12)),
+                              style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+                          subtitle: Text('Start outgoing WebRTC call with mutual consent',
+                              style: TextStyle(color: mutedColor, fontSize: 12)),
                           onTap: () {
                             Navigator.pop(ctx);
                             Navigator.push(
@@ -152,16 +166,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             );
                           },
                         ),
-                        const Divider(color: Colors.white12),
+                        Divider(color: AppColors.adaptiveBorder(isDark)),
                         ListTile(
-                          leading: const CircleAvatar(
-                            backgroundColor: AppColors.softPink,
-                            child: Icon(Icons.call_received_rounded, color: Colors.black),
+                          leading: CircleAvatar(
+                            backgroundColor: isDark
+                                ? AppColors.encreElevated
+                                : AppColors.glacierLight,
+                            child: Icon(
+                              Icons.call_received_rounded,
+                              color: isDark ? AppColors.accent : AppColors.glacierInk,
+                            ),
                           ),
                           title: Text('Simulate Incoming Call from ${widget.participantName}',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          subtitle: const Text('Experience incoming ringing and accept screen',
-                              style: TextStyle(color: Colors.white60, fontSize: 12)),
+                              style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+                          subtitle: Text('Experience incoming ringing and accept screen',
+                              style: TextStyle(color: mutedColor, fontSize: 12)),
                           onTap: () {
                             Navigator.pop(ctx);
                             Navigator.push(
@@ -183,7 +202,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
+            icon: Icon(Icons.more_vert, color: textColor),
             onPressed: () {
               _showChatOptionsSheet(context);
             },
@@ -196,16 +215,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-            color: AppColors.surfaceDark.withValues(alpha: 0.6),
+            color: AppColors.adaptiveHighlightBg(isDark),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.shield, color: AppColors.neonLime, size: 14),
+                Icon(
+                  Icons.shield,
+                  color: isDark ? AppColors.accent : AppColors.accentInk,
+                  size: 14,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   'AI Real-Time Safety & Toxic Content Shield Active',
                   style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.textMutedDark,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.glacierInk,
                     fontSize: 11,
                   ),
                 ),
@@ -229,11 +252,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   },
                 );
               },
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.electricViolet),
+              loading: () => Center(
+                child: CircularProgressIndicator(color: accent),
               ),
               error: (err, _) => Center(
-                child: Text('Error loading messages: $err', style: const TextStyle(color: Colors.red)),
+                child: Text('Error loading messages: $err', style: const TextStyle(color: AppColors.error)),
               ),
             ),
           ),
@@ -242,10 +265,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.surfaceDark,
+              color: surfaceColor,
               border: Border(
                 top: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: AppColors.adaptiveBorder(isDark),
                   width: 1,
                 ),
               ),
@@ -254,7 +277,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.date_range_outlined, color: AppColors.softPink),
+                    icon: Icon(Icons.date_range_outlined, color: accent),
                     tooltip: 'Propose AI Date Plan',
                     onPressed: () {
                       _showQuickDatePlannerOffer(context);
@@ -263,15 +286,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   Expanded(
                     child: TextField(
                       controller: _textController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: textColor),
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
-                        hintStyle: const TextStyle(color: AppColors.textMutedDark),
+                        hintStyle: TextStyle(color: mutedColor),
                         filled: true,
-                        fillColor: AppColors.backgroundDark,
+                        fillColor: bgColor,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
+                          borderSide: BorderSide(color: AppColors.adaptiveBorder(isDark)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide(color: AppColors.adaptiveBorder(isDark)),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -283,10 +310,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                   const SizedBox(width: 8),
                   CircleAvatar(
-                    backgroundColor: AppColors.electricViolet,
+                    backgroundColor: accent,
                     radius: 22,
                     child: IconButton(
-                      icon: const Icon(Icons.send, color: Colors.white, size: 18),
+                      icon: Icon(Icons.send, color: AppColors.adaptiveOnAccent(isDark), size: 18),
                       onPressed: _sendMessage,
                     ),
                   ),
@@ -315,13 +342,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: isMe && !msg.isFlagged
-                  ? AppColors.blueVioletGradient
+                  ? AppColors.encrePrismGradient
                   : null,
               color: isMe
                   ? null
                   : (msg.isFlagged
-                      ? Colors.red.withValues(alpha: 0.15)
-                      : (isDark ? AppColors.surfaceMutedDark : AppColors.surfaceMuted)),
+                      ? AppColors.error.withValues(alpha: 0.14)
+                      : (isDark ? AppColors.surfaceDark : AppColors.surface)),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
                 topRight: const Radius.circular(16),
@@ -329,8 +356,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 bottomRight: Radius.circular(isMe ? 4 : 16),
               ),
               border: msg.isFlagged
-                  ? Border.all(color: Colors.redAccent.withValues(alpha: 0.5))
-                  : (isMe ? null : Border.all(color: isDark ? AppColors.borderDark : AppColors.border, width: 1.0)),
+                  ? Border.all(color: AppColors.error.withValues(alpha: 0.55))
+                  : (isMe
+                      ? (isDark ? Border.all(color: AppColors.encreBorderDark) : null)
+                      : Border.all(color: AppColors.adaptiveBorder(isDark), width: 1.0)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,7 +372,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   msg.text,
                   style: TextStyle(
                     color: msg.isFlagged
-                        ? Colors.red[300]
+                        ? AppColors.error
                         : (isMe ? Colors.white : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)),
                     fontSize: 14,
                     height: 1.35,
@@ -359,8 +388,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             children: [
               Text(
                 '${msg.timestamp.hour.toString().padLeft(2, '0')}:${msg.timestamp.minute.toString().padLeft(2, '0')}',
-                style: const TextStyle(
-                  color: AppColors.textMutedDark,
+                style: TextStyle(
+                  color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiary,
                   fontSize: 10,
                 ),
               ),
@@ -371,7 +400,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       ? Icons.done_all
                       : (msg.status == MessageStatus.delivered ? Icons.done_all : Icons.done),
                   size: 13,
-                  color: msg.status == MessageStatus.read ? AppColors.neonLime : AppColors.textMutedDark,
+                  color: msg.status == MessageStatus.read
+                      ? AppColors.accentTeal
+                      : (isDark ? AppColors.textTertiaryDark : AppColors.textTertiary),
                 ),
               ],
             ],
@@ -385,23 +416,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.3),
+        color: AppColors.encreElevated.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.neonLime.withValues(alpha: 0.4)),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.45)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.auto_awesome, color: AppColors.neonLime, size: 16),
+              const Icon(Icons.auto_awesome, color: AppColors.accent, size: 16),
               const SizedBox(width: 6),
-              Text(
-                snippet['title'] ?? 'AI Date Itinerary',
-                style: const TextStyle(
-                  color: AppColors.neonLime,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
+              Expanded(
+                child: Text(
+                  snippet['title'] ?? 'AI Date Itinerary',
+                  style: const TextStyle(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
@@ -417,7 +450,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               Text(
                 'Budget: ₹${snippet['budget'] ?? 1500}',
                 style: const TextStyle(
-                  color: AppColors.softPink,
+                  color: AppColors.secondary,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
@@ -435,9 +468,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _showQuickDatePlannerOffer(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surfaceDark,
+      backgroundColor: surfaceColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -450,27 +490,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.auto_awesome, color: AppColors.neonLime),
+                  Icon(Icons.auto_awesome, color: accent),
                   const SizedBox(width: 8),
                   Text(
                     'Share AI Date Itinerary',
                     style: AppTypography.headlineMedium.copyWith(
-                      fontStyle: FontStyle.italic,
-                      color: Colors.white,
+                      color: textColor,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Share a curated, budget-friendly date plan directly into this chat.',
-                style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+                style: TextStyle(color: mutedColor, fontSize: 13),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.electricViolet,
-                  foregroundColor: Colors.white,
+                  backgroundColor: accent,
+                  foregroundColor: AppColors.adaptiveOnAccent(isDark),
                   minimumSize: const Size.fromHeight(48),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -495,9 +534,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _showChatOptionsSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final accent = AppColors.adaptiveAccent(isDark);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surfaceDark,
+      backgroundColor: surfaceColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -505,8 +549,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
-            leading: const Icon(Icons.shield_outlined, color: AppColors.neonLime),
-            title: const Text('Safety & Verification Details', style: TextStyle(color: Colors.white)),
+            leading: Icon(Icons.shield_outlined, color: accent),
+            title: Text('Safety & Verification Details', style: TextStyle(color: textColor)),
             onTap: () {
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -515,22 +559,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.block, color: Colors.orangeAccent),
-            title: const Text('Unmatch User', style: TextStyle(color: Colors.white)),
+            leading: const Icon(Icons.block, color: AppColors.warning),
+            title: Text('Unmatch User', style: TextStyle(color: textColor)),
             onTap: () {
               Navigator.pop(ctx);
               Navigator.pop(context);
             },
           ),
           ListTile(
-            leading: const Icon(Icons.report_problem_outlined, color: Colors.redAccent),
-            title: const Text('Report Safety Concern', style: TextStyle(color: Colors.redAccent)),
+            leading: const Icon(Icons.report_problem_outlined, color: AppColors.error),
+            title: const Text('Report Safety Concern', style: TextStyle(color: AppColors.error)),
             onTap: () {
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Incident reported to Trust & Safety team.'),
-                  backgroundColor: Colors.red,
+                  backgroundColor: AppColors.error,
                 ),
               );
             },

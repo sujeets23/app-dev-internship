@@ -19,6 +19,7 @@ class OnboardingProgressBar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final double progress = (currentStep / totalSteps).clamp(0.0, 1.0);
+    final Color accent = AppColors.adaptiveAccent(isDark);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,9 +31,9 @@ class OnboardingProgressBar extends StatelessWidget {
             Text(
               'Step $currentStep of $totalSteps',
               style: theme.textTheme.labelMedium?.copyWith(
-                color: AppColors.primary,
+                color: accent,
                 fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
+                letterSpacing: 0.4,
               ),
             ),
             if (stepTitle != null)
@@ -61,8 +62,8 @@ class OnboardingProgressBar extends StatelessWidget {
                   value: value,
                   backgroundColor: isDark
                       ? AppColors.surfaceMutedDark
-                      : AppColors.border.withValues(alpha: 0.5),
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                      : AppColors.border,
+                  valueColor: AlwaysStoppedAnimation<Color>(accent),
                 );
               },
             ),

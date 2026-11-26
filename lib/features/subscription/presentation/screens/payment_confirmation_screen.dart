@@ -16,8 +16,15 @@ class PaymentConfirmationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final border = isDark ? AppColors.borderDark : AppColors.border;
+    final textPrimary = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final textMuted = isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: scaffoldBg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -28,26 +35,31 @@ class PaymentConfirmationScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: AppColors.neonLime.withValues(alpha: 0.15),
+                  color: isDark
+                      ? AppColors.success.withValues(alpha: 0.16)
+                      : AppColors.successLight,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.neonLime, width: 2),
+                  border: Border.all(color: AppColors.success, width: 2),
                 ),
-                child: const Icon(Icons.check_circle_outline, color: AppColors.neonLime, size: 64),
+                child: const Icon(Icons.check_circle_outline, color: AppColors.success, size: 64),
               ),
               const SizedBox(height: 24),
               Text(
                 'Payment Verified & Activated!',
                 textAlign: TextAlign.center,
                 style: AppTypography.headlineMedium.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontStyle: FontStyle.italic,
+                  color: textPrimary,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Processed via Razorpay Secure Gateway (Test Mode)',
-                style: TextStyle(color: AppColors.neonLime, fontSize: 12),
+                style: TextStyle(
+                  color: isDark ? AppColors.accent : AppColors.accentTeal,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 28),
 
@@ -55,21 +67,26 @@ class PaymentConfirmationScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceDark,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(color: border),
                 ),
                 child: Column(
                   children: [
-                    _buildReceiptRow('Item / Plan', transaction.description),
-                    const Divider(color: Colors.white10, height: 20),
-                    _buildReceiptRow('Amount Paid', '₹${transaction.amount.toInt()}'),
-                    const Divider(color: Colors.white10, height: 20),
-                    _buildReceiptRow('Payment Method', transaction.method),
-                    const Divider(color: Colors.white10, height: 20),
-                    _buildReceiptRow('Transaction ID', transaction.transactionId),
-                    const Divider(color: Colors.white10, height: 20),
-                    _buildReceiptRow('Status', transaction.status, valueColor: AppColors.neonLime),
+                    _buildReceiptRow(context, 'Item / Plan', transaction.description),
+                    Divider(color: border, height: 20),
+                    _buildReceiptRow(context, 'Amount Paid', '₹${transaction.amount.toInt()}'),
+                    Divider(color: border, height: 20),
+                    _buildReceiptRow(context, 'Payment Method', transaction.method),
+                    Divider(color: border, height: 20),
+                    _buildReceiptRow(context, 'Transaction ID', transaction.transactionId),
+                    Divider(color: border, height: 20),
+                    _buildReceiptRow(
+                      context,
+                      'Status',
+                      transaction.status,
+                      valueColor: AppColors.success,
+                    ),
                   ],
                 ),
               ),
@@ -78,8 +95,8 @@ class PaymentConfirmationScreen extends StatelessWidget {
 
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.electricViolet,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.adaptiveAccent(isDark),
+                  foregroundColor: AppColors.adaptiveOnAccent(isDark),
                   minimumSize: const Size.fromHeight(52),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
@@ -89,12 +106,12 @@ class PaymentConfirmationScreen extends StatelessWidget {
                     MaterialPageRoute(builder: (_) => const BillingLedgerScreen()),
                   );
                 },
-                child: const Text('View Billing Ledger & Mandates', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('View Billing Ledger & Mandates', style: TextStyle(fontWeight: FontWeight.w700)),
               ),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Return to Home', style: TextStyle(color: AppColors.textMutedDark)),
+                child: Text('Return to Home', style: TextStyle(color: textMuted)),
               ),
             ],
           ),
@@ -103,18 +120,22 @@ class PaymentConfirmationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildReceiptRow(String label, String value, {Color? valueColor}) {
+  Widget _buildReceiptRow(BuildContext context, String label, String value, {Color? valueColor}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final textMuted = isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: AppColors.textMutedDark, fontSize: 13)),
+        Text(label, style: TextStyle(color: textMuted, fontSize: 13)),
         Flexible(
           child: Text(
             value,
             textAlign: TextAlign.end,
             style: TextStyle(
-              color: valueColor ?? Colors.white,
-              fontWeight: FontWeight.bold,
+              color: valueColor ?? textPrimary,
+              fontWeight: FontWeight.w700,
               fontSize: 13,
             ),
           ),

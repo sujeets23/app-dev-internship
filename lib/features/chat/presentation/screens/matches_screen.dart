@@ -67,10 +67,11 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
-    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
-    final textColor = isDark ? Colors.white : AppColors.charcoal;
-    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedTextColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -80,8 +81,7 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
         title: Text(
           'Matches & Chats',
           style: AppTypography.headlineMedium.copyWith(
-            fontStyle: FontStyle.italic,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
             color: textColor,
           ),
         ),
@@ -89,14 +89,14 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
           IconButton(
             icon: Icon(
               Icons.shield_outlined,
-              color: isDark ? AppColors.neonLime : AppColors.primary,
+              color: accent,
             ),
             tooltip: 'Safety & Moderation Center',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('🛡️ All messages & calls are protected with AI Safety Shields.'),
-                  backgroundColor: AppColors.primary,
+                SnackBar(
+                  content: const Text('🛡️ All messages & calls are protected with AI Safety Shields.'),
+                  backgroundColor: isDark ? AppColors.encreElevated : AppColors.primary,
                 ),
               );
             },
@@ -120,15 +120,15 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                   filled: true,
                   fillColor: cardBg,
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide(
-                      color: isDark ? Colors.transparent : AppColors.softLavender,
+                      color: AppColors.adaptiveBorder(isDark),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide(
-                      color: isDark ? AppColors.accent : AppColors.primary,
+                      color: accent,
                       width: 1.5,
                     ),
                   ),
@@ -151,23 +151,23 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                         'NEW MATCHES',
                         style: AppTypography.bodySmall.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isDark ? AppColors.neonLime : AppColors.primary,
-                          letterSpacing: 1.2,
+                          color: accent,
+                          letterSpacing: 1.0,
                         ),
                       ),
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.blushPink,
-                          borderRadius: BorderRadius.circular(10),
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           '${_newMatches.length}',
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.encreDeep,
                           ),
                         ),
                       ),
@@ -180,7 +180,7 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: _newMatches.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 14),
+                    separatorBuilder: (_, _) => const SizedBox(width: 14),
                     itemBuilder: (context, index) {
                       final match = _newMatches[index];
                       return GestureDetector(
@@ -205,14 +205,7 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                                   padding: const EdgeInsets.all(2.5),
                                   decoration: const BoxDecoration(
                                     shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        AppColors.blushPink,
-                                        AppColors.butterYellow,
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
+                                    gradient: AppColors.cyanPrismGradient,
                                   ),
                                   child: CircleAvatar(
                                     radius: 34,
@@ -264,8 +257,8 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                 'MESSAGES',
                 style: AppTypography.bodySmall.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textMutedDark : AppColors.primary,
-                  letterSpacing: 1.2,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.primary,
+                  letterSpacing: 1.0,
                 ),
               ),
             ),
@@ -314,19 +307,11 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
                         decoration: BoxDecoration(
                           color: cardBg,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: isDark
-                                ? Colors.transparent
-                                : AppColors.softLavender.withValues(alpha: 0.8),
+                            color: AppColors.adaptiveBorder(isDark),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.softLavender.withValues(alpha: 0.2),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          boxShadow: AppColors.softShadow,
                         ),
                         child: Row(
                           children: [
@@ -372,9 +357,9 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                                       ),
                                       if (conv.isVerified) ...[
                                         const SizedBox(width: 4),
-                                        const Icon(
+                                        Icon(
                                           Icons.verified,
-                                          color: AppColors.primary,
+                                          color: accent,
                                           size: 16,
                                         ),
                                       ],
@@ -414,13 +399,13 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                                             vertical: 2,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: AppColors.blushPink,
+                                            color: accent,
                                             borderRadius: BorderRadius.circular(10),
                                           ),
                                           child: Text(
                                             '${conv.unreadCount}',
-                                            style: const TextStyle(
-                                              color: Colors.white,
+                                            style: TextStyle(
+                                              color: AppColors.adaptiveOnAccent(isDark),
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -440,8 +425,8 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                 ),
               );
             },
-            loading: () => const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+            loading: () => SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator(color: accent)),
             ),
             error: (err, _) => SliverFillRemaining(
               child: Center(

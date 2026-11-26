@@ -167,13 +167,17 @@ class ReviewProfileScreen extends ConsumerWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryLight.withValues(alpha: 0.6),
+                              color: isDark
+                                  ? AppColors.encreElevated
+                                  : AppColors.glacierLight,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
                               profile.displayGender,
                               style: theme.textTheme.labelLarge?.copyWith(
-                                color: AppColors.primaryDark,
+                                color: isDark
+                                    ? AppColors.accent
+                                    : AppColors.glacierInk,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -193,13 +197,22 @@ class ReviewProfileScreen extends ConsumerWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
-                              color: AppColors.secondaryLight.withValues(alpha: 0.7),
+                              color: isDark
+                                  ? AppColors.surfaceMutedDark
+                                  : AppColors.surfaceWarm,
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.borderDark
+                                    : AppColors.borderWarm,
+                              ),
                             ),
                             child: Text(
                               profile.displayPronouns,
                               style: theme.textTheme.labelLarge?.copyWith(
-                                color: AppColors.secondaryDark,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.primarySoft,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -219,13 +232,17 @@ class ReviewProfileScreen extends ConsumerWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
-                              color: AppColors.accentLight.withValues(alpha: 0.7),
+                              color: isDark
+                                  ? AppColors.accentTeal.withValues(alpha: 0.14)
+                                  : AppColors.accentLight,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
                               profile.displayOrientation,
                               style: theme.textTheme.labelLarge?.copyWith(
-                                color: AppColors.accent,
+                                color: isDark
+                                    ? AppColors.accent
+                                    : AppColors.accentInk,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -246,14 +263,19 @@ class ReviewProfileScreen extends ConsumerWidget {
                           return Chip(
                             label: Text(intent),
                             labelStyle: theme.textTheme.labelMedium?.copyWith(
-                              color: AppColors.primaryDark,
+                              color: isDark
+                                  ? AppColors.accent
+                                  : AppColors.glacierInk,
                               fontWeight: FontWeight.w600,
                             ),
-                            backgroundColor:
-                                AppColors.primaryLight.withValues(alpha: 0.6),
-                            side: const BorderSide(
-                              color: AppColors.primary,
-                              width: 1.1,
+                            backgroundColor: isDark
+                                ? AppColors.encreElevated
+                                : AppColors.glacierLight,
+                            side: BorderSide(
+                              color: isDark
+                                  ? AppColors.borderDark
+                                  : AppColors.glacierBorder,
+                              width: 1.0,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -351,7 +373,7 @@ class ReviewProfileScreen extends ConsumerWidget {
       width: 72,
       height: 72,
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
+        color: AppColors.glacierLight,
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(

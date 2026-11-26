@@ -37,9 +37,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _saveProfile() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ Profile updated successfully!'),
-        backgroundColor: AppColors.electricViolet,
+      SnackBar(
+        content: const Text('✅ Profile updated successfully!'),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.encreElevated
+            : AppColors.primary,
       ),
     );
     Navigator.pop(context);
@@ -47,21 +49,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final hintColor =
+        isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
+
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_new, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Edit Inclusive Profile',
           style: AppTypography.headlineMedium.copyWith(
-            color: Colors.white,
+            color: textColor,
             fontWeight: FontWeight.bold,
-            fontStyle: FontStyle.italic,
           ),
         ),
       ),
@@ -71,57 +79,80 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Name Field
-            _buildFieldLabel('DISPLAY NAME'),
-            _buildTextField(_nameController, 'Your Name'),
+            _buildFieldLabel('DISPLAY NAME', isDark),
+            _buildTextField(_nameController, 'Your Name',
+                cardBg: cardBg, textColor: textColor, hintColor: hintColor, isDark: isDark),
             const SizedBox(height: 16),
 
             // Age Field
-            _buildFieldLabel('AGE'),
-            _buildTextField(_ageController, 'Your Age', keyboardType: TextInputType.number),
+            _buildFieldLabel('AGE', isDark),
+            _buildTextField(_ageController, 'Your Age',
+                keyboardType: TextInputType.number,
+                cardBg: cardBg,
+                textColor: textColor,
+                hintColor: hintColor,
+                isDark: isDark),
             const SizedBox(height: 16),
 
             // Custom Pronouns
-            _buildFieldLabel('CUSTOM PRONOUNS'),
-            _buildTextField(_pronounsController, 'e.g. they/them, she/her, he/they'),
+            _buildFieldLabel('CUSTOM PRONOUNS', isDark),
+            _buildTextField(_pronounsController, 'e.g. they/them, she/her, he/they',
+                cardBg: cardBg, textColor: textColor, hintColor: hintColor, isDark: isDark),
             const SizedBox(height: 16),
 
             // Gender Identity Dropdown
-            _buildFieldLabel('GENDER IDENTITY'),
+            _buildFieldLabel('GENDER IDENTITY', isDark),
             _buildDropdown(
               value: _genderIdentity,
               items: _genders,
               onChanged: (val) => setState(() => _genderIdentity = val!),
+              cardBg: cardBg,
+              textColor: textColor,
+              isDark: isDark,
             ),
             const SizedBox(height: 16),
 
             // Sexual Orientation Dropdown
-            _buildFieldLabel('SEXUAL ORIENTATION'),
+            _buildFieldLabel('SEXUAL ORIENTATION', isDark),
             _buildDropdown(
               value: _sexualOrientation,
               items: _orientations,
               onChanged: (val) => setState(() => _sexualOrientation = val!),
+              cardBg: cardBg,
+              textColor: textColor,
+              isDark: isDark,
             ),
             const SizedBox(height: 16),
 
             // Connection Preferences
-            _buildFieldLabel('CONNECTION INTENT'),
+            _buildFieldLabel('CONNECTION INTENT', isDark),
             _buildDropdown(
               value: _connectionPreference,
               items: _preferences,
               onChanged: (val) => setState(() => _connectionPreference = val!),
+              cardBg: cardBg,
+              textColor: textColor,
+              isDark: isDark,
             ),
             const SizedBox(height: 16),
 
             // Short Bio
-            _buildFieldLabel('SHORT BIO'),
+            _buildFieldLabel('SHORT BIO', isDark),
             TextField(
               controller: _bioController,
               maxLines: 4,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: textColor),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: AppColors.surfaceDark,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                fillColor: cardBg,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.adaptiveBorder(isDark)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.adaptiveBorder(isDark)),
+                ),
               ),
             ),
             const SizedBox(height: 28),
@@ -129,8 +160,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             // Save Button
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.electricViolet,
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.adaptiveAccent(isDark),
+                foregroundColor: AppColors.adaptiveOnAccent(isDark),
                 minimumSize: const Size.fromHeight(50),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
@@ -144,32 +175,47 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildFieldLabel(String label) {
+  Widget _buildFieldLabel(String label, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6.0),
       child: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.neonLime,
+        style: TextStyle(
+          color: AppColors.adaptiveAccent(isDark),
           fontWeight: FontWeight.bold,
           fontSize: 11,
-          letterSpacing: 1.1,
+          letterSpacing: 1.0,
         ),
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, {TextInputType? keyboardType}) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String hint, {
+    TextInputType? keyboardType,
+    required Color cardBg,
+    required Color textColor,
+    required Color hintColor,
+    required bool isDark,
+  }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: textColor),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.textMutedDark),
+        hintStyle: TextStyle(color: hintColor),
         filled: true,
-        fillColor: AppColors.surfaceDark,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        fillColor: cardBg,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.adaptiveBorder(isDark)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.adaptiveBorder(isDark)),
+        ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
@@ -179,19 +225,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required String value,
     required List<String> items,
     required ValueChanged<String?> onChanged,
+    required Color cardBg,
+    required Color textColor,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
+        color: cardBg,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.adaptiveBorder(isDark)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isExpanded: true,
-          dropdownColor: AppColors.surfaceDark,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
+          dropdownColor: cardBg,
+          style: TextStyle(color: textColor, fontSize: 14),
           items: items.map((i) => DropdownMenuItem(value: i, child: Text(i))).toList(),
           onChanged: onChanged,
         ),

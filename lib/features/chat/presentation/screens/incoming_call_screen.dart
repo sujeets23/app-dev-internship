@@ -78,9 +78,9 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                       color: Colors.white12,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Icon(Icons.shield_rounded, color: AppColors.accent, size: 16),
                         SizedBox(width: 6),
                         Text(
@@ -121,8 +121,8 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                             height: 170 + (_pulseController.value * 40),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.blushPink.withValues(
-                                alpha: (1 - _pulseController.value) * 0.35,
+                              color: AppColors.accent.withValues(
+                                alpha: (1 - _pulseController.value) * 0.25,
                               ),
                             ),
                           ),
@@ -131,9 +131,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                             height: 140,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [AppColors.blushPink, AppColors.butterYellow],
-                              ),
+                              gradient: AppColors.cyanPrismGradient,
                             ),
                             child: Padding(
                               padding: const EdgeInsets.all(4),

@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
+import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
 import 'package:inclusive_dating/features/verification/presentation/providers/biometric_verification_provider.dart';
-import 'package:inclusive_dating/features/verification/presentation/screens/biometric_verification_screen.dart';
+import 'package:inclusive_dating/features/verification/presentation/screens/security_check_intro_screen.dart';
 import 'package:inclusive_dating/features/companions/presentation/widgets/safety_hud_widget.dart';
 import 'package:inclusive_dating/features/companions/presentation/screens/companion_marketplace_screen.dart';
 import 'package:inclusive_dating/features/subscription/presentation/providers/subscription_provider.dart';
@@ -22,18 +23,19 @@ class HomeDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isVerified = ref.watch(isProfileVerifiedProvider);
+    final isVerified = ref.watch(isProfileVerifiedProvider) ||
+        ref.watch(authProvider).isFullyVerified;
     final billingAsync = ref.watch(billingProfileProvider);
     final discoveryState = ref.watch(discoveryProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.softWhite,
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       body: SafeArea(
         child: RefreshIndicator(
-          color: AppColors.primary,
-          backgroundColor: AppColors.softLavender,
+          color: AppColors.adaptiveAccent(isDark),
+          backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surface,
           onRefresh: () async {
             ref.invalidate(billingProfileProvider);
             await ref.read(discoveryProvider.notifier).loadDeck();
@@ -109,13 +111,16 @@ class HomeDashboardScreen extends ConsumerWidget {
   // 1. TOP HEADER
   // ---------------------------------------------------------------------------
   Widget _buildTopHeader(BuildContext context, {required Function(int) onTabSelected}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.softLavender.withValues(alpha: 0.25),
+        color: isDark ? AppColors.surfaceMutedDark : AppColors.glacierLight,
         border: Border(
           bottom: BorderSide(
-            color: AppColors.softLavender.withValues(alpha: 0.6),
+            color: AppColors.adaptiveBorder(isDark),
             width: 1,
           ),
         ),
@@ -135,7 +140,7 @@ class HomeDashboardScreen extends ConsumerWidget {
             clipBehavior: Clip.none,
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: AppColors.charcoal, size: 26),
+                icon: Icon(Icons.notifications_outlined, color: textColor, size: 26),
                 tooltip: 'Notifications',
                 onPressed: () {
                   Navigator.push(
@@ -151,7 +156,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                   width: 9,
                   height: 9,
                   decoration: const BoxDecoration(
-                    color: AppColors.blushPink,
+                    color: AppColors.accentTeal,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -168,14 +173,11 @@ class HomeDashboardScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primary, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.blushPink.withValues(alpha: 0.3),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                border: Border.all(
+                  color: AppColors.adaptiveAccent(isDark),
+                  width: 2,
+                ),
+                boxShadow: AppColors.softShadow,
               ),
               child: const CircleAvatar(
                 radius: 17,
@@ -194,6 +196,11 @@ class HomeDashboardScreen extends ConsumerWidget {
   // WELCOME GREETING SECTION
   // ---------------------------------------------------------------------------
   Widget _buildWelcomeGreetingSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Column(
@@ -204,11 +211,10 @@ class HomeDashboardScreen extends ConsumerWidget {
               Text(
                 'Good evening, Alex',
                 style: AppTypography.displayMedium.copyWith(
-                  color: AppColors.charcoal,
-                  fontWeight: FontWeight.w800,
-                  fontStyle: FontStyle.italic,
+                  color: textColor,
+                  fontWeight: FontWeight.w700,
                   fontSize: 24,
-                  letterSpacing: -0.4,
+                  letterSpacing: -0.6,
                 ),
               ),
               const SizedBox(width: 6),
@@ -216,10 +222,10 @@ class HomeDashboardScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 3),
-          const Text(
+          Text(
             'Ready to find your meaningful vibe and connections today?',
             style: TextStyle(
-              color: AppColors.secondaryText,
+              color: mutedColor,
               fontSize: 13.5,
               fontWeight: FontWeight.w500,
             ),
@@ -238,6 +244,10 @@ class HomeDashboardScreen extends ConsumerWidget {
     required DiscoveryState discoveryState,
     required Function(int) onTabSelected,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = AppColors.adaptiveAccent(isDark);
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+
     // If deck has profiles, use the top profile; else use curated showcase
     final profile = discoveryState.currentProfile;
     final name = profile?.name ?? 'Aarya Sen';
@@ -263,9 +273,8 @@ class HomeDashboardScreen extends ConsumerWidget {
                 'FEATURED DISCOVERY',
                 style: AppTypography.bodySmall.copyWith(
                   fontWeight: FontWeight.w800,
-                  fontStyle: FontStyle.italic,
-                  color: AppColors.primary,
-                  letterSpacing: 1.2,
+                  color: accent,
+                  letterSpacing: 1.0,
                 ),
               ),
               GestureDetector(
@@ -275,13 +284,13 @@ class HomeDashboardScreen extends ConsumerWidget {
                     Text(
                       'Explore Deck',
                       style: TextStyle(
-                        color: AppColors.charcoal.withValues(alpha: 0.8),
-                        fontWeight: FontWeight.bold,
+                        color: textColor.withValues(alpha: 0.8),
+                        fontWeight: FontWeight.w600,
                         fontSize: 12,
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.charcoal),
+                    Icon(Icons.arrow_forward_ios, size: 12, color: textColor),
                   ],
                 ),
               ),
@@ -289,21 +298,15 @@ class HomeDashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
 
-          // Large attractive profile card
+          // Large curated profile card
           Container(
             height: 380,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.softLavender.withValues(alpha: 0.6),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: AppColors.cardShadow,
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(24),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -311,10 +314,10 @@ class HomeDashboardScreen extends ConsumerWidget {
                   Image.network(
                     imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: AppColors.softLavender,
+                    errorBuilder: (_, _, _) => Container(
+                      color: AppColors.glacierLight,
                       child: const Center(
-                        child: Icon(Icons.person, size: 60, color: AppColors.blushPink),
+                        child: Icon(Icons.person, size: 60, color: AppColors.primary),
                       ),
                     ),
                   ),
@@ -325,8 +328,8 @@ class HomeDashboardScreen extends ConsumerWidget {
                       gradient: LinearGradient(
                         colors: [
                           Colors.transparent,
-                          AppColors.charcoal.withValues(alpha: 0.2),
-                          AppColors.charcoal.withValues(alpha: 0.85),
+                          AppColors.encreDeep.withValues(alpha: 0.2),
+                          AppColors.encreDeep.withValues(alpha: 0.86),
                         ],
                         stops: const [0.4, 0.65, 1.0],
                         begin: Alignment.topCenter,
@@ -342,23 +345,18 @@ class HomeDashboardScreen extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppColors.butterYellow,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 6,
-                          ),
-                        ],
+                        color: AppColors.accent,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: AppColors.softShadow,
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.bolt_rounded, size: 16, color: AppColors.charcoal),
+                          const Icon(Icons.bolt_rounded, size: 16, color: AppColors.encreDeep),
                           const SizedBox(width: 4),
                           Text(
                             '$matchScore% Compatibility',
                             style: const TextStyle(
-                              color: AppColors.charcoal,
+                              color: AppColors.encreDeep,
                               fontWeight: FontWeight.w800,
                               fontSize: 12,
                             ),
@@ -375,12 +373,13 @@ class HomeDashboardScreen extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: AppColors.primary.withValues(alpha: 0.88),
                         shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.accent, width: 1.2),
                       ),
                       child: const Icon(
                         Icons.verified_rounded,
-                        color: AppColors.primary,
+                        color: AppColors.accent,
                         size: 20,
                       ),
                     ),
@@ -411,7 +410,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.white24,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
                                 pronouns,
@@ -425,7 +424,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                         // Location
                         Row(
                           children: [
-                            const Icon(Icons.location_on, size: 14, color: AppColors.peach),
+                            const Icon(Icons.location_on, size: 14, color: AppColors.accent),
                             const SizedBox(width: 4),
                             Text(
                               location,
@@ -463,16 +462,11 @@ class HomeDashboardScreen extends ConsumerWidget {
                                 width: 48,
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.9),
+                                  color: Colors.white.withValues(alpha: 0.94),
                                   shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.2),
-                                      blurRadius: 8,
-                                    ),
-                                  ],
+                                  boxShadow: AppColors.softShadow,
                                 ),
-                                child: const Icon(Icons.close_rounded, color: Colors.black54, size: 26),
+                                child: const Icon(Icons.close_rounded, color: AppColors.primary, size: 24),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -483,8 +477,8 @@ class HomeDashboardScreen extends ConsumerWidget {
                                 ref.read(discoveryProvider.notifier).swipe(SwipeDirection.right);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Liked $name! ❤️'),
-                                    backgroundColor: AppColors.blushPink,
+                                    content: Text('Liked $name!'),
+                                    backgroundColor: AppColors.primary,
                                     duration: const Duration(milliseconds: 900),
                                   ),
                                 );
@@ -494,18 +488,12 @@ class HomeDashboardScreen extends ConsumerWidget {
                                 width: 48,
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [AppColors.blushPink, AppColors.coral],
-                                  ),
+                                  color: AppColors.primary,
                                   shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.blushPink.withValues(alpha: 0.5),
-                                      blurRadius: 10,
-                                    ),
-                                  ],
+                                  border: Border.all(color: AppColors.accent, width: 1.4),
+                                  boxShadow: AppColors.primaryShadow,
                                 ),
-                                child: const Icon(Icons.favorite_rounded, color: Colors.white, size: 26),
+                                child: const Icon(Icons.favorite_rounded, color: AppColors.accent, size: 24),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -514,11 +502,11 @@ class HomeDashboardScreen extends ConsumerWidget {
                             Expanded(
                               child: ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.butterYellow,
-                                  foregroundColor: AppColors.charcoal,
+                                  backgroundColor: AppColors.accent,
+                                  foregroundColor: AppColors.encreDeep,
                                   padding: const EdgeInsets.symmetric(vertical: 13),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(24),
+                                    borderRadius: BorderRadius.circular(14),
                                   ),
                                   elevation: 0,
                                 ),
@@ -526,7 +514,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                                 icon: const Icon(Icons.style_outlined, size: 18),
                                 label: const Text(
                                   'Discover More',
-                                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                                 ),
                               ),
                             ),
@@ -548,6 +536,12 @@ class HomeDashboardScreen extends ConsumerWidget {
   // 3. MATCHES SECTION
   // ---------------------------------------------------------------------------
   Widget _buildMatchesSection(BuildContext context, {required Function(int) onTabSelected}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = AppColors.adaptiveAccent(isDark);
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+
     final matches = [
       {
         'id': 'match_1',
@@ -603,18 +597,17 @@ class HomeDashboardScreen extends ConsumerWidget {
                 'RECENT MATCHES',
                 style: AppTypography.bodySmall.copyWith(
                   fontWeight: FontWeight.w800,
-                  fontStyle: FontStyle.italic,
-                  color: AppColors.primary,
-                  letterSpacing: 1.2,
+                  color: accent,
+                  letterSpacing: 1.0,
                 ),
               ),
               GestureDetector(
                 onTap: () => onTabSelected(2), // Switch to Matches tab
                 child: Text(
                   'View All (${matches.length})',
-                  style: const TextStyle(
-                    color: AppColors.blushPink,
-                    fontWeight: FontWeight.bold,
+                  style: TextStyle(
+                    color: isDark ? AppColors.accentTeal : AppColors.glacierInk,
+                    fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
                 ),
@@ -630,7 +623,7 @@ class HomeDashboardScreen extends ConsumerWidget {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: matches.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            separatorBuilder: (_, _) => const SizedBox(width: 16),
             itemBuilder: (context, index) {
               final m = matches[index];
               final isNew = m['isNew'] as bool;
@@ -658,26 +651,14 @@ class HomeDashboardScreen extends ConsumerWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: isNew
-                                ? const LinearGradient(
-                                    colors: [AppColors.blushPink, AppColors.butterYellow],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  )
+                                ? AppColors.cyanPrismGradient
                                 : LinearGradient(
                                     colors: [
-                                      AppColors.softLavender,
-                                      AppColors.softLavender.withValues(alpha: 0.5),
+                                      AppColors.adaptiveBorder(isDark),
+                                      AppColors.adaptiveBorder(isDark),
                                     ],
                                   ),
-                            boxShadow: isNew
-                                ? [
-                                    BoxShadow(
-                                      color: AppColors.blushPink.withValues(alpha: 0.35),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ]
-                                : null,
+                            boxShadow: isNew ? AppColors.softShadow : null,
                           ),
                           child: CircleAvatar(
                             radius: 30,
@@ -691,14 +672,17 @@ class HomeDashboardScreen extends ConsumerWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppColors.butterYellow,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.white, width: 1.5),
+                                color: AppColors.accent,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: isDark ? AppColors.backgroundDark : Colors.white,
+                                  width: 1.5,
+                                ),
                               ),
                               child: const Text(
                                 'NEW',
                                 style: TextStyle(
-                                  color: AppColors.charcoal,
+                                  color: AppColors.encreDeep,
                                   fontWeight: FontWeight.w900,
                                   fontSize: 8,
                                 ),
@@ -710,16 +694,16 @@ class HomeDashboardScreen extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Text(
                       m['name'] as String,
-                      style: const TextStyle(
-                        color: AppColors.charcoal,
-                        fontWeight: FontWeight.bold,
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w700,
                         fontSize: 12,
                       ),
                     ),
                     Text(
                       m['score'] as String,
                       style: TextStyle(
-                        color: AppColors.charcoal.withValues(alpha: 0.6),
+                        color: mutedColor,
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                       ),
@@ -738,6 +722,13 @@ class HomeDashboardScreen extends ConsumerWidget {
   // 4. MESSAGES SECTION
   // ---------------------------------------------------------------------------
   Widget _buildMessagesSection(BuildContext context, {required Function(int) onTabSelected}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = AppColors.adaptiveAccent(isDark);
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+
     final conversations = [
       {
         'id': 'conv_1',
@@ -783,9 +774,8 @@ class HomeDashboardScreen extends ConsumerWidget {
                 'RECENT CONVERSATIONS',
                 style: AppTypography.bodySmall.copyWith(
                   fontWeight: FontWeight.w800,
-                  fontStyle: FontStyle.italic,
-                  color: AppColors.primary,
-                  letterSpacing: 1.2,
+                  color: accent,
+                  letterSpacing: 1.0,
                 ),
               ),
               GestureDetector(
@@ -793,8 +783,8 @@ class HomeDashboardScreen extends ConsumerWidget {
                 child: Text(
                   'All Chats',
                   style: TextStyle(
-                    color: AppColors.charcoal.withValues(alpha: 0.8),
-                    fontWeight: FontWeight.bold,
+                    color: textColor.withValues(alpha: 0.8),
+                    fontWeight: FontWeight.w600,
                     fontSize: 12,
                   ),
                 ),
@@ -805,24 +795,18 @@ class HomeDashboardScreen extends ConsumerWidget {
 
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.softLavender.withValues(alpha: 0.8)),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.softLavender.withValues(alpha: 0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: cardBg,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.adaptiveBorder(isDark)),
+              boxShadow: AppColors.softShadow,
             ),
             child: ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: conversations.length,
-              separatorBuilder: (_, __) => Divider(
+              separatorBuilder: (_, _) => Divider(
                 height: 1,
-                color: AppColors.softLavender.withValues(alpha: 0.5),
+                color: AppColors.adaptiveBorder(isDark),
                 indent: 68,
               ),
               itemBuilder: (context, index) {
@@ -844,7 +828,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                       ),
                     );
                   },
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(18),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     child: Row(
@@ -866,7 +850,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                                   decoration: BoxDecoration(
                                     color: AppColors.success,
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 2),
+                                    border: Border.all(color: cardBg, width: 2),
                                   ),
                                 ),
                               ),
@@ -885,7 +869,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                                   Text(
                                     c['name'] as String,
                                     style: TextStyle(
-                                      color: AppColors.charcoal,
+                                      color: textColor,
                                       fontWeight: unread > 0 ? FontWeight.bold : FontWeight.w600,
                                       fontSize: 14,
                                     ),
@@ -893,7 +877,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                                   Text(
                                     c['time'] as String,
                                     style: TextStyle(
-                                      color: unread > 0 ? AppColors.blushPink : Colors.black45,
+                                      color: unread > 0 ? accent : mutedColor,
                                       fontSize: 11,
                                       fontWeight: unread > 0 ? FontWeight.bold : FontWeight.normal,
                                     ),
@@ -904,7 +888,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                               Text(
                                 c['lastMessage'] as String,
                                 style: TextStyle(
-                                  color: unread > 0 ? AppColors.charcoal : Colors.black54,
+                                  color: unread > 0 ? textColor : mutedColor,
                                   fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.normal,
                                   fontSize: 12,
                                 ),
@@ -920,14 +904,14 @@ class HomeDashboardScreen extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                            decoration: const BoxDecoration(
-                              color: AppColors.blushPink,
+                            decoration: BoxDecoration(
+                              color: accent,
                               shape: BoxShape.circle,
                             ),
                             child: Text(
                               '$unread',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: AppColors.adaptiveOnAccent(isDark),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 10,
                               ),
@@ -947,40 +931,54 @@ class HomeDashboardScreen extends ConsumerWidget {
   }
 
   // ---------------------------------------------------------------------------
-  // 5. AI DATE PLANNER FEATURE CARD
+  // 5. AI DATE PLANNER FEATURE CARD (Glanceable Glacier Card)
   // ---------------------------------------------------------------------------
   Widget _buildAiDatePlannerCard(BuildContext context, {required Function(int) onTabSelected}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final bodyColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: AppColors.softPastelCardGradient,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.border, width: 1.2),
+          gradient: isDark ? null : AppColors.glacierPrismGradient,
+          color: isDark ? AppColors.encreElevated : null,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : AppColors.glacierBorder,
+            width: 1.1,
+          ),
           boxShadow: AppColors.softShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Badge & Sparkle
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    borderRadius: BorderRadius.circular(16),
+                    color: isDark ? AppColors.surfaceDark : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isDark ? AppColors.borderDark : AppColors.border,
+                    ),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.auto_awesome, size: 14, color: AppColors.primary),
-                      SizedBox(width: 5),
+                      Icon(
+                        Icons.auto_awesome,
+                        size: 14,
+                        color: AppColors.adaptiveAccent(isDark),
+                      ),
+                      const SizedBox(width: 5),
                       Text(
                         'AI DATE PLANNER',
                         style: TextStyle(
-                          color: AppColors.primary,
+                          color: AppColors.adaptiveAccent(isDark),
                           fontWeight: FontWeight.w800,
                           fontSize: 10,
                           letterSpacing: 0.5,
@@ -990,16 +988,16 @@ class HomeDashboardScreen extends ConsumerWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.butterYellow,
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
                     '10% OFF VOUCHERS',
                     style: TextStyle(
-                      color: AppColors.charcoal,
-                      fontWeight: FontWeight.w900,
+                      color: AppColors.encreDeep,
+                      fontWeight: FontWeight.w800,
                       fontSize: 9,
                     ),
                   ),
@@ -1008,52 +1006,46 @@ class HomeDashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 14),
 
-            // Mandatory Headline
             Text(
               'Your next date starts here.',
               style: AppTypography.displaySmall.copyWith(
-                color: AppColors.charcoal,
-                fontWeight: FontWeight.w900,
-                fontStyle: FontStyle.italic,
+                color: textColor,
+                fontWeight: FontWeight.w700,
                 fontSize: 22,
                 height: 1.15,
               ),
             ),
             const SizedBox(height: 6),
 
-            // Explanatory Text
-            const Text(
+            Text(
               'Generate personalized multi-stop itineraries strictly within ₹500–₹5,000 budgets with verified queer-friendly cafe discount passes.',
               style: TextStyle(
-                color: Color(0xFF3B3347),
-                fontSize: 12,
-                height: 1.35,
+                color: bodyColor,
+                fontSize: 12.5,
+                height: 1.4,
               ),
             ),
             const SizedBox(height: 16),
 
-            // Mandatory Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.butterYellow,
-                  foregroundColor: AppColors.charcoal,
+                  backgroundColor: AppColors.adaptiveAccent(isDark),
+                  foregroundColor: AppColors.adaptiveOnAccent(isDark),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  elevation: 2,
-                  shadowColor: Colors.black26,
+                  elevation: 0,
                 ),
                 onPressed: () => onTabSelected(3), // Navigate to AI Date Planner module
                 icon: const Icon(Icons.rocket_launch_rounded, size: 18),
                 label: const Text(
                   'Generate Date Plan',
                   style: TextStyle(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     fontSize: 14,
-                    letterSpacing: 0.2,
                   ),
                 ),
               ),
@@ -1065,7 +1057,7 @@ class HomeDashboardScreen extends ConsumerWidget {
   }
 
   // ---------------------------------------------------------------------------
-  // 6. COMPANION MARKETPLACE FEATURE CARD
+  // 6. COMPANION MARKETPLACE FEATURE CARD (Glanceable Encre Dark Banner)
   // ---------------------------------------------------------------------------
   Widget _buildCompanionMarketplaceCard(BuildContext context) {
     return Padding(
@@ -1073,16 +1065,10 @@ class HomeDashboardScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: AppColors.violetPinkGradient,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.secondary.withValues(alpha: 0.25),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
+          gradient: AppColors.encrePrismGradient,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.encreBorderDark, width: 1.1),
+          boxShadow: AppColors.primaryShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1093,17 +1079,18 @@ class HomeDashboardScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    borderRadius: BorderRadius.circular(16),
+                    color: AppColors.encreElevated,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.encreBorderDark),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.shield_outlined, size: 14, color: AppColors.charcoal),
+                      Icon(Icons.shield_outlined, size: 14, color: AppColors.accent),
                       SizedBox(width: 5),
                       Text(
                         'SAFETY ESCROW & VERIFIED',
                         style: TextStyle(
-                          color: AppColors.charcoal,
+                          color: AppColors.accent,
                           fontWeight: FontWeight.w800,
                           fontSize: 10,
                           letterSpacing: 0.5,
@@ -1113,16 +1100,16 @@ class HomeDashboardScreen extends ConsumerWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
                     'PLATONIC ONLY',
                     style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
+                      color: AppColors.encreDeep,
+                      fontWeight: FontWeight.w800,
                       fontSize: 9,
                     ),
                   ),
@@ -1131,43 +1118,38 @@ class HomeDashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 14),
 
-            // Mandatory Headline
             Text(
               'Never attend an event alone.',
               style: AppTypography.displaySmall.copyWith(
                 color: Colors.white,
-                fontWeight: FontWeight.w900,
-                fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w700,
                 fontSize: 22,
                 height: 1.15,
               ),
             ),
             const SizedBox(height: 6),
 
-            // Description
             const Text(
               'Book vetted, respectful companions for weddings, concerts, art galas & public dinners. Featuring QR/OTP check-in & live GPS Safety Escrow.',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                height: 1.35,
+                color: AppColors.textSecondaryDark,
+                fontSize: 12.5,
+                height: 1.4,
               ),
             ),
             const SizedBox(height: 16),
 
-            // Mandatory Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  foregroundColor: AppColors.charcoal,
+                  foregroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  elevation: 2,
-                  shadowColor: Colors.black26,
+                  elevation: 0,
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -1177,13 +1159,12 @@ class HomeDashboardScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                icon: const Icon(Icons.people_alt_rounded, size: 18, color: AppColors.charcoal),
+                icon: const Icon(Icons.people_alt_rounded, size: 18, color: AppColors.primary),
                 label: const Text(
                   'Explore Companions',
                   style: TextStyle(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     fontSize: 14,
-                    letterSpacing: 0.2,
                   ),
                 ),
               ),
@@ -1198,16 +1179,27 @@ class HomeDashboardScreen extends ConsumerWidget {
   // 7. IDENTITY ASSURANCE & BIOMETRIC VERIFICATION STATUS CARD
   // ---------------------------------------------------------------------------
   Widget _buildVerificationStatusCard(BuildContext context, {required bool isVerified}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: isVerified ? const Color(0xFFE8F5E9) : AppColors.softLavender.withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(22),
+          color: isVerified
+              ? (isDark
+                  ? AppColors.success.withValues(alpha: 0.14)
+                  : AppColors.successLight)
+              : (isDark ? AppColors.surfaceDark : AppColors.surfaceWarm),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isVerified ? AppColors.success : AppColors.softLavender,
-            width: 1.5,
+            color: isVerified
+                ? AppColors.success.withValues(alpha: 0.6)
+                : AppColors.adaptiveBorder(isDark),
+            width: 1.2,
           ),
         ),
         child: Row(
@@ -1216,12 +1208,14 @@ class HomeDashboardScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isVerified ? AppColors.success : AppColors.primary,
+                color: isVerified
+                    ? AppColors.success
+                    : AppColors.adaptiveAccent(isDark),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 isVerified ? Icons.verified_user_rounded : Icons.gpp_maybe_rounded,
-                color: Colors.white,
+                color: isVerified ? Colors.white : AppColors.adaptiveOnAccent(isDark),
                 size: 24,
               ),
             ),
@@ -1235,7 +1229,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                         ? 'Identity Assurance Verified ✓'
                         : 'Identity Verification Incomplete',
                     style: TextStyle(
-                      color: isVerified ? AppColors.success : AppColors.charcoal,
+                      color: isVerified ? AppColors.success : textColor,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -1246,20 +1240,20 @@ class HomeDashboardScreen extends ConsumerWidget {
                         ? 'Google ML Kit landmarks & zero-persistence liveness passed.'
                         : 'Complete your quick 3-step liveness scan to get verified and unlock 3x more mutual matches.',
                     style: TextStyle(
-                      color: AppColors.charcoal.withValues(alpha: 0.75),
-                      fontSize: 11,
-                      height: 1.3,
+                      color: mutedColor,
+                      fontSize: 11.5,
+                      height: 1.35,
                     ),
                   ),
                   if (!isVerified) ...[
                     const SizedBox(height: 10),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.butterYellow,
-                        foregroundColor: AppColors.charcoal,
+                        backgroundColor: AppColors.adaptiveAccent(isDark),
+                        foregroundColor: AppColors.adaptiveOnAccent(isDark),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         elevation: 0,
                       ),
@@ -1267,13 +1261,13 @@ class HomeDashboardScreen extends ConsumerWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const BiometricVerificationScreen(),
+                            builder: (_) => const SecurityCheckIntroScreen(),
                           ),
                         );
                       },
                       child: const Text(
                         'Verify Now',
-                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
                       ),
                     ),
                   ],
@@ -1293,6 +1287,12 @@ class HomeDashboardScreen extends ConsumerWidget {
     BuildContext context, {
     required AsyncValue<UserBillingProfile> billingAsync,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+
     final billingProfile = billingAsync.value;
     final currentTier = billingProfile?.activeTier ?? SubscriptionTier.free;
     final isPro = currentTier == SubscriptionTier.pro;
@@ -1305,28 +1305,20 @@ class HomeDashboardScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: AppColors.border, width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.softLavender.withValues(alpha: 0.35),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: cardBg,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.adaptiveBorder(isDark), width: 1.1),
+          boxShadow: AppColors.softShadow,
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.blushPink, AppColors.butterYellow],
-                ),
-                borderRadius: BorderRadius.circular(16),
+                gradient: AppColors.cyanPrismGradient,
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(Icons.workspace_premium_rounded, color: AppColors.charcoal, size: 26),
+              child: const Icon(Icons.workspace_premium_rounded, color: AppColors.encreDeep, size: 26),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1335,8 +1327,8 @@ class HomeDashboardScreen extends ConsumerWidget {
                 children: [
                   Text(
                     tierName,
-                    style: const TextStyle(
-                      color: AppColors.charcoal,
+                    style: TextStyle(
+                      color: textColor,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -1347,7 +1339,7 @@ class HomeDashboardScreen extends ConsumerWidget {
                         ? 'Unlimited swipes, Incognito Shield & AI date planner active.'
                         : 'Unlock unlimited swipes, 10% cafe vouchers & AI itinerary planner.',
                     style: TextStyle(
-                      color: AppColors.charcoal.withValues(alpha: 0.7),
+                      color: mutedColor,
                       fontSize: 11,
                       height: 1.3,
                     ),
@@ -1358,11 +1350,11 @@ class HomeDashboardScreen extends ConsumerWidget {
             const SizedBox(width: 8),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.butterYellow,
-                foregroundColor: AppColors.charcoal,
+                backgroundColor: isDark ? AppColors.accent : AppColors.secondary,
+                foregroundColor: isDark ? AppColors.encreDeep : AppColors.primary,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 elevation: 0,
               ),
@@ -1376,7 +1368,7 @@ class HomeDashboardScreen extends ConsumerWidget {
               },
               child: const Text(
                 'Explore Premium',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 11),
               ),
             ),
           ],

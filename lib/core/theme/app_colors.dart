@@ -1,213 +1,216 @@
 import 'package:flutter/material.dart';
 
-/// Centralized Design System & Color Palette for Date²
-/// Inspired by the visual aesthetic and color direction of Glanceable (https://www.glanceable.io/en):
-/// - Clean, soft, and elegant light backgrounds (#F8F9FD).
-/// - Pure white (#FFFFFF) and subtle off-white/pastel surfaces (#EEF1FB, #F1F3F9).
-/// - Dark navy/charcoal typography (#1C2134) for exceptional contrast and readability.
-/// - Vibrant Royal Blue (#4D65FF) and Violet (#7C3AED) as the main brand accents.
-/// - Soft Rose / Blush Pink (#EE78A4) and Lavender (#C6A0FF, #E0D4FC) as supporting accents.
-/// - Signature Blue-to-Violet-to-Pink gradient highlights.
-/// - Soft pastel tints for cards, badges, and secondary elements.
-/// - Subtle, elegant borders (#E8EAF0) and airy soft shadows.
+/// Centralized Design System & Colour Tokens for Date²
+/// Faithfully aligned with Glanceable (https://www.glanceable.io/en):
+/// - Deep Encre ink navy (#1C2134 / #0E1018) for primary actions, dark surfaces & contrast headings.
+/// - Signature Ice-Cyan (#7DE8E8) and Mineral Teal (#2ED8C8) highlights & dark-mode CTAs.
+/// - Soft Glacier sky surfaces (#E8F4F8, #D6EEF8, #F2F9FC) with #B8DDF0 chip borders.
+/// - Clean warm neutral off-whites (#FBFBFB, #F4F3F0, #F6F6F3) and crisp white (#FFFFFF) cards.
 class AppColors {
-  // ===========================================================================
-  // 1. MAIN BRAND ACCENTS (Blue, Violet, Purple)
-  // ===========================================================================
-  /// Glanceable Vibrant Royal Blue - Primary brand accent & main CTA color
-  static const Color primary = Color(0xFF4D65FF);
-  static const Color royalBlue = Color(0xFF4D65FF);
-  static const Color royalBlueLight = Color(0xFF3898EC);
-  static const Color primaryDark = Color(0xFF223AAA);
-  static const Color primaryLight = Color(0xFFEEF1FB); // Soft periwinkle/blue tint
-  static const Color primarySubtle = Color(0xFFF5F8FF); // Ultra subtle background tint
-
-  /// Electric Violet & Deep Purple - Secondary brand accent
-  static const Color primaryViolet = Color(0xFF7C3AED);
-  static const Color deepViolet = Color(0xFF6549D5);
-  static const Color deepPurple = Color(0xFF5B21B6);
-  static const Color violetAccent = Color(0xFFC6A0FF); // Soft vibrant violet/periwinkle
-  static const Color electricViolet = primary; // Backward compatibility alias
+  AppColors._();
 
   // ===========================================================================
-  // 2. SUPPORTING ACCENTS (Pink, Lavender, Peach, Aqua)
+  // 1. PRIMARY BRAND INK FAMILY (Glanceable Encre)
   // ===========================================================================
-  /// Soft Rose & Blush Pink - Supporting romantic & warm accent
-  static const Color secondary = Color(0xFFEE78A4);
-  static const Color softPink = secondary;
-  static const Color blushPink = Color(0xFFEE78A4);
-  static const Color softPinkNew = Color(0xFFF492BA);
-  static const Color secondaryLight = Color(0xFFFDF2F8); // Soft pastel pink tint
-  static const Color secondaryDark = Color(0xFFD64D82);
+  /// --brand--encre-700: Primary brand ink, light-mode CTAs, dark section blocks & active ink
+  static const Color primary = Color(0xFF1C2134);
 
-  /// Lavender & Periwinkle tints
-  static const Color lavender = Color(0xFFE0D4FC);
-  static const Color softLavender = Color(0xFFEEF1FB);
-  static const Color lightLavender = Color(0xFFF5F3FF);
+  /// --brand--encre-900: Deepest ink for pressed states & dark-mode scaffold canvas
+  static const Color encreDeep = Color(0xFF0E1018);
 
-  /// Peach & Coral Warm Highlights (Glanceable Warm Accent)
-  static const Color peach = Color(0xFFF8A46A);
-  static const Color coral = Color(0xFFF8A46A);
-  static const Color peachLight = Color(0xFFFFF7ED);
+  /// --brand--encre-800: Dark surface ink & muted dark cards
+  static const Color encreDark = Color(0xFF16182A);
 
-  /// Aqua & Cyan Highlights (Glanceable Tech/Data Highlight)
-  static const Color aqua = Color(0xFF7DE8E8);
-  static const Color aquaDark = Color(0xFF2ED8C8);
+  /// Elevated dark surface card (matches Glanceable .compliance_card #22283F)
+  static const Color encreElevated = Color(0xFF22283F);
 
-  /// Accent alias (mapped to Glanceable's soft vibrant violet/periwinkle)
-  static const Color accent = Color(0xFFC6A0FF);
-  static const Color neonLime = Color(0xFF4D65FF); // Harmonized into Glanceable Royal Blue
-  static const Color accentLight = Color(0xFFF5F3FF);
-  static const Color accentDark = Color(0xFF6549D5);
-  static const Color butterYellow = Color(0xFFFCE7B2);
+  /// --brand--encre-600: Crisp border stroke on dark containers
+  static const Color encreBorderDark = Color(0xFF2A304A);
+
+  /// --brand--encre-500: Secondary strong slate ink
+  static const Color primarySoft = Color(0xFF3A4260);
 
   // ===========================================================================
-  // 3. CLEAN BACKGROUNDS & SURFACES (Light & Dark)
+  // 2. SIGNATURE HIGHLIGHT ACCENTS (Glanceable Blue-300 Cyan & Mineral Teal)
   // ===========================================================================
-  /// Light Theme - Clean, soft and elegant backgrounds & white surfaces
-  static const Color background = Color(0xFFF8F9FD); // Soft breathable off-white
-  static const Color surface = Color(0xFFFFFFFF); // Pure white cards & dialogs
-  static const Color surfaceMuted = Color(0xFFF1F3F9); // Subtle off-white / unselected
-  static const Color surfaceElevated = Color(0xFFFFFFFF);
-  static const Color softWhite = Color(0xFFF8F9FD);
-  static const Color cream = Color(0xFFF8F9FD);
+  /// --brand--blue-300: Signature cyan-ice highlight (CTA arrow tiles, dark-mode primary CTA)
+  static const Color accent = Color(0xFF7DE8E8);
 
-  /// Dark Theme - Deep navy / slate surfaces maintaining brand mood
-  static const Color backgroundDark = Color(0xFF0E1018); // Deep space navy
-  static const Color surfaceDark = Color(0xFF16182A); // Rich dark slate navy
-  static const Color surfaceMutedDark = Color(0xFF1C2134); // Muted dark card surface
-  static const Color surfaceElevatedDark = Color(0xFF222942); // Elevated dark surface
-  static const Color cardBackgroundDark = surfaceElevatedDark;
+  /// Saturated mineral cyan-teal highlight (.lb-home_eyebrow / interactive dark icons)
+  static const Color accentTeal = Color(0xFF2ED8C8);
+
+  /// --brand--blue-50: Pale cyan whisper tint
+  static const Color accentLight = Color(0xFFE5FAFA);
+
+  /// --brand--blue-900: Deep cyan ink for accessible text on cyan/ice pills
+  static const Color accentInk = Color(0xFF063838);
 
   // ===========================================================================
-  // 4. TYPOGRAPHY & TEXT (Strong Contrast & Readability)
+  // 3. SECONDARY ICE SURFACES (Glanceable Glacier)
   // ===========================================================================
-  /// High-contrast Dark Navy / Charcoal (WCAG AAA compliant on white & off-white)
-  static const Color charcoal = Color(0xFF1C2134);
-  static const Color darkCharcoal = Color(0xFF16182A);
-  static const Color textPrimary = Color(0xFF1C2134);
-  static const Color textSecondary = Color(0xFF505A78); // Slate navy helper/subtitle text
-  static const Color textTertiary = Color(0xFF758696); // Muted placeholder / caption text
+  /// --brand--glacier-200: Glacier sky highlight (secondary buttons & nav pills)
+  static const Color secondary = Color(0xFFD6EEF8);
+
+  /// --brand--glacier-100: Signature ice-wash surface (selected tabs, banners, feature cards)
+  static const Color glacierLight = Color(0xFFE8F4F8);
+
+  /// --brand--glacier-50: Ultra-light glacier hover/card tint
+  static const Color glacierSoft = Color(0xFFF2F9FC);
+
+  /// --brand--glacier-300: Cool glacier border & active badge stroke
+  static const Color glacierBorder = Color(0xFFB8DDF0);
+
+  /// --brand--glacier-900: Deep glacier ink for text over Glacier-100 / Glacier-200
+  static const Color glacierInk = Color(0xFF102A38);
+
+  // ===========================================================================
+  // 4. BACKGROUNDS & WARM EDITORIAL SURFACES (Light & Dark)
+  // ===========================================================================
+  /// --brand--neutral: Clean editorial off-white app canvas
+  static const Color background = Color(0xFFFBFBFB);
+
+  /// --brand--neutral-200: Warm stone/linen section background
+  static const Color backgroundWarm = Color(0xFFF4F3F0);
+
+  /// --neutral--white: Pure crisp white elevated cards, inputs & bottom sheets
+  static const Color surface = Color(0xFFFFFFFF);
+
+  /// --brand--beige: Warm architectural card surface
+  static const Color surfaceWarm = Color(0xFFF6F6F3);
+
+  /// --neutral--neutral-200: Warm ivory highlight surface
+  static const Color surfaceCream = Color(0xFFFAF8F2);
+
+  /// --neutral--neutral-300: Warm sand neutral surface for muted controls & chips
+  static const Color surfaceMuted = Color(0xFFF0EDE4);
+
+  /// Dark Theme Surfaces (Deep Encre night mode)
+  static const Color backgroundDark = encreDeep;
+  static const Color surfaceDark = primary;
+  static const Color surfaceMutedDark = encreDark;
+  static const Color surfaceElevatedDark = encreElevated;
+
+  // ===========================================================================
+  // 5. TYPOGRAPHY & NEUTRAL INKS
+  // ===========================================================================
+  /// Light Mode Text
+  static const Color textPrimary = Color(0xFF1C2134); // --brand--encre-700
+  static const Color textSecondary = Color(0xFF505A78); // --brand--encre-400
+  static const Color textTertiary = Color(0xFF788098); // --brand--encre-300
+  static const Color textWarmMuted = Color(0xFFA8A496); // --neutral--neutral-600
+  static const Color textWarmCharcoal = Color(0xFF585550); // --neutral--neutral-800
   static const Color textInverse = Color(0xFFFFFFFF);
-  static const Color secondaryText = Color(0xFF505A78);
 
-  /// Dark Theme Text Tones
-  static const Color textPrimaryDark = Color(0xFFF8FAFC);
-  static const Color textSecondaryDark = Color(0xFFB0BBD0);
-  static const Color textTertiaryDark = Color(0xFF707E96);
-  static const Color textMutedDark = textSecondaryDark;
+  /// Dark Mode Text
+  static const Color textPrimaryDark = Color(0xFFFFFFFF);
+  static const Color textSecondaryDark = Color(0xFFC8CCD8); // --brand--encre-100
+  static const Color textTertiaryDark = Color(0xFFA0A6B8); // --brand--encre-200
 
   // ===========================================================================
-  // 5. BORDERS & DIVIDERS
+  // 6. BORDERS & DIVIDERS
   // ===========================================================================
-  static const Color border = Color(0xFFE8EAF0); // Glanceable subtle clean border
-  static const Color borderFocused = Color(0xFF4D65FF); // Royal blue focus border
-  static const Color borderSubtle = Color(0xFFF1F3F7);
-  static const Color borderDark = Color(0xFF2A324B);
+  static const Color border = Color(0xFFE8EAF0); // --brand--encre-50
+  static const Color borderWarm = Color(0xFFE2DED4); // --brand--neutral-400
+  static const Color borderSubtle = Color(0xFFF1F2F6);
+  static const Color borderFocused = Color(0xFF1C2134);
+  static const Color borderDark = encreBorderDark;
 
   // ===========================================================================
-  // 6. SIGNATURE GLANCEABLE GRADIENTS
+  // 7. GLANCEABLE PRISMATIC & ATMOSPHERIC GRADIENTS
   // ===========================================================================
-  static const Color gradientStart = Color(0xFF4D65FF);
-  static const Color gradientEnd = Color(0xFFEE78A4);
-  static const Color gradientPeachStart = Color(0xFFF8A46A);
-  static const Color gradientPeachEnd = Color(0xFFFCE7B2);
+  /// Top-to-bottom Glacier wash into clean off-white canvas
+  static const LinearGradient heroWashGradient = LinearGradient(
+    colors: [glacierLight, background],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
 
-  /// Signature Hero Highlight: Blue (#4D65FF) -> Violet (#7C3AED) -> Pink (#EE78A4)
-  static const LinearGradient brandHeroGradient = LinearGradient(
-    colors: [primary, primaryViolet, secondary],
+  /// Warm linen vertical wash into neutral off-white
+  static const LinearGradient warmWashGradient = LinearGradient(
+    colors: [backgroundWarm, background],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  /// Soft luminous Glacier prism gradient for featured light cards & AI callouts
+  static const LinearGradient glacierPrismGradient = LinearGradient(
+    colors: [glacierSoft, glacierLight, secondary],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  /// Direct Blue-to-Violet-to-Pink gradient for primary hero elements
-  static const LinearGradient blueVioletPinkGradient = LinearGradient(
-    colors: [Color(0xFF4D65FF), Color(0xFF7C3AED), Color(0xFFEE78A4)],
+  /// Signature Deep Encre-to-Glacier dark surface gradient (hero banners & featured dark cards)
+  static const LinearGradient encrePrismGradient = LinearGradient(
+    colors: [encreDeep, primary, glacierInk],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  /// Blue to Violet accent gradient
-  static const LinearGradient blueVioletGradient = LinearGradient(
-    colors: [primary, primaryViolet],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  /// Violet to Pink romantic accent gradient
-  static const LinearGradient violetPinkGradient = LinearGradient(
-    colors: [primaryViolet, secondary],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  /// Soft pastel card gradient (for subtle card backgrounds & highlights)
-  static const LinearGradient softPastelCardGradient = LinearGradient(
-    colors: [Color(0xFFEEF1FB), Color(0xFFFDF2F8)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient lavenderBlushGradient = LinearGradient(
-    colors: [Color(0xFFEEF1FB), Color(0xFFFDF2F8)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient blushPeachGradient = LinearGradient(
-    colors: [blushPink, peach],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient peachYellowGradient = LinearGradient(
-    colors: [peach, butterYellow],
+  /// Cool cyan-glacier highlight gradient for verified badges & high-emphasis pills (dark text)
+  static const LinearGradient cyanPrismGradient = LinearGradient(
+    colors: [glacierLight, secondary, accent],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   // ===========================================================================
-  // 7. REUSABLE BOX SHADOWS
+  // 8. SUBTLE STRUCTURAL SHADOWS
   // ===========================================================================
-  /// Airy, elegant soft shadow for clean cards
+  /// Airy neutral card elevation shadow
   static List<BoxShadow> get softShadow => [
         BoxShadow(
-          color: const Color(0xFF1C2134).withValues(alpha: 0.04),
-          blurRadius: 16,
+          color: encreDeep.withValues(alpha: 0.04),
+          blurRadius: 14,
           offset: const Offset(0, 4),
         ),
         BoxShadow(
-          color: const Color(0xFF1C2134).withValues(alpha: 0.02),
+          color: encreDeep.withValues(alpha: 0.02),
           blurRadius: 4,
           offset: const Offset(0, 1),
         ),
       ];
 
-  /// Elevated shadow for prominent modal cards & floating surfaces
+  /// Modal & floating card depth
   static List<BoxShadow> get cardShadow => [
         BoxShadow(
-          color: const Color(0xFF1C2134).withValues(alpha: 0.06),
+          color: encreDeep.withValues(alpha: 0.08),
           blurRadius: 24,
           offset: const Offset(0, 8),
         ),
       ];
 
-  /// Gentle glowing shadow for primary action buttons
-  static List<BoxShadow> get primaryGlow => [
+  /// Subtle crisp shadow for elevated dark cards & hero CTAs
+  static List<BoxShadow> get primaryShadow => [
         BoxShadow(
-          color: primary.withValues(alpha: 0.28),
+          color: primary.withValues(alpha: 0.16),
           blurRadius: 16,
           offset: const Offset(0, 4),
         ),
       ];
 
   // ===========================================================================
-  // 8. STATUS & UTILITY COLORS
+  // 9. SEMANTIC STATUS TOKENS
   // ===========================================================================
-  static const Color success = Color(0xFF10B981); // Clean emerald green
+  static const Color success = Color(0xFF0E9F6E);
   static const Color successLight = Color(0xFFECFDF5);
-  static const Color error = Color(0xFFEF4444); // Clean modern red
-  static const Color errorLight = Color(0xFFFEF2F2);
-  static const Color warning = Color(0xFFF59E0B); // Amber warning
-  static const Color warningLight = Color(0xFFFFFBEB);
+  static const Color error = Color(0xFFDC2626);
+  static const Color errorLight = Color(0xFFFEE2E2);
+  static const Color warning = Color(0xFFD97706);
+  static const Color warningLight = Color(0xFFFEF3C7);
+
+  // ===========================================================================
+  // 10. ADAPTIVE THEME HELPERS
+  // ===========================================================================
+  /// High-contrast accent ink for icons, links & selected states per brightness
+  static Color adaptiveAccent(bool isDark) => isDark ? accent : primary;
+
+  /// Accessible foreground color placed on [adaptiveAccent]
+  static Color adaptiveOnAccent(bool isDark) => isDark ? encreDeep : textInverse;
+
+  /// Tinted highlight container per brightness
+  static Color adaptiveHighlightBg(bool isDark) =>
+      isDark ? encreElevated : glacierLight;
+
+  /// Hairline card border per brightness
+  static Color adaptiveBorder(bool isDark) => isDark ? borderDark : border;
 }

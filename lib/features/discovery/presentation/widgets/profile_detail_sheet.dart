@@ -19,11 +19,12 @@ class ProfileDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF160E2E) : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         children: [
@@ -33,7 +34,7 @@ class ProfileDetailSheet extends StatelessWidget {
             width: 44,
             height: 4,
             decoration: BoxDecoration(
-              color: isDark ? Colors.white24 : Colors.black12,
+              color: isDark ? AppColors.borderDark : AppColors.borderWarm,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -48,15 +49,17 @@ class ProfileDetailSheet extends StatelessWidget {
                   SizedBox(
                     height: 380,
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(20),
                       child: PageView.builder(
                         itemCount: profile.photoUrls.length,
                         itemBuilder: (context, index) {
                           return Image.network(
                             profile.photoUrls[index],
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: AppColors.primarySubtle,
+                            errorBuilder: (_, _, _) => Container(
+                              color: isDark
+                                  ? AppColors.encreElevated
+                                  : AppColors.glacierLight,
                               child: const Icon(Icons.person, size: 80),
                             ),
                           );
@@ -73,15 +76,14 @@ class ProfileDetailSheet extends StatelessWidget {
                     Text(
                       '${profile.name}, ${profile.age}',
                       style: theme.textTheme.headlineLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     if (profile.isVerified) ...[
                       const SizedBox(width: 8),
-                      const Icon(
+                      Icon(
                         Icons.verified_rounded,
-                        color: AppColors.accent,
+                        color: isDark ? AppColors.accent : AppColors.accentTeal,
                         size: 24,
                       ),
                     ],
@@ -95,10 +97,28 @@ class ProfileDetailSheet extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _buildPill(profile.gender, AppColors.primaryLight, AppColors.primary),
-                    _buildPill(profile.pronouns, AppColors.secondaryLight, AppColors.secondaryDark),
-                    _buildPill(profile.orientation, AppColors.primaryLight, AppColors.primaryViolet),
-                    _buildPill('${profile.distanceKm} km away', AppColors.surfaceMuted, AppColors.textSecondary),
+                    _buildPill(
+                      profile.gender,
+                      isDark ? AppColors.encreElevated : AppColors.glacierLight,
+                      isDark ? AppColors.accent : AppColors.glacierInk,
+                    ),
+                    _buildPill(
+                      profile.pronouns,
+                      isDark ? AppColors.surfaceMutedDark : AppColors.surfaceWarm,
+                      isDark ? AppColors.textSecondaryDark : AppColors.primarySoft,
+                    ),
+                    _buildPill(
+                      profile.orientation,
+                      isDark
+                          ? AppColors.accentTeal.withValues(alpha: 0.16)
+                          : AppColors.accentLight,
+                      isDark ? AppColors.accent : AppColors.accentInk,
+                    ),
+                    _buildPill(
+                      '${profile.distanceKm} km away',
+                      isDark ? AppColors.surfaceMutedDark : AppColors.surfaceMuted,
+                      isDark ? AppColors.textTertiaryDark : AppColors.textSecondary,
+                    ),
                   ],
                 ),
 
@@ -136,16 +156,18 @@ class ProfileDetailSheet extends StatelessWidget {
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF261A4D) : AppColors.primarySubtle,
-                        borderRadius: BorderRadius.circular(16),
+                        color: isDark ? AppColors.encreElevated : AppColors.glacierSoft,
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.15),
+                          color: isDark
+                              ? AppColors.borderDark
+                              : AppColors.glacierBorder,
                         ),
                       ),
                       child: Text(
                         interest,
                         style: TextStyle(
-                          color: isDark ? Colors.white : AppColors.primary,
+                          color: accent,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -169,8 +191,10 @@ class ProfileDetailSheet extends StatelessWidget {
                   children: profile.preferences.map((pref) {
                     return Chip(
                       label: Text(pref),
-                      backgroundColor: AppColors.secondary.withValues(alpha: 0.25),
-                      labelStyle: const TextStyle(
+                      backgroundColor:
+                          isDark ? AppColors.encreElevated : AppColors.glacierLight,
+                      labelStyle: TextStyle(
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.glacierInk,
                         fontWeight: FontWeight.w600,
                         fontSize: 12,
                       ),
@@ -187,14 +211,8 @@ class ProfileDetailSheet extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF140D2A) : Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, -4),
-                ),
-              ],
+              color: isDark ? AppColors.backgroundDark : AppColors.surface,
+              boxShadow: AppColors.softShadow,
             ),
             child: Row(
               children: [
@@ -205,7 +223,7 @@ class ProfileDetailSheet extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       side: const BorderSide(color: AppColors.error),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -218,8 +236,6 @@ class ProfileDetailSheet extends StatelessWidget {
                   flex: 2,
                   child: PrimaryButton(
                     label: 'Like Profile',
-                    backgroundColor: AppColors.primary,
-                    textColor: Colors.white,
                     icon: Icons.favorite_rounded,
                     onPressed: () {
                       Navigator.of(context).pop();

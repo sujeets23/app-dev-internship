@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../theme/app_colors.dart';
 
-/// Interactive profile photo selector with camera/gallery and avatar presets
+/// Interactive profile photo selector with camera/gallery and Glanceable-aligned presets
 class AvatarPickerWidget extends StatelessWidget {
   final String? imagePath;
   final String? presetAvatarId;
@@ -22,30 +22,30 @@ class AvatarPickerWidget extends StatelessWidget {
   static const List<Map<String, dynamic>> presetAvatars = [
     {
       'id': 'avatar_sunset',
-      'label': 'Royal Violet',
+      'label': 'Encre Ink',
       'color1': AppColors.primary,
-      'color2': AppColors.primaryViolet,
+      'color2': AppColors.glacierInk,
       'icon': Icons.auto_awesome_rounded,
     },
     {
       'id': 'avatar_ocean',
-      'label': 'Violet Rose',
-      'color1': AppColors.primaryViolet,
-      'color2': AppColors.secondary,
+      'label': 'Glacier Cyan',
+      'color1': AppColors.glacierInk,
+      'color2': AppColors.accentTeal,
       'icon': Icons.favorite_rounded,
     },
     {
       'id': 'avatar_earth',
-      'label': 'Sky Cyan',
-      'color1': AppColors.royalBlueLight,
-      'color2': AppColors.aqua,
+      'label': 'Deep Slate',
+      'color1': AppColors.primarySoft,
+      'color2': AppColors.primary,
       'icon': Icons.water_drop_rounded,
     },
     {
       'id': 'avatar_lavender',
-      'label': 'Blush Peach',
-      'color1': AppColors.secondary,
-      'color2': AppColors.peach,
+      'label': 'Ice Mineral',
+      'color1': AppColors.accentInk,
+      'color2': AppColors.accentTeal,
       'icon': Icons.flare_rounded,
     },
   ];
@@ -79,6 +79,7 @@ class AvatarPickerWidget extends StatelessWidget {
   void _showPickerBottomSheet(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     showModalBottomSheet(
       context: context,
@@ -126,20 +127,34 @@ class AvatarPickerWidget extends StatelessWidget {
                   child: Column(
                     children: [
                       ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: AppColors.primaryLight,
-                          child: Icon(Icons.photo_library_outlined, color: AppColors.primary),
+                        leading: CircleAvatar(
+                          backgroundColor: isDark
+                              ? AppColors.encreElevated
+                              : AppColors.glacierLight,
+                          child: Icon(
+                            Icons.photo_library_outlined,
+                            color: accent,
+                          ),
                         ),
                         title: const Text('Choose from Gallery'),
-                        onTap: () => _pickImage(bottomSheetContext, ImageSource.gallery),
+                        onTap: () =>
+                            _pickImage(bottomSheetContext, ImageSource.gallery),
                       ),
                       ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: AppColors.secondaryLight,
-                          child: Icon(Icons.camera_alt_outlined, color: AppColors.secondary),
+                        leading: CircleAvatar(
+                          backgroundColor: isDark
+                              ? AppColors.accentTeal.withValues(alpha: 0.16)
+                              : AppColors.accentLight,
+                          child: Icon(
+                            Icons.camera_alt_outlined,
+                            color: isDark
+                                ? AppColors.accent
+                                : AppColors.accentInk,
+                          ),
                         ),
                         title: const Text('Take a Photo'),
-                        onTap: () => _pickImage(bottomSheetContext, ImageSource.camera),
+                        onTap: () =>
+                            _pickImage(bottomSheetContext, ImageSource.camera),
                       ),
                     ],
                   ),
@@ -148,7 +163,7 @@ class AvatarPickerWidget extends StatelessWidget {
                 const Divider(),
                 const SizedBox(height: 8),
                 Text(
-                  'Or select an artistic avatar:',
+                  'Or select a monochrome avatar:',
                   style: theme.textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -169,7 +184,7 @@ class AvatarPickerWidget extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isSelected ? AppColors.primary : Colors.transparent,
+                            color: isSelected ? accent : Colors.transparent,
                             width: 2.5,
                           ),
                         ),
@@ -199,6 +214,7 @@ class AvatarPickerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     Widget avatarContent;
 
@@ -207,12 +223,12 @@ class AvatarPickerWidget extends StatelessWidget {
           ? Image.network(
               imagePath!,
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _buildPlaceholder(),
+              errorBuilder: (_, _, _) => _buildPlaceholder(isDark),
             )
           : Image.file(
               File(imagePath!),
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _buildPlaceholder(),
+              errorBuilder: (_, _, _) => _buildPlaceholder(isDark),
             );
     } else if (presetAvatarId != null) {
       final preset = presetAvatars.firstWhere(
@@ -239,7 +255,7 @@ class AvatarPickerWidget extends StatelessWidget {
         ),
       );
     } else {
-      avatarContent = _buildPlaceholder();
+      avatarContent = _buildPlaceholder(isDark);
     }
 
     final bool hasSelection =
@@ -258,16 +274,12 @@ class AvatarPickerWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: hasSelection ? AppColors.primary : AppColors.border,
-                      width: 2.5,
+                      color: hasSelection
+                          ? accent
+                          : (isDark ? AppColors.borderDark : AppColors.border),
+                      width: 2.2,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    boxShadow: AppColors.softShadow,
                   ),
                   child: ClipOval(child: avatarContent),
                 ),
@@ -281,17 +293,17 @@ class AvatarPickerWidget extends StatelessWidget {
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: accent,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: isDark ? AppColors.surfaceDark : AppColors.surface,
                         width: 2.5,
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.camera_alt,
                       size: 18,
-                      color: Colors.white,
+                      color: AppColors.adaptiveOnAccent(isDark),
                     ),
                   ),
                 ),
@@ -304,7 +316,7 @@ class AvatarPickerWidget extends StatelessWidget {
             child: Text(
               hasSelection ? 'Change Photo' : 'Add Profile Photo',
               style: theme.textTheme.labelLarge?.copyWith(
-                color: AppColors.primary,
+                color: accent,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -314,14 +326,14 @@ class AvatarPickerWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(bool isDark) {
     return Container(
-      color: AppColors.primaryLight.withValues(alpha: 0.5),
-      child: const Center(
+      color: isDark ? AppColors.encreElevated : AppColors.glacierLight,
+      child: Center(
         child: Icon(
           Icons.person_outline_rounded,
           size: 54,
-          color: AppColors.primary,
+          color: AppColors.adaptiveAccent(isDark),
         ),
       ),
     );

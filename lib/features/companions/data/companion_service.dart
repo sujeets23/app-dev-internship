@@ -80,7 +80,7 @@ class ProductionCompanionService implements ICompanionService {
 }
 
 class MockCompanionService implements ICompanionService {
-  final List<CompanionModel> _companions = [
+  final List<CompanionModel> _companions = const [
     CompanionModel(
       id: 'comp_1',
       name: 'Advika Sengupta',
@@ -100,7 +100,7 @@ class MockCompanionService implements ICompanionService {
       reviewCount: 38,
       isVerified: true,
       isBackgroundChecked: true,
-      reviews: const [
+      reviews: [
         CompanionReview(
           id: 'rev_1',
           userName: 'Karan M.',
@@ -136,7 +136,7 @@ class MockCompanionService implements ICompanionService {
       reviewCount: 45,
       isVerified: true,
       isBackgroundChecked: true,
-      reviews: const [
+      reviews: [
         CompanionReview(
           id: 'rev_3',
           userName: 'Vikram B.',
@@ -164,7 +164,7 @@ class MockCompanionService implements ICompanionService {
       reviewCount: 29,
       isVerified: true,
       isBackgroundChecked: true,
-      reviews: const [
+      reviews: [
         CompanionReview(
           id: 'rev_4',
           userName: 'Sam V.',

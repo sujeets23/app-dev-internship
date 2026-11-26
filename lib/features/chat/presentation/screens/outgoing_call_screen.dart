@@ -84,9 +84,9 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen>
                       color: Colors.white12,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Icon(Icons.lock_rounded, color: AppColors.accent, size: 14),
                         SizedBox(width: 6),
                         Text(
@@ -123,8 +123,8 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen>
                             height: 170 + (_pulseController.value * 50),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.electricViolet.withValues(
-                                alpha: (1 - _pulseController.value) * 0.4,
+                              color: AppColors.accent.withValues(
+                                alpha: (1 - _pulseController.value) * 0.28,
                               ),
                             ),
                           ),
@@ -133,9 +133,7 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen>
                             height: 140,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [AppColors.electricViolet, AppColors.blushPink],
-                              ),
+                              gradient: AppColors.cyanPrismGradient,
                             ),
                             child: Padding(
                               padding: const EdgeInsets.all(4),

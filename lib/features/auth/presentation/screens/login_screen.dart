@@ -5,6 +5,8 @@ import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
 import 'package:inclusive_dating/core/widgets/main_navigation_screen.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/screens/onboarding_flow_screen.dart';
 import 'package:inclusive_dating/features/verification/presentation/screens/government_id_verification_screen.dart';
 import 'package:inclusive_dating/features/verification/presentation/screens/security_check_intro_screen.dart';
 import '../providers/auth_provider.dart';
@@ -13,7 +15,14 @@ import 'otp_verification_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  final String? initialIdentifier;
+  final bool showPostSignupNotice;
+
+  const LoginScreen({
+    super.key,
+    this.initialIdentifier,
+    this.showPostSignupNotice = false,
+  });
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -21,13 +30,19 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _identifierController =
-      TextEditingController(text: 'ananya@date2.app');
-  final _passwordController =
-      TextEditingController(text: 'Date2Secure!2026');
+  late final TextEditingController _identifierController;
+  final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _isLoading = false;
+  String? _loginError;
+
+  @override
+  void initState() {
+    super.initState();
+    _identifierController =
+        TextEditingController(text: widget.initialIdentifier ?? '');
+  }
 
   @override
   void dispose() {
@@ -36,7 +51,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin() async {
+  Future<void> _handleLogin() async {
+    setState(() => _loginError = null);
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -49,71 +65,98 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           password: password,
         );
 
-    if (mounted) {
-      setState(() => _isLoading = false);
+    if (!mounted) return;
 
-      if (success) {
-        final authState = ref.read(authProvider);
-
-        // Enforce sequential verification rules:
-        if (!authState.isEmailVerified) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => OtpVerificationScreen(
-                contactTarget: authState.email ?? identifier,
-                isEmailVerification: true,
-              ),
-            ),
-          );
-        } else if (!authState.isFaceVerified) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => const SecurityCheckIntroScreen(),
-            ),
-          );
-        } else if (!authState.isDocVerified) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => const GovernmentIdVerificationScreen(),
-            ),
-          );
-        } else {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (_) => const MainNavigationScreen(initialIndex: 0),
-            ),
-            (route) => false,
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid username/email or password.'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
+    if (!success) {
+      setState(() {
+        _isLoading = false;
+        _loginError = ref.read(authProvider).lastErrorMessage ??
+            'Invalid username/email or password.';
+      });
+      return;
     }
+
+    _passwordController.clear();
+    final authState = ref.read(authProvider);
+
+    if (!authState.isEmailVerified) {
+      await ref.read(authProvider.notifier).sendOrResendOtp();
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => OtpVerificationScreen(
+            contactTarget: authState.email ?? identifier,
+            isEmailVerification: true,
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = false);
+
+    if (!authState.isFaceVerified) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const SecurityCheckIntroScreen(),
+        ),
+      );
+    } else if (!authState.isDocVerified) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const GovernmentIdVerificationScreen(),
+        ),
+      );
+    } else if (!authState.isPersonalInfoCompleted) {
+      if (ref.read(onboardingProvider).currentStep == 0) {
+        ref.read(onboardingProvider.notifier).startOnboarding();
+      }
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const OnboardingFlowScreen(),
+        ),
+      );
+    } else {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => const MainNavigationScreen(initialIndex: 0),
+        ),
+        (route) => false,
+      );
+    }
+  }
+
+  void _fillDemoCredentials(String email) {
+    setState(() {
+      _identifierController.text = email;
+      _passwordController.text = 'Date2Secure!2026';
+      _loginError = null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
-    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
-    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
     final mutedTextColor =
-        isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: bgColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -123,7 +166,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Brand Header with Date² Logo
                 const Center(
                   child: Date2LogoWidget(
                     height: 44,
@@ -132,13 +174,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 22),
 
-                // Welcome Back Title
+                if (widget.showPostSignupNotice) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.success.withValues(alpha: 0.14)
+                          : AppColors.successLight,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                          color: AppColors.success.withValues(alpha: 0.45)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check_circle_rounded,
+                            color: AppColors.success, size: 20),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Account created! Log in with your credentials to trigger your 6-digit Email OTP verification.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: textColor,
+                              fontWeight: FontWeight.w600,
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 Text(
                   'Welcome Back',
                   style: AppTypography.displayMedium.copyWith(
                     color: textColor,
-                    fontWeight: FontWeight.w800,
-                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w700,
                     fontSize: 26,
                   ),
                 ),
@@ -150,7 +223,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     fontSize: 13,
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
                 // USERNAME OR EMAIL INPUT
                 Text(
@@ -158,7 +231,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.neonLime : AppColors.primary,
+                    color: accent,
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -168,10 +241,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   autocorrect: false,
                   decoration: InputDecoration(
                     hintText: 'e.g. ananya_24 or name@example.com',
-                    prefixIcon: const Icon(Icons.person_outline_rounded, size: 20),
+                    prefixIcon:
+                        const Icon(Icons.person_outline_rounded, size: 20),
                     filled: true,
                     fillColor: cardBg,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -188,7 +264,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.neonLime : AppColors.primary,
+                    color: accent,
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -198,11 +274,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     hintText: 'Enter your password',
-                    prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                    prefixIcon:
+                        const Icon(Icons.lock_outline_rounded, size: 20),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                        color: Colors.grey,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: AppColors.textTertiary,
                         size: 20,
                       ),
                       onPressed: () =>
@@ -210,7 +289,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     filled: true,
                     fillColor: cardBg,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -220,7 +301,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   },
                 ),
 
-                // Forgot Password link
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -232,32 +312,114 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       'Forgot Password?',
                       style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
+                        color: accent,
+                        fontWeight: FontWeight.w700,
                         fontSize: 12,
                       ),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 14),
+                if (_loginError != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.error.withValues(alpha: 0.16)
+                          : AppColors.errorLight,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: AppColors.error.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline_rounded,
+                            color: AppColors.error, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _loginError!,
+                            style: TextStyle(
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.error,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 8),
 
                 // LOG IN BUTTON
                 PrimaryButton(
                   label: _isLoading ? 'Authenticating...' : 'Log In',
                   icon: Icons.login_rounded,
+                  isLoading: _isLoading,
                   onPressed: _isLoading ? null : _handleLogin,
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
+
+                // Dev QA Quick-Fill Demo Personas
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.surfaceMutedDark
+                        : AppColors.glacierLight,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isDark
+                          ? AppColors.borderDark
+                          : AppColors.glacierBorder,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'QA DEMO ACCOUNTS (FRONTEND MOCK)',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: isDark
+                              ? AppColors.accent
+                              : AppColors.glacierInk,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          _buildDemoChip('Needs OTP', 'demo.otp@date2.app', isDark),
+                          _buildDemoChip('Needs Face', 'demo.face@date2.app', isDark),
+                          _buildDemoChip('Needs ID', 'demo.doc@date2.app', isDark),
+                          _buildDemoChip(
+                              'Verified', 'demo.verified@date2.app', isDark),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 18),
 
                 // SIGNUP LINK
                 Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
                         "Don't have an account?",
@@ -275,10 +437,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           );
                         },
-                        child: const Text(
+                        child: Text(
                           'Sign Up',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: accent,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),
@@ -293,6 +455,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDemoChip(String label, String email, bool isDark) {
+    return ActionChip(
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
+        ),
+      ),
+      backgroundColor: isDark ? AppColors.encreElevated : AppColors.surface,
+      side: BorderSide(color: AppColors.adaptiveBorder(isDark)),
+      padding: EdgeInsets.zero,
+      visualDensity: VisualDensity.compact,
+      onPressed: () => _fillDemoCredentials(email),
     );
   }
 }

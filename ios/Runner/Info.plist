@@ -48,9 +48,9 @@
 		</dict>
 	</dict>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to your photo library to select your profile picture.</string>
+	<string>Date² uses file or photo access only when you explicitly choose to upload an existing Government ID document.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>This app requires access to your camera to take a profile picture.</string>
+	<string>Date² requires camera access for live face liveness checks and rear-camera Government ID scanning. Facial frames are processed strictly in memory and never saved.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app requires access to your microphone when capturing media.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

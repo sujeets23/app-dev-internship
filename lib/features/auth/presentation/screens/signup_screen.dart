@@ -25,14 +25,18 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _agreedToTerms = true;
+  bool _agreedToTerms = false;
   bool _isLoading = false;
+  String? _submitErrorMessage;
 
-  // Password criteria flags
-  bool _hasMinLength = false;
-  bool _hasUppercase = false;
-  bool _hasNumber = false;
-  bool _hasSpecialChar = false;
+  PasswordStrengthEvaluation _strength = const PasswordStrengthEvaluation(
+    hasMinLength: false,
+    hasUppercase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+    satisfiedCount: 0,
+    totalCount: 4,
+  );
 
   @override
   void initState() {
@@ -50,88 +54,124 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   void _evaluatePasswordStrength() {
-    final text = _passwordController.text;
+    final config = ref.read(authRepositoryProvider).passwordConfig;
     setState(() {
-      _hasMinLength = text.length >= 8;
-      _hasUppercase = text.contains(RegExp(r'[A-Z]'));
-      _hasNumber = text.contains(RegExp(r'[0-9]'));
-      _hasSpecialChar = text.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>]'));
+      _strength = config.evaluate(_passwordController.text);
     });
   }
 
-  int get _satisfiedRequirementsCount {
-    int count = 0;
-    if (_hasMinLength) count++;
-    if (_hasUppercase) count++;
-    if (_hasNumber) count++;
-    if (_hasSpecialChar) count++;
-    return count;
-  }
-
-  double get _passwordStrengthScore => _satisfiedRequirementsCount / 4.0;
-
-  String get _passwordStrengthLabel {
-    final count = _satisfiedRequirementsCount;
-    if (count == 0) return '';
-    if (count <= 2) return 'Weak';
-    if (count == 3) return 'Moderate';
-    return 'Strong';
-  }
-
   Color get _passwordStrengthColor {
-    final count = _satisfiedRequirementsCount;
-    if (count <= 2) return AppColors.error;
-    if (count == 3) return Colors.orangeAccent;
-    return const Color(0xFF22C55E);
+    if (_strength.score <= 0.5) return AppColors.error;
+    if (_strength.score < 1.0) return AppColors.warning;
+    return AppColors.success;
   }
 
-  void _handleSignUp() async {
+  Future<void> _handleSignUp() async {
+    if (_isLoading) return;
+    setState(() => _submitErrorMessage = null);
+
     if (!_formKey.currentState!.validate()) return;
 
-    if (!_agreedToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please accept the Terms & Affirming Community Guidelines.'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+    final authState = ref.read(authProvider);
+    if (authState.usernameStatus == UsernameAvailabilityStatus.checking) {
+      setState(() {
+        _submitErrorMessage =
+            'Please wait until username availability check completes.';
+      });
+      return;
+    }
+    if (authState.usernameStatus == UsernameAvailabilityStatus.taken) {
+      setState(() {
+        _submitErrorMessage =
+            'This username is unavailable. Choose a different username.';
+      });
+      return;
+    }
+    if (authState.usernameStatus == UsernameAvailabilityStatus.error) {
+      setState(() {
+        _submitErrorMessage =
+            'Username availability check failed. Tap retry on username first.';
+      });
       return;
     }
 
-    if (_satisfiedRequirementsCount < 4) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please satisfy all password security requirements.'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+    if (!_agreedToTerms) {
+      setState(() {
+        _submitErrorMessage =
+            'Please accept the Terms of Service & Affirming Community Guidelines.';
+      });
+      return;
+    }
+
+    if (!_strength.isSatisfied) {
+      setState(() {
+        _submitErrorMessage =
+            'Please satisfy all password security requirements.';
+      });
       return;
     }
 
     setState(() => _isLoading = true);
 
-    final username = _usernameController.text.trim().toLowerCase();
-    final email = _emailController.text.trim();
+    final repo = ref.read(authRepositoryProvider);
+    final normalizedUsername =
+        repo.usernameConfig.normalize(_usernameController.text);
+    final email = _emailController.text.trim().toLowerCase();
+
+    if (authState.usernameStatus == UsernameAvailabilityStatus.none) {
+      try {
+        final availability =
+            await repo.checkUsernameAvailability(normalizedUsername);
+        if (!mounted) return;
+        if (availability == UsernameAvailabilityStatus.taken) {
+          setState(() {
+            _isLoading = false;
+            _submitErrorMessage =
+                'This username is unavailable. Choose a different username.';
+          });
+          return;
+        }
+      } catch (_) {
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false;
+          _submitErrorMessage =
+              'Unable to verify username availability. Please retry.';
+        });
+        return;
+      }
+    }
 
     final success = await ref.read(authProvider.notifier).signUp(
-          username: username,
+          username: normalizedUsername,
           email: email,
           password: _passwordController.text,
         );
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-      if (success) {
-        // Sequential Flow: Directly navigate to Email OTP Verification
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => OtpVerificationScreen(
-              contactTarget: email,
-              isEmailVerification: true,
-            ),
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (success) {
+      // Clear sensitive password buffers from form controllers before leaving
+      _passwordController.clear();
+      _confirmPasswordController.clear();
+
+      // Sequential Flow (Module 1):
+      // Signup -> Account Created -> Email OTP Verification -> Security Check -> Face Scan -> Gov ID -> Personal Info
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => OtpVerificationScreen(
+            contactTarget: email,
+            isEmailVerification: true,
+            showAccountCreatedNotice: true,
           ),
-        );
-      }
+        ),
+      );
+    } else {
+      setState(() {
+        _submitErrorMessage = ref.read(authProvider).lastErrorMessage ??
+            'Could not create account. Please try again.';
+      });
     }
   }
 
@@ -139,21 +179,31 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final authNotifier = ref.read(authProvider.notifier);
+    final repo = ref.read(authRepositoryProvider);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
-    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
-    final textColor = isDark ? Colors.white : AppColors.charcoal;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedTextColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
+
+    final normalizedPreview =
+        repo.usernameConfig.normalize(_usernameController.text);
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: bgColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -163,7 +213,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Brand Header with Date² Logo
                 const Center(
                   child: Date2LogoWidget(
                     height: 42,
@@ -172,13 +221,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 ),
                 const SizedBox(height: 18),
 
-                // Welcome Heading
                 Text(
                   'Create Your Account',
                   style: AppTypography.displayMedium.copyWith(
                     color: textColor,
-                    fontWeight: FontWeight.w800,
-                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w700,
                     fontSize: 26,
                   ),
                 ),
@@ -186,19 +233,52 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 Text(
                   'Begin your verified, affirming journey on Date².',
                   style: AppTypography.bodyMedium.copyWith(
-                    color: isDark ? AppColors.textMutedDark : AppColors.textSecondary,
+                    color: mutedTextColor,
                     fontSize: 13,
                   ),
                 ),
-                const SizedBox(height: 22),
+                const SizedBox(height: 12),
 
-                // USERNAME INPUT WITH DEBOUNCED AVAILABILITY
+                // Clear Frontend Mock Mode Notice
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.adaptiveHighlightBg(isDark),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? AppColors.borderDark
+                          : AppColors.glacierBorder,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.science_outlined, size: 16, color: accent),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Frontend Demo Mode: Accounts use mock local auth until backend endpoints go live.',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.glacierInk,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // USERNAME INPUT WITH DEBOUNCED AVAILABILITY & NORMALIZATION
                 Text(
                   'USERNAME',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.neonLime : AppColors.primary,
+                    color: accent,
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -209,37 +289,54 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   textCapitalization: TextCapitalization.none,
                   decoration: InputDecoration(
                     hintText: 'e.g. ananya_24',
-                    prefixIcon: const Icon(Icons.alternate_email_rounded, size: 20),
-                    suffixIcon: _buildUsernameStatusIndicator(authState.usernameStatus),
+                    prefixIcon:
+                        const Icon(Icons.alternate_email_rounded, size: 20),
+                    suffixIcon: _buildUsernameStatusIndicator(
+                      authState.usernameStatus,
+                      onRetry: () =>
+                          authNotifier.checkUsername(_usernameController.text),
+                    ),
                     filled: true,
                     fillColor: cardBg,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   onChanged: (val) {
+                    setState(() {});
                     authNotifier.checkUsername(val);
                   },
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Username is required';
-                    }
-                    final clean = value.trim().toLowerCase();
-                    if (clean.length < 3) {
-                      return 'Username must be at least 3 characters';
-                    }
-                    if (clean.length > 20) {
-                      return 'Username cannot exceed 20 characters';
-                    }
-                    if (!RegExp(r'^[a-z0-9_]+$').hasMatch(clean)) {
-                      return 'Only letters, numbers, and underscores allowed';
-                    }
-                    if (authState.usernameStatus == UsernameAvailabilityStatus.taken) {
+                    final configErr = repo.usernameConfig.validate(value);
+                    if (configErr != null) return configErr;
+                    if (authState.usernameStatus ==
+                        UsernameAvailabilityStatus.taken) {
                       return 'Username is already taken';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 4),
-                _buildUsernameStatusText(authState.usernameStatus),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildUsernameStatusText(
+                        authState.usernameStatus,
+                        repo.usernameConfig,
+                      ),
+                    ),
+                    if (_usernameController.text.isNotEmpty &&
+                        _usernameController.text != normalizedPreview)
+                      Text(
+                        'Normalized: @$normalizedPreview',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: accent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
+                ),
 
                 const SizedBox(height: 16),
 
@@ -249,7 +346,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.neonLime : AppColors.primary,
+                    color: accent,
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -260,16 +357,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   autocorrect: false,
                   decoration: InputDecoration(
                     hintText: 'your.name@example.com',
-                    prefixIcon: const Icon(Icons.mail_outline_rounded, size: 20),
+                    prefixIcon:
+                        const Icon(Icons.mail_outline_rounded, size: 20),
                     filled: true,
                     fillColor: cardBg,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Email is required';
                     }
-                    if (!RegExp(r'^[\w\.\-]+@[\w\-]+\.[a-zA-Z]{2,4}$').hasMatch(value.trim())) {
+                    if (!RegExp(r'^[\w\.\+\-]+@[\w\-]+\.[a-zA-Z]{2,}$')
+                        .hasMatch(value.trim())) {
                       return 'Enter a valid email address';
                     }
                     return null;
@@ -284,7 +385,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.neonLime : AppColors.primary,
+                    color: accent,
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -294,22 +395,30 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     hintText: 'Enter a strong password',
-                    prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                    prefixIcon:
+                        const Icon(Icons.lock_outline_rounded, size: 20),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                        color: Colors.grey,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: AppColors.textTertiary,
                         size: 20,
                       ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
                     filled: true,
                     fillColor: cardBg,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Password is required';
-                    if (_satisfiedRequirementsCount < 4) {
+                    if (value == null || value.isEmpty) {
+                      return 'Password is required';
+                    }
+                    if (!_strength.isSatisfied) {
                       return 'Password does not meet all security criteria';
                     }
                     return null;
@@ -325,16 +434,19 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
-                            value: _passwordStrengthScore,
-                            backgroundColor: Colors.grey.withValues(alpha: 0.2),
-                            valueColor: AlwaysStoppedAnimation<Color>(_passwordStrengthColor),
-                            minHeight: 4,
+                            value: _strength.score,
+                            backgroundColor:
+                                AppColors.border.withValues(alpha: 0.5),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              _passwordStrengthColor,
+                            ),
+                            minHeight: 5,
                           ),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        _passwordStrengthLabel,
+                        _strength.label,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
@@ -344,10 +456,25 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  _buildRequirementItem('Minimum 8 characters', _hasMinLength),
-                  _buildRequirementItem('At least one uppercase letter (A-Z)', _hasUppercase),
-                  _buildRequirementItem('At least one number (0-9)', _hasNumber),
-                  _buildRequirementItem('At least one special character (!@#\$...)', _hasSpecialChar),
+                  _buildRequirementItem(
+                    'Minimum ${repo.passwordConfig.minLength} characters',
+                    _strength.hasMinLength,
+                  ),
+                  if (repo.passwordConfig.requireUppercase)
+                    _buildRequirementItem(
+                      'At least one uppercase letter (A-Z)',
+                      _strength.hasUppercase,
+                    ),
+                  if (repo.passwordConfig.requireNumber)
+                    _buildRequirementItem(
+                      'At least one number (0-9)',
+                      _strength.hasNumber,
+                    ),
+                  if (repo.passwordConfig.requireSpecialChar)
+                    _buildRequirementItem(
+                      'At least one special character (!@#\$...)',
+                      _strength.hasSpecialChar,
+                    ),
                 ],
 
                 const SizedBox(height: 16),
@@ -358,7 +485,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.neonLime : AppColors.primary,
+                    color: accent,
                     letterSpacing: 0.8,
                   ),
                 ),
@@ -368,19 +495,24 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   obscureText: _obscureConfirmPassword,
                   decoration: InputDecoration(
                     hintText: 'Re-enter your password',
-                    prefixIcon: const Icon(Icons.lock_reset_rounded, size: 20),
+                    prefixIcon:
+                        const Icon(Icons.lock_reset_rounded, size: 20),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
-                        color: Colors.grey,
+                        _obscureConfirmPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: AppColors.textTertiary,
                         size: 20,
                       ),
-                      onPressed: () =>
-                          setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                      onPressed: () => setState(() =>
+                          _obscureConfirmPassword = !_obscureConfirmPassword),
                     ),
                     filled: true,
                     fillColor: cardBg,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -401,18 +533,64 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   children: [
                     Checkbox(
                       value: _agreedToTerms,
-                      activeColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                      onChanged: (val) => setState(() => _agreedToTerms = val ?? false),
+                      activeColor: accent,
+                      checkColor: AppColors.adaptiveOnAccent(isDark),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      onChanged: (val) =>
+                          setState(() => _agreedToTerms = val ?? false),
                     ),
-                    const Expanded(
-                      child: Text(
-                        'I accept the Terms of Service & Affirming Guidelines.',
-                        style: TextStyle(fontSize: 12, height: 1.3),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () =>
+                            setState(() => _agreedToTerms = !_agreedToTerms),
+                        child: Text(
+                          'I accept the Terms of Service & Affirming Guidelines.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            height: 1.3,
+                            color: textColor,
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
+
+                if (_submitErrorMessage != null) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.error.withValues(alpha: 0.16)
+                          : AppColors.errorLight,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: AppColors.error.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline_rounded,
+                            color: AppColors.error, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _submitErrorMessage!,
+                            style: TextStyle(
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.error,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
 
                 const SizedBox(height: 18),
 
@@ -420,6 +598,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 PrimaryButton(
                   label: _isLoading ? 'Creating Account...' : 'Create Account',
                   icon: Icons.person_add_alt_1_rounded,
+                  isLoading: _isLoading,
                   onPressed: _isLoading ? null : _handleSignUp,
                 ),
 
@@ -427,13 +606,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
                 // LINK TO LOGIN
                 Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
                         'Already have an account?',
                         style: TextStyle(
-                          color: isDark ? AppColors.textMutedDark : AppColors.textSecondary,
+                          color: mutedTextColor,
                           fontSize: 13,
                         ),
                       ),
@@ -441,13 +621,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const LoginScreen()),
                           );
                         },
-                        child: const Text(
+                        child: Text(
                           'Log In',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: accent,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),
@@ -465,7 +646,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     );
   }
 
-  Widget? _buildUsernameStatusIndicator(UsernameAvailabilityStatus status) {
+  Widget? _buildUsernameStatusIndicator(
+    UsernameAvailabilityStatus status, {
+    required VoidCallback onRetry,
+  }) {
     switch (status) {
       case UsernameAvailabilityStatus.checking:
         return const Padding(
@@ -477,42 +661,60 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           ),
         );
       case UsernameAvailabilityStatus.available:
-        return const Icon(Icons.check_circle_rounded, color: Color(0xFF22C55E), size: 20);
+        return const Icon(Icons.check_circle_rounded,
+            color: AppColors.success, size: 20);
       case UsernameAvailabilityStatus.taken:
-        return const Icon(Icons.cancel_rounded, color: AppColors.error, size: 20);
+        return const Icon(Icons.cancel_rounded,
+            color: AppColors.error, size: 20);
       case UsernameAvailabilityStatus.error:
-        return const Icon(Icons.error_outline_rounded, color: Colors.orange, size: 20);
+        return IconButton(
+          tooltip: 'Retry check',
+          icon: const Icon(Icons.refresh_rounded,
+              color: AppColors.warning, size: 20),
+          onPressed: onRetry,
+        );
       case UsernameAvailabilityStatus.none:
         return null;
     }
   }
 
-  Widget _buildUsernameStatusText(UsernameAvailabilityStatus status) {
+  Widget _buildUsernameStatusText(
+    UsernameAvailabilityStatus status,
+    UsernameValidationConfig cfg,
+  ) {
     switch (status) {
       case UsernameAvailabilityStatus.checking:
         return const Text(
           'Checking availability...',
-          style: TextStyle(fontSize: 11, color: Colors.grey),
+          style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
         );
       case UsernameAvailabilityStatus.available:
         return const Text(
           '✓ Username available',
-          style: TextStyle(fontSize: 11, color: Color(0xFF22C55E), fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 11,
+            color: AppColors.success,
+            fontWeight: FontWeight.bold,
+          ),
         );
       case UsernameAvailabilityStatus.taken:
         return const Text(
           '✗ Username already taken. Try another.',
-          style: TextStyle(fontSize: 11, color: AppColors.error, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 11,
+            color: AppColors.error,
+            fontWeight: FontWeight.bold,
+          ),
         );
       case UsernameAvailabilityStatus.error:
         return const Text(
-          'Unable to check availability right now',
-          style: TextStyle(fontSize: 11, color: Colors.orange),
+          'Network error checking handle. Tap retry.',
+          style: TextStyle(fontSize: 11, color: AppColors.warning),
         );
       case UsernameAvailabilityStatus.none:
-        return const Text(
-          '3-20 characters: letters, numbers, and underscores',
-          style: TextStyle(fontSize: 11, color: Colors.grey),
+        return Text(
+          '${cfg.minLength}-${cfg.maxLength} chars: lowercase letters, numbers & _',
+          style: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
         );
     }
   }
@@ -523,16 +725,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       child: Row(
         children: [
           Icon(
-            isSatisfied ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+            isSatisfied
+                ? Icons.check_circle_rounded
+                : Icons.radio_button_unchecked,
             size: 13,
-            color: isSatisfied ? const Color(0xFF22C55E) : Colors.grey,
+            color: isSatisfied ? AppColors.success : AppColors.textTertiary,
           ),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: isSatisfied ? const Color(0xFF22C55E) : Colors.grey,
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: isSatisfied ? AppColors.success : AppColors.textTertiary,
+              ),
             ),
           ),
         ],

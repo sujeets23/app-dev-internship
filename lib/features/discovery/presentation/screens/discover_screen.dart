@@ -32,7 +32,7 @@ class DiscoverScreen extends ConsumerWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Chat opened with ${next.latestMatch!.profile.name}!'),
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: isDark ? AppColors.encreElevated : AppColors.primary,
                 ),
               );
             },
@@ -44,6 +44,8 @@ class DiscoverScreen extends ConsumerWidget {
         );
       }
     });
+
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
@@ -61,11 +63,11 @@ class DiscoverScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: state.isIncognitoEnabled
-                    ? AppColors.primary.withValues(alpha: 0.15)
+                    ? AppColors.adaptiveHighlightBg(isDark)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(10),
                 border: state.isIncognitoEnabled
-                    ? Border.all(color: AppColors.primary, width: 1)
+                    ? Border.all(color: accent, width: 1)
                     : null,
               ),
               child: Row(
@@ -76,7 +78,7 @@ class DiscoverScreen extends ConsumerWidget {
                         ? Icons.shield_rounded
                         : Icons.location_on_outlined,
                     color: state.isIncognitoEnabled
-                        ? AppColors.primary
+                        ? accent
                         : AppColors.textTertiary,
                     size: 14,
                   ),
@@ -85,7 +87,7 @@ class DiscoverScreen extends ConsumerWidget {
                     state.isIncognitoEnabled ? 'Incognito' : 'Nearby (10km)',
                     style: TextStyle(
                       color: state.isIncognitoEnabled
-                          ? AppColors.primary
+                          ? accent
                           : AppColors.textTertiary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -105,8 +107,8 @@ class DiscoverScreen extends ConsumerWidget {
                   ? Icons.shield_rounded
                   : Icons.shield_outlined,
               color: state.isIncognitoEnabled
-                  ? AppColors.primary
-                  : (isDark ? Colors.white70 : Colors.black87),
+                  ? accent
+                  : (isDark ? AppColors.textSecondaryDark : AppColors.textPrimary),
             ),
             onPressed: () {
               final newMode = !state.isIncognitoEnabled;
@@ -118,7 +120,7 @@ class DiscoverScreen extends ConsumerWidget {
                         ? '🛡️ Incognito Shield Enabled: Your profile is hidden from the public deck.'
                         : '🌐 Incognito Disabled: Your profile is visible to compatible matches.',
                   ),
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: isDark ? AppColors.encreElevated : AppColors.primary,
                   duration: const Duration(seconds: 2),
                 ),
               );
@@ -127,7 +129,7 @@ class DiscoverScreen extends ConsumerWidget {
           IconButton(
             icon: Icon(
               Icons.tune_rounded,
-              color: isDark ? Colors.white70 : Colors.black87,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textPrimary,
             ),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -142,8 +144,8 @@ class DiscoverScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         child: state.isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+            ? Center(
+                child: CircularProgressIndicator(color: accent),
               )
             : state.deck.isEmpty
                 ? _buildEmptyState(context, notifier, isDark)
@@ -200,7 +202,7 @@ class DiscoverScreen extends ConsumerWidget {
                             _buildActionButton(
                               context: context,
                               icon: Icons.undo_rounded,
-                              iconColor: AppColors.peach,
+                              iconColor: AppColors.warning,
                               size: 46,
                               onTap: state.history.isNotEmpty
                                   ? () => notifier.undoSwipe()
@@ -211,7 +213,9 @@ class DiscoverScreen extends ConsumerWidget {
                             _buildActionButton(
                               context: context,
                               icon: Icons.close_rounded,
-                              iconColor: AppColors.secondary,
+                              iconColor: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondary,
                               size: 58,
                               onTap: () => notifier.swipe(SwipeDirection.left),
                             ),
@@ -220,7 +224,9 @@ class DiscoverScreen extends ConsumerWidget {
                             _buildActionButton(
                               context: context,
                               icon: Icons.star_rounded,
-                              iconColor: AppColors.primary,
+                              iconColor: isDark
+                                  ? AppColors.accentTeal
+                                  : AppColors.glacierInk,
                               size: 48,
                               onTap: () => notifier.swipe(SwipeDirection.up),
                             ),
@@ -229,7 +235,7 @@ class DiscoverScreen extends ConsumerWidget {
                             _buildActionButton(
                               context: context,
                               icon: Icons.favorite_rounded,
-                              iconColor: AppColors.primary,
+                              iconColor: AppColors.adaptiveAccent(isDark),
                               size: 58,
                               onTap: () => notifier.swipe(SwipeDirection.right),
                             ),
@@ -272,7 +278,13 @@ class DiscoverScreen extends ConsumerWidget {
             : null,
       ),
       child: IconButton(
-        icon: Icon(icon, color: onTap != null ? iconColor : Colors.white24),
+        icon: Icon(
+          icon,
+          color: onTap != null
+              ? iconColor
+              : (isDark ? AppColors.textTertiaryDark : AppColors.textTertiary)
+                  .withValues(alpha: 0.45),
+        ),
         onPressed: onTap,
       ),
     );
@@ -293,12 +305,12 @@ class DiscoverScreen extends ConsumerWidget {
               width: 90,
               height: 90,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
+                color: AppColors.adaptiveHighlightBg(isDark),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.people_outline_rounded,
-                color: AppColors.primary,
+                color: AppColors.adaptiveAccent(isDark),
                 size: 46,
               ),
             ),
@@ -308,9 +320,8 @@ class DiscoverScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: isDark ? Colors.white : AppColors.textPrimary,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
                 fontSize: 22,
-                fontStyle: FontStyle.italic,
               ),
             ),
             const SizedBox(height: 8),
@@ -318,7 +329,7 @@ class DiscoverScreen extends ConsumerWidget {
               'Check back soon or expand your distance & orientation filters to explore more people.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: isDark ? Colors.white60 : AppColors.textSecondary,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 fontSize: 14,
                 height: 1.4,
               ),
@@ -328,10 +339,10 @@ class DiscoverScreen extends ConsumerWidget {
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Reset Deck'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.adaptiveAccent(isDark),
+                foregroundColor: AppColors.adaptiveOnAccent(isDark),
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               onPressed: () => notifier.loadDeck(),
             ),

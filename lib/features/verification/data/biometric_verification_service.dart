@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:inclusive_dating/features/auth/domain/models/auth_state.dart';
 import '../domain/models/biometric_verification_model.dart';
 
 abstract class IBiometricVerificationService {
@@ -15,14 +16,24 @@ abstract class IBiometricVerificationService {
   );
 }
 
-/// Production API Client targeting:
-/// POST /v1/auth/biometric-verify
-/// POST /v1/auth/companion-kyc
+/// Production API Client boundary targeting:
+/// - POST /v1/auth/biometric-verify
+/// - POST /v1/security/face-scan
+/// - POST /v1/auth/companion-kyc
+///
+/// Compliance Contract for future backend integration:
+/// 1. Transmission must enforce TLS 1.3+ certificate pinning.
+/// 2. Backend MUST extract the mathematical embedding in transient RAM and
+///    prohibit persistent raw selfie object storage.
+/// 3. Client strips EXIF metadata before upload and wipes local buffers in `finally`.
 class ProductionBiometricVerificationService
     implements IBiometricVerificationService {
   final String baseUrl;
+  final IBiometricEmbeddingExtractor embeddingExtractor;
+
   ProductionBiometricVerificationService({
     this.baseUrl = 'https://api.date2.app',
+    this.embeddingExtractor = const PendingTfliteEmbeddingExtractor(),
   });
 
   @override
@@ -30,8 +41,7 @@ class ProductionBiometricVerificationService
     final actions = List<BiometricLivenessAction>.from(
       BiometricLivenessAction.values,
     )..shuffle(Random());
-    // Return 2 to 3 randomized challenge actions as required by SRS
-    return actions.take(2).toList();
+    return actions;
   }
 
   @override
@@ -40,19 +50,15 @@ class ProductionBiometricVerificationService
     required BiometricLivenessAction completedAction,
   }) async {
     try {
-      // In production deployment with active backend:
-      // 1. Strip all EXIF / camera metadata from volatile memory buffer.
-      // 2. Package encrypted multipart payload with asymmetric session key.
-      // 3. POST /v1/auth/biometric-verify
-      // final uri = Uri.parse('$baseUrl/v1/auth/biometric-verify');
-      // final request = http.MultipartRequest('POST', uri);
-      // ...
+      frameData.stripMetadataInMemory();
+      if (frameData.rawBytes != null && embeddingExtractor.isModelBundled) {
+        await embeddingExtractor.extractEmbedding(frameData.rawBytes!);
+      }
       throw UnimplementedError(
-        'Production backend server at $baseUrl/v1/auth/biometric-verify is currently offline. '
-        'MockBiometricVerificationService is active for local verification.',
+        'Production backend server at $baseUrl/v1/auth/biometric-verify is offline. '
+        'No raw biometric images are uploaded during frontend-only development.',
       );
     } finally {
-      // CRITICAL SRS RULE: Strip & clear raw biometric buffer from volatile RAM immediately
       frameData.secureWipe();
     }
   }
@@ -62,29 +68,32 @@ class ProductionBiometricVerificationService
     CompanionKycSubmission submission,
   ) async {
     try {
-      // In production:
-      // Transmit encrypted KYC payload targeting POST /v1/auth/companion-kyc
       throw UnimplementedError(
-        'Production backend server at $baseUrl/v1/auth/companion-kyc is currently offline.',
+        'Production backend server at $baseUrl/v1/auth/companion-kyc is offline.',
       );
     } finally {
-      // CRITICAL SRS RULE: Strip & clear raw ID image buffers from volatile RAM immediately
       submission.secureWipe();
     }
   }
 }
 
-/// Interactive Demo & Mock Verification Service
-/// Guarantees exact volatile memory zero-wiping and realistic liveness simulation
+/// Frontend Demo Verification Service.
+/// Explicitly separates on-device liveness checks from unimplemented backend
+/// biometric identity matching and clears raw byte buffers after processing.
 class MockBiometricVerificationService
     implements IBiometricVerificationService {
+  final IBiometricEmbeddingExtractor embeddingExtractor;
+
+  MockBiometricVerificationService({
+    this.embeddingExtractor = const PendingTfliteEmbeddingExtractor(),
+  });
+
   @override
   List<BiometricLivenessAction> generateChallengeSequence() {
     final actions = List<BiometricLivenessAction>.from(
       BiometricLivenessAction.values,
     )..shuffle(Random());
-    // Randomize order of verification actions
-    return actions.take(2).toList();
+    return actions;
   }
 
   @override
@@ -92,54 +101,71 @@ class MockBiometricVerificationService
     required BiometricFrameData frameData,
     required BiometricLivenessAction completedAction,
   }) async {
-    // Simulate real ML Kit landmark inference & network round-trip latency
-    await Future.delayed(const Duration(milliseconds: 1200));
-
     try {
-      // Validate lighting condition
+      frameData.stripMetadataInMemory();
+      await Future.delayed(const Duration(milliseconds: 650));
+
       if (!frameData.isLightingAdequate) {
         return const BiometricVerificationResult(
           isSuccess: false,
+          resultStatus: FaceVerificationStatus.retryRequired,
+          isDemoResult: true,
           message:
-              'Verification failed: Insufficient lighting. Please move to a brighter environment and retry.',
+              'Liveness incomplete: Insufficient lighting detected. Move to a well-lit area and retry.',
           confidenceScore: 0.38,
         );
       }
 
-      // Validate distance condition
       if (!frameData.isDistanceAdequate) {
         return const BiometricVerificationResult(
           isSuccess: false,
+          resultStatus: FaceVerificationStatus.retryRequired,
+          isDemoResult: true,
           message:
-              'Verification failed: Face distance out of range. Align within the oval frame and retry.',
+              'Liveness incomplete: Face distance was out of range inside the oval guide.',
           confidenceScore: 0.44,
         );
       }
 
-      // Validate face centering
       if (!frameData.isFaceCentered) {
         return const BiometricVerificationResult(
           isSuccess: false,
+          resultStatus: FaceVerificationStatus.failed,
+          isDemoResult: true,
           message:
-              'Verification failed: Face not centered inside the oval guide.',
+              'Verification failed: Face was not centered inside the alignment frame.',
           confidenceScore: 0.49,
         );
       }
 
+      // Check embedding availability transparently (do NOT fake a 512-d match)
+      final embeddingRes = frameData.rawBytes != null
+          ? await embeddingExtractor.extractEmbedding(frameData.rawBytes!)
+          : const BiometricEmbeddingResult(
+              isAvailable: false,
+              limitationNote:
+                  'No 512-d embedding model bundled; verified active liveness in Demo Mode.',
+            );
+
       final timestamp = DateTime.now();
       final proofId = 'VERIF-B3D-${timestamp.millisecondsSinceEpoch}';
-      final proofHash = 'sha256:8f4c2e1b${timestamp.microsecondsSinceEpoch.toRadixString(16)}';
+      final proofHash =
+          'demo-sha256:liveness-${timestamp.microsecondsSinceEpoch.toRadixString(16)}';
 
       return BiometricVerificationResult(
         isSuccess: true,
-        message: 'Identity Verified. Liveness action successfully confirmed.',
-        confidenceScore: 0.985,
+        resultStatus: FaceVerificationStatus.verified,
+        isDemoResult: true,
+        message: embeddingRes.isAvailable
+            ? 'Demo Liveness & Biometric Check Passed.'
+            : 'Demo Mode: Active camera liveness passed. (${embeddingRes.limitationNote})',
+        confidenceScore: 0.96,
         verificationId: proofId,
         cryptographicProofHash: proofHash,
         verifiedAt: timestamp,
       );
     } finally {
-      // CRITICAL SRS RULE: Purge volatile memory buffer immediately
+      // Best-effort clear of local volatile frame buffer immediately
       frameData.secureWipe();
     }
   }
@@ -148,20 +174,29 @@ class MockBiometricVerificationService
   Future<Map<String, dynamic>> submitCompanionKyc(
     CompanionKycSubmission submission,
   ) async {
-    await Future.delayed(const Duration(milliseconds: 1000));
+    await Future.delayed(const Duration(milliseconds: 800));
     try {
       if (!submission.policeClearanceAffirmed) {
         return {
           'success': false,
-          'message': 'Background check affirmation is required.',
+          'status': CompanionKycStatus.rejected.name,
+          'message': 'Background & safety affirmation is required.',
+        };
+      }
+      if (submission.selfieVerificationProofId == null ||
+          submission.selfieVerificationProofId!.isEmpty) {
+        return {
+          'success': false,
+          'status': CompanionKycStatus.retryRequired.name,
+          'message': 'A completed live biometric liveness selfie is required.',
         };
       }
       return {
         'success': true,
-        'kyc_reference_id': 'KYC-${DateTime.now().millisecondsSinceEpoch}',
-        'status': 'under_review',
+        'kyc_reference_id': 'DEMO-KYC-${DateTime.now().millisecondsSinceEpoch}',
+        'status': CompanionKycStatus.pendingVerification.name,
         'message':
-            'Companion KYC documents submitted for background validation. Volatile memory wiped.',
+            'Demo Submission Recorded: Government ID and liveness proof submitted (pending backend KYC verification). Local volatile buffers cleared.',
       };
     } finally {
       submission.secureWipe();

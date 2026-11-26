@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:inclusive_dating/core/routing/app_router.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
-import 'package:inclusive_dating/core/widgets/main_navigation_screen.dart';
-import 'package:inclusive_dating/features/onboarding/presentation/screens/welcome_screen.dart';
+import '../providers/auth_provider.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
@@ -40,18 +41,20 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Auto-navigate after splash delay
+    // Auto-navigate after splash delay to the guarded next onboarding step.
     Future.delayed(const Duration(milliseconds: 2200), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 600),
-            pageBuilder: (context, anim1, anim2) => const WelcomeScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-                FadeTransition(opacity: animation, child: child),
-          ),
-        );
-      }
+      if (!mounted) return;
+      final authState = ref.read(authProvider);
+      final nextScreen = AppRouter.resolveNextRequiredScreen(authState);
+
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 500),
+          pageBuilder: (context, anim1, anim2) => nextScreen,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      );
     });
   }
 
@@ -63,12 +66,12 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.softWhite,
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Subtle artistic background wash
           Positioned(
             top: -60,
             right: -60,
@@ -77,7 +80,9 @@ class _SplashScreenState extends State<SplashScreen>
               height: 240,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.softLavender.withValues(alpha: 0.45),
+                color: isDark
+                    ? AppColors.accentTeal.withValues(alpha: 0.08)
+                    : AppColors.glacierLight.withValues(alpha: 0.9),
               ),
             ),
           ),
@@ -89,12 +94,12 @@ class _SplashScreenState extends State<SplashScreen>
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.peach.withValues(alpha: 0.35),
+                color: isDark
+                    ? AppColors.glacierInk.withValues(alpha: 0.35)
+                    : AppColors.backgroundWarm,
               ),
             ),
           ),
-
-          // Center Branding
           Center(
             child: AnimatedBuilder(
               animation: _controller,
@@ -106,7 +111,6 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Centered signature brand hero container with Date² logo
                         const Date2LogoWidget(
                           height: 72,
                           showContainer: true,
@@ -115,21 +119,24 @@ class _SplashScreenState extends State<SplashScreen>
                         Text(
                           'Date Smart • Connect Meaningfully',
                           style: AppTypography.headlineSmall.copyWith(
-                            color: AppColors.charcoal,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimary,
                             fontWeight: FontWeight.w700,
-                            fontStyle: FontStyle.italic,
-                            letterSpacing: 0.3,
+                            letterSpacing: -0.4,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Inclusive Romance & Verified Companionship',
                           style: TextStyle(
-                            fontFamily: 'Helvetica Now Display',
+                            fontFamily: 'Plus Jakarta Sans',
                             fontFamilyFallback: AppTypography.sansFallbacks,
-                            color: AppColors.charcoal.withValues(alpha: 0.65),
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
                             fontSize: 13,
-                            letterSpacing: 0.6,
+                            letterSpacing: 0.2,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -138,32 +145,6 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 );
               },
-            ),
-          ),
-
-          // Bottom skip button for quick demo testing
-          Positioned(
-            bottom: 30,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => const MainNavigationScreen(initialIndex: 0),
-                    ),
-                  );
-                },
-                child: Text(
-                  'Skip to Dashboard ➔',
-                  style: TextStyle(
-                    color: AppColors.charcoal.withValues(alpha: 0.5),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
             ),
           ),
         ],

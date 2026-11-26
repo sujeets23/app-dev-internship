@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
+import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
 import 'package:inclusive_dating/features/verification/presentation/providers/biometric_verification_provider.dart';
-import 'package:inclusive_dating/features/verification/presentation/screens/biometric_verification_screen.dart';
+import 'package:inclusive_dating/features/verification/presentation/screens/security_check_intro_screen.dart';
 import 'package:inclusive_dating/features/subscription/presentation/screens/subscription_pricing_screen.dart';
 import 'package:inclusive_dating/features/settings/presentation/screens/settings_screen.dart';
 import 'package:inclusive_dating/features/settings/presentation/screens/privacy_settings_screen.dart';
@@ -14,14 +15,16 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isVerified = ref.watch(isProfileVerifiedProvider);
+    final isVerified = ref.watch(isProfileVerifiedProvider) ||
+        ref.watch(authProvider).isFullyVerified;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
-    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
-    final textColor = isDark ? Colors.white : AppColors.charcoal;
-    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedTextColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -32,8 +35,7 @@ class ProfileScreen extends ConsumerWidget {
           'My Profile',
           style: AppTypography.headlineMedium.copyWith(
             color: textColor,
-            fontWeight: FontWeight.bold,
-            fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.w700,
           ),
         ),
         actions: [
@@ -61,9 +63,7 @@ class ProfileScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [AppColors.blushPink, AppColors.butterYellow],
-                      ),
+                      gradient: AppColors.cyanPrismGradient,
                     ),
                     child: const CircleAvatar(
                       radius: 54,
@@ -104,14 +104,21 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.blushPink.withValues(alpha: 0.2),
+                    color: isDark ? AppColors.encreElevated : AppColors.glacierLight,
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isDark ? AppColors.borderDark : AppColors.glacierBorder,
+                    ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'they/them',
-                    style: TextStyle(color: AppColors.blushPink, fontWeight: FontWeight.bold, fontSize: 12),
+                    style: TextStyle(
+                      color: isDark ? AppColors.accent : AppColors.glacierInk,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
@@ -133,7 +140,7 @@ class ProfileScreen extends ConsumerWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const BiometricVerificationScreen(),
+                      builder: (_) => const SecurityCheckIntroScreen(),
                     ),
                   );
                 }
@@ -143,10 +150,12 @@ class ProfileScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: isVerified
                       ? AppColors.success.withValues(alpha: 0.12)
-                      : AppColors.softLavender.withValues(alpha: 0.5),
+                      : AppColors.adaptiveHighlightBg(isDark),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isVerified ? AppColors.success : AppColors.softLavender,
+                    color: isVerified
+                        ? AppColors.success
+                        : (isDark ? AppColors.borderDark : AppColors.glacierBorder),
                   ),
                 ),
                 child: Row(
@@ -154,7 +163,7 @@ class ProfileScreen extends ConsumerWidget {
                   children: [
                     Icon(
                       isVerified ? Icons.verified_user : Icons.warning_amber_rounded,
-                      color: isVerified ? AppColors.success : AppColors.primary,
+                      color: isVerified ? AppColors.success : accent,
                       size: 16,
                     ),
                     const SizedBox(width: 6),
@@ -163,7 +172,7 @@ class ProfileScreen extends ConsumerWidget {
                           ? 'Identity Assurance: Verified Live ML ✓'
                           : 'Identity Assurance: Unverified (Tap to verify)',
                       style: TextStyle(
-                        color: isVerified ? AppColors.success : AppColors.charcoal,
+                        color: isVerified ? AppColors.success : textColor,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -178,9 +187,10 @@ class ProfileScreen extends ConsumerWidget {
             // Edit Profile Button
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
+                backgroundColor: cardBg,
                 foregroundColor: textColor,
                 side: BorderSide(
-                  color: isDark ? Colors.white24 : AppColors.softLavender,
+                  color: isDark ? AppColors.borderDark : AppColors.borderWarm,
                 ),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -205,15 +215,9 @@ class ProfileScreen extends ConsumerWidget {
                 color: cardBg,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isDark ? Colors.transparent : AppColors.softLavender,
+                  color: AppColors.adaptiveBorder(isDark),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.softLavender.withValues(alpha: 0.25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+                boxShadow: AppColors.softShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,10 +225,10 @@ class ProfileScreen extends ConsumerWidget {
                   Text(
                     'ABOUT ME',
                     style: TextStyle(
-                      color: isDark ? AppColors.neonLime : AppColors.primary,
+                      color: accent,
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
-                      letterSpacing: 1.1,
+                      letterSpacing: 1.0,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -246,15 +250,9 @@ class ProfileScreen extends ConsumerWidget {
                 color: cardBg,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isDark ? Colors.transparent : AppColors.softLavender,
+                  color: AppColors.adaptiveBorder(isDark),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.softLavender.withValues(alpha: 0.25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+                boxShadow: AppColors.softShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,10 +260,10 @@ class ProfileScreen extends ConsumerWidget {
                   Text(
                     'INTERESTS & PASSIONS',
                     style: TextStyle(
-                      color: isDark ? AppColors.neonLime : AppColors.primary,
+                      color: accent,
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
-                      letterSpacing: 1.1,
+                      letterSpacing: 1.0,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -281,19 +279,21 @@ class ProfileScreen extends ConsumerWidget {
                       'Baking',
                     ].map((interest) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.backgroundDark : AppColors.softLavender.withValues(alpha: 0.4),
+                          color: isDark ? AppColors.encreElevated : AppColors.glacierSoft,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: isDark
-                                ? AppColors.electricViolet.withValues(alpha: 0.5)
-                                : AppColors.softLavender,
+                            color: isDark ? AppColors.borderDark : AppColors.glacierBorder,
                           ),
                         ),
                         child: Text(
                           interest,
-                          style: TextStyle(color: textColor, fontSize: 12),
+                          style: TextStyle(
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.glacierInk,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       );
                     }).toList(),
@@ -345,9 +345,9 @@ class ProfileScreen extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
-    final textColor = isDark ? Colors.white : AppColors.charcoal;
-    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedTextColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -355,15 +355,9 @@ class ProfileScreen extends ConsumerWidget {
         color: cardBg,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isDark ? Colors.transparent : AppColors.softLavender,
+          color: AppColors.adaptiveBorder(isDark),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.softLavender.withValues(alpha: 0.2),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: AppColors.softShadow,
       ),
       child: Material(
         color: Colors.transparent,
@@ -371,7 +365,7 @@ class ProfileScreen extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
-          leading: Icon(icon, color: isDark ? AppColors.neonLime : AppColors.primary),
+          leading: Icon(icon, color: AppColors.adaptiveAccent(isDark)),
           title: Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 14)),
           subtitle: Text(subtitle, style: TextStyle(color: mutedTextColor, fontSize: 11)),
           trailing: Icon(Icons.arrow_forward_ios, color: mutedTextColor, size: 14),

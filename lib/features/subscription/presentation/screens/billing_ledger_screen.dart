@@ -11,22 +11,30 @@ class BillingLedgerScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final billingAsync = ref.watch(billingProfileProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scaffoldBg = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final insetBg = isDark ? AppColors.backgroundDark : AppColors.surfaceWarm;
+    final border = isDark ? AppColors.borderDark : AppColors.border;
+    final textPrimary = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final textSecondary = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final textMuted = isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: scaffoldBg,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_new, color: textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Billing & Payments Ledger',
           style: AppTypography.headlineMedium.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontStyle: FontStyle.italic,
+            color: textPrimary,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
@@ -46,18 +54,20 @@ class BillingLedgerScreen extends ConsumerWidget {
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.2),
+                      color: isDark
+                          ? AppColors.warning.withValues(alpha: 0.16)
+                          : AppColors.warningLight,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.amber),
+                      border: Border.all(color: AppColors.warning),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.warning_amber, color: Colors.amber),
-                        SizedBox(width: 8),
+                        const Icon(Icons.warning_amber, color: AppColors.warning),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             '⚠️ 48-Hour Renewal Grace Period Active. Please verify your UPI balance.',
-                            style: TextStyle(color: Colors.white, fontSize: 12),
+                            style: TextStyle(color: textPrimary, fontSize: 12),
                           ),
                         ),
                       ],
@@ -68,10 +78,16 @@ class BillingLedgerScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceDark,
+                    color: (isPro || isBasic)
+                        ? (isDark ? AppColors.surfaceElevatedDark : AppColors.glacierLight)
+                        : cardBg,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: isPro ? AppColors.neonLime : (isBasic ? AppColors.electricViolet : Colors.white12),
+                      color: isPro
+                          ? (isDark ? AppColors.accent : AppColors.primary)
+                          : (isBasic
+                              ? (isDark ? AppColors.accentTeal : AppColors.glacierBorder)
+                              : border),
                     ),
                   ),
                   child: Column(
@@ -85,18 +101,27 @@ class BillingLedgerScreen extends ConsumerWidget {
                                 ? 'PRO MEMBERSHIP 👑'
                                 : (isBasic ? 'BASIC PLAN ⭐' : 'FREE TIER ACCESS'),
                             style: TextStyle(
-                              color: isPro ? AppColors.neonLime : Colors.white,
-                              fontWeight: FontWeight.bold,
+                              color: isPro ? accent : textPrimary,
+                              fontWeight: FontWeight.w700,
                               fontSize: 16,
                             ),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.green.withValues(alpha: 0.2),
+                              color: isDark
+                                  ? AppColors.success.withValues(alpha: 0.2)
+                                  : AppColors.successLight,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text('ACTIVE', style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+                            child: const Text(
+                              'ACTIVE',
+                              style: TextStyle(
+                                color: AppColors.success,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -105,7 +130,7 @@ class BillingLedgerScreen extends ConsumerWidget {
                         profile.renewalDate != null
                             ? 'Next Auto-Renewal Date: ${profile.renewalDate!.day}/${profile.renewalDate!.month}/${profile.renewalDate!.year}'
                             : 'No active recurring renewals.',
-                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        style: TextStyle(color: textSecondary, fontSize: 13),
                       ),
                       const SizedBox(height: 14),
 
@@ -114,17 +139,18 @@ class BillingLedgerScreen extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: AppColors.backgroundDark,
+                            color: insetBg,
                             borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: border),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.autorenew, color: AppColors.neonLime, size: 18),
+                              Icon(Icons.autorenew, color: accent, size: 18),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   'Mandate: ${profile.autoPayMandateId}',
-                                  style: const TextStyle(color: AppColors.textMutedDark, fontSize: 11),
+                                  style: TextStyle(color: textSecondary, fontSize: 11),
                                 ),
                               ),
                               TextButton(
@@ -138,7 +164,7 @@ class BillingLedgerScreen extends ConsumerWidget {
                                 },
                                 child: const Text(
                                   'Cancel Mandate',
-                                  style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                                  style: TextStyle(color: AppColors.error, fontSize: 12),
                                 ),
                               ),
                             ],
@@ -155,47 +181,58 @@ class BillingLedgerScreen extends ConsumerWidget {
                 Text(
                   'PAYMENT HISTORY LEDGER',
                   style: AppTypography.bodySmall.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.neonLime,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.accent : AppColors.textSecondary,
                     letterSpacing: 1.1,
                   ),
                 ),
                 const SizedBox(height: 12),
 
                 if (profile.transactionHistory.isEmpty)
-                  const Center(
-                    child: Text('No transaction history found', style: TextStyle(color: AppColors.textMutedDark)),
+                  Center(
+                    child: Text('No transaction history found', style: TextStyle(color: textMuted)),
                   )
                 else
-                  ...profile.transactionHistory.map((txn) => _buildTransactionCard(txn)),
+                  ...profile.transactionHistory.map((txn) => _buildTransactionCard(context, txn)),
 
                 const SizedBox(height: 40),
               ],
             ),
           );
         },
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.electricViolet),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: accent),
         ),
-        error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+        error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: AppColors.error))),
       ),
     );
   }
 
-  Widget _buildTransactionCard(PaymentTransaction txn) {
+  Widget _buildTransactionCard(BuildContext context, PaymentTransaction txn) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final border = isDark ? AppColors.borderDark : AppColors.border;
+    final textPrimary = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final textSecondary = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final textMuted = isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
+        color: cardBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: border),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: AppColors.electricViolet.withValues(alpha: 0.2),
-            child: const Icon(Icons.receipt, color: AppColors.neonLime, size: 20),
+            backgroundColor: isDark ? AppColors.surfaceElevatedDark : AppColors.glacierLight,
+            child: Icon(
+              Icons.receipt,
+              color: AppColors.adaptiveAccent(isDark),
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -204,17 +241,17 @@ class BillingLedgerScreen extends ConsumerWidget {
               children: [
                 Text(
                   txn.description,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                  style: TextStyle(color: textPrimary, fontWeight: FontWeight.w700, fontSize: 13),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   '${txn.date.day}/${txn.date.month}/${txn.date.year} • ${txn.method}',
-                  style: const TextStyle(color: AppColors.textMutedDark, fontSize: 11),
+                  style: TextStyle(color: textSecondary, fontSize: 11),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'ID: ${txn.transactionId}',
-                  style: const TextStyle(color: Colors.white38, fontSize: 10),
+                  style: TextStyle(color: textMuted, fontSize: 10),
                 ),
               ],
             ),
@@ -224,12 +261,12 @@ class BillingLedgerScreen extends ConsumerWidget {
             children: [
               Text(
                 '₹${txn.amount.toInt()}',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                style: TextStyle(color: textPrimary, fontWeight: FontWeight.w700, fontSize: 15),
               ),
               const SizedBox(height: 2),
               Text(
                 txn.status,
-                style: const TextStyle(color: AppColors.neonLime, fontSize: 11, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.w700),
               ),
             ],
           ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
-/// Premium, rounded primary action button
+/// Primary CTA button matching Glanceable's high-contrast action system:
+/// - Light mode: Deep Encre ink (#1C2134) fill with crisp white label.
+/// - Dark mode: Signature Ice-Cyan (#7DE8E8) fill with deep Encre ink label.
 class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -26,8 +28,21 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isEnabled = onPressed != null && !isLoading;
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    Widget content = Row(
+    final Color defaultBg = isDark ? AppColors.accent : AppColors.primary;
+    final Color defaultFg = isDark ? AppColors.encreDeep : AppColors.textInverse;
+    final Color resolvedBg = backgroundColor ?? defaultBg;
+    final Color resolvedFg = textColor ??
+        (backgroundColor != null
+            ? (backgroundColor!.computeLuminance() > 0.5
+                ? AppColors.encreDeep
+                : AppColors.textInverse)
+            : defaultFg);
+    final Color disabledFg =
+        isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
+
+    final Widget content = Row(
       mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -37,9 +52,7 @@ class PrimaryButton extends StatelessWidget {
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2.2,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                textColor ?? AppColors.textInverse,
-              ),
+              valueColor: AlwaysStoppedAnimation<Color>(resolvedFg),
             ),
           ),
           const SizedBox(width: 12),
@@ -47,20 +60,19 @@ class PrimaryButton extends StatelessWidget {
           Icon(
             icon,
             size: 20,
-            color: isEnabled
-                ? (textColor ?? AppColors.textInverse)
-                : AppColors.textTertiary,
+            color: isEnabled ? resolvedFg : disabledFg,
           ),
           const SizedBox(width: 10),
         ],
-        Text(
-          label,
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: isEnabled
-                ? (textColor ?? AppColors.textInverse)
-                : AppColors.textTertiary,
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
+        Flexible(
+          child: Text(
+            label,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: isEnabled ? resolvedFg : disabledFg,
+              fontWeight: FontWeight.w600,
+              fontSize: 15.5,
+            ),
           ),
         ),
       ],
@@ -68,19 +80,18 @@ class PrimaryButton extends StatelessWidget {
 
     return SizedBox(
       width: isFullWidth ? double.infinity : null,
-      height: 56,
+      height: 54,
       child: ElevatedButton(
         onPressed: isEnabled ? onPressed : null,
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: backgroundColor ?? AppColors.primary,
-          disabledBackgroundColor: theme.brightness == Brightness.dark
-              ? AppColors.surfaceMutedDark
-              : AppColors.surfaceMuted,
+          backgroundColor: resolvedBg,
+          disabledBackgroundColor:
+              isDark ? AppColors.surfaceMutedDark : AppColors.surfaceMuted,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(14),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 22),
         ),
         child: content,
       ),

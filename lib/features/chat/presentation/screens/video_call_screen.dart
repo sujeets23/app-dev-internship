@@ -42,14 +42,13 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
-              const Icon(Icons.verified_user_rounded, color: AppColors.neonLime),
+              const Icon(Icons.verified_user_rounded, color: AppColors.accent),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Mutual Call Consent',
                   style: AppTypography.headlineMedium.copyWith(
                     color: Colors.white,
-                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ),
@@ -61,20 +60,20 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
             children: [
               Text(
                 'Date² strictly enforces mutual consent before connecting live video audio feeds with ${widget.matchName}.',
-                style: const TextStyle(color: Colors.white70, fontSize: 13),
+                style: const TextStyle(color: AppColors.textSecondaryDark, fontSize: 13),
               ),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.electricViolet.withValues(alpha: 0.2),
+                  color: AppColors.encreElevated,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.electricViolet.withValues(alpha: 0.5)),
+                  border: Border.all(color: AppColors.encreBorderDark),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.shield_moon, color: AppColors.neonLime, size: 20),
-                    const SizedBox(width: 8),
+                    Icon(Icons.shield_moon, color: AppColors.accent, size: 20),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Continuous 2-second on-device TFLite safety scans protect this stream.',
@@ -92,12 +91,12 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
                 Navigator.pop(ctx);
                 Navigator.pop(context); // Exit call screen
               },
-              child: const Text('Decline', style: TextStyle(color: AppColors.textMutedDark)),
+              child: const Text('Decline', style: TextStyle(color: AppColors.textTertiaryDark)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.electricViolet,
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.accent,
+                foregroundColor: AppColors.encreDeep,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () {
@@ -122,10 +121,10 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
     final callState = ref.watch(videoCallProvider);
 
     if (!_hasUserConsented || callState == null) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: AppColors.backgroundDark,
-        body: const Center(
-          child: CircularProgressIndicator(color: AppColors.electricViolet),
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.accent),
         ),
       );
     }
@@ -160,7 +159,6 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
               style: AppTypography.displaySmall.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontStyle: FontStyle.italic,
               ),
             ),
             const SizedBox(height: 8),
@@ -168,11 +166,11 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
               call.status == CallStatus.requestingConsent
                   ? 'Requesting Mutual Video Consent...'
                   : 'Ringing (Establishing secure WebRTC)...',
-              style: const TextStyle(color: AppColors.neonLime, fontSize: 14),
+              style: const TextStyle(color: AppColors.accent, fontSize: 14),
             ),
             const Spacer(),
             FloatingActionButton(
-              backgroundColor: Colors.redAccent,
+              backgroundColor: AppColors.error,
               onPressed: () {
                 ref.read(videoCallProvider.notifier).endCall();
                 Navigator.pop(context);
@@ -188,7 +186,7 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
 
   Widget _buildConnectedCallScreen(CallSession call) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.encreDeep,
       body: Stack(
         children: [
           // Simulated Remote WebRTC Video
@@ -207,7 +205,7 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
                           const SizedBox(height: 16),
                           Text(
                             '${widget.matchName} turned camera off',
-                            style: const TextStyle(color: Colors.white70),
+                            style: const TextStyle(color: AppColors.textSecondaryDark),
                           ),
                         ],
                       ),
@@ -225,9 +223,9 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.black.withValues(alpha: 0.6),
+                    AppColors.encreDeep.withValues(alpha: 0.6),
                     Colors.transparent,
-                    Colors.black.withValues(alpha: 0.8),
+                    AppColors.encreDeep.withValues(alpha: 0.85),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -256,7 +254,7 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
                     ),
                     Text(
                       _formatDuration(call.duration),
-                      style: const TextStyle(color: AppColors.neonLime, fontSize: 13),
+                      style: const TextStyle(color: AppColors.accent, fontSize: 13),
                     ),
                   ],
                 ),
@@ -264,13 +262,13 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.neonLime.withValues(alpha: 0.6)),
+                    color: AppColors.encreDeep.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.accent.withValues(alpha: 0.6)),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.shield, color: AppColors.neonLime, size: 14),
+                      Icon(Icons.shield, color: AppColors.accent, size: 14),
                       SizedBox(width: 4),
                       Text(
                         'TFLite 2s Frame Scan',
@@ -293,20 +291,15 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
               decoration: BoxDecoration(
                 color: AppColors.surfaceDark,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.electricViolet, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    blurRadius: 10,
-                  ),
-                ],
+                border: Border.all(color: AppColors.accent, width: 1.8),
+                boxShadow: AppColors.cardShadow,
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Stack(
                   children: [
                     Container(
-                      color: const Color(0xFF20202A),
+                      color: AppColors.encreDark,
                       child: const Center(
                         child: Icon(Icons.person, color: Colors.white54, size: 40),
                       ),
@@ -340,17 +333,17 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
                 // Testing helper button for NSFW violation demo
                 TextButton.icon(
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.red.withValues(alpha: 0.25),
+                    backgroundColor: AppColors.error.withValues(alpha: 0.25),
                   ),
                   onPressed: () {
                     ref.read(videoCallProvider.notifier).triggerSafetyViolation(
                           reason: 'Explicit video content flagged by TFLite NSFW classifier',
                         );
                   },
-                  icon: const Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent, size: 16),
+                  icon: const Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 16),
                   label: const Text(
                     'Simulate TFLite NSFW Violation (Terminates Call)',
-                    style: TextStyle(color: Colors.orangeAccent, fontSize: 11),
+                    style: TextStyle(color: AppColors.warning, fontSize: 11),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -373,7 +366,7 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
                       onTap: () => ref.read(videoCallProvider.notifier).switchCamera(),
                     ),
                     FloatingActionButton(
-                      backgroundColor: Colors.redAccent,
+                      backgroundColor: AppColors.error,
                       onPressed: () {
                         ref.read(videoCallProvider.notifier).endCall();
                         Navigator.pop(context);
@@ -400,7 +393,7 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: active ? Colors.white.withValues(alpha: 0.25) : Colors.red.withValues(alpha: 0.4),
+          color: active ? Colors.white.withValues(alpha: 0.25) : AppColors.error.withValues(alpha: 0.4),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: Colors.white, size: 24),
@@ -420,13 +413,13 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.redAccent.withValues(alpha: 0.15),
+                  color: AppColors.error.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.redAccent, width: 2),
+                  border: Border.all(color: AppColors.error, width: 2),
                 ),
                 child: const Icon(
                   Icons.gpp_bad,
-                  color: Colors.redAccent,
+                  color: AppColors.error,
                   size: 64,
                 ),
               ),
@@ -435,9 +428,8 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
                 'Call Terminated by AI Moderation',
                 textAlign: TextAlign.center,
                 style: AppTypography.headlineMedium.copyWith(
-                  color: Colors.redAccent,
+                  color: AppColors.error,
                   fontWeight: FontWeight.bold,
-                  fontStyle: FontStyle.italic,
                 ),
               ),
               const SizedBox(height: 16),
@@ -446,20 +438,20 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surfaceDark,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(color: AppColors.encreBorderDark),
                 ),
                 child: Text(
                   call.moderationWarning ??
                       'Inappropriate content detected. The connection was terminated immediately to maintain user safety.',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+                  style: const TextStyle(color: AppColors.textSecondaryDark, fontSize: 13, height: 1.4),
                 ),
               ),
               const SizedBox(height: 32),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.electricViolet,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: AppColors.encreDeep,
                   minimumSize: const Size.fromHeight(50),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),

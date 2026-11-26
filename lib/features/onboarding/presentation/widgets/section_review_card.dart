@@ -51,13 +51,15 @@ class SectionReviewCard extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryLight.withValues(alpha: 0.7),
+                      color: isDark
+                          ? AppColors.encreElevated
+                          : AppColors.glacierLight,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       icon,
                       size: 17,
-                      color: AppColors.primary,
+                      color: AppColors.adaptiveAccent(isDark),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -79,16 +81,16 @@ class SectionReviewCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.edit_outlined,
                         size: 14,
-                        color: AppColors.primary,
+                        color: AppColors.adaptiveAccent(isDark),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Edit',
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: AppColors.primary,
+                          color: AppColors.adaptiveAccent(isDark),
                           fontWeight: FontWeight.w600,
                         ),
                       ),

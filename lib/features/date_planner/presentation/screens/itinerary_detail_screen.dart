@@ -14,27 +14,33 @@ class ItineraryDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final withinBudget = plan.totalEstimatedCost <= plan.budgetLimit;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: AppColors.backgroundDark,
+        backgroundColor: bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_new, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Curated Itinerary',
           style: AppTypography.headlineMedium.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontStyle: FontStyle.italic,
+            color: textColor,
+            fontWeight: FontWeight.w700,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.share, color: AppColors.neonLime),
+            icon: Icon(Icons.share, color: accent),
             tooltip: 'Share Itinerary to Match Chat',
             onPressed: () => _shareToMatchChat(context, ref),
           ),
@@ -49,9 +55,12 @@ class ItineraryDetailScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.surfaceDark,
+                color: cardBg,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.neonLime.withValues(alpha: 0.4)),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.glacierBorder,
+                ),
+                boxShadow: AppColors.softShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,13 +70,13 @@ class ItineraryDetailScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.electricViolet,
+                          color: isDark ? AppColors.accent : AppColors.glacierLight,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           plan.vibe.toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: isDark ? AppColors.encreDeep : AppColors.glacierInk,
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
@@ -76,7 +85,7 @@ class ItineraryDetailScreen extends ConsumerWidget {
                       const SizedBox(width: 8),
                       Text(
                         plan.neighborhood,
-                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        style: TextStyle(color: mutedColor, fontSize: 13),
                       ),
                     ],
                   ),
@@ -84,13 +93,12 @@ class ItineraryDetailScreen extends ConsumerWidget {
                   Text(
                     plan.title,
                     style: AppTypography.headlineMedium.copyWith(
-                      color: Colors.white,
-                      fontStyle: FontStyle.italic,
+                      color: textColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Divider(color: Colors.white10),
+                  Divider(color: AppColors.adaptiveBorder(isDark)),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -98,11 +106,11 @@ class ItineraryDetailScreen extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Estimated Total', style: TextStyle(color: AppColors.textMutedDark, fontSize: 11)),
+                          Text('Estimated Total', style: TextStyle(color: mutedColor, fontSize: 11)),
                           Text(
                             '₹${plan.totalEstimatedCost.toInt()}',
                             style: TextStyle(
-                              color: withinBudget ? AppColors.neonLime : Colors.orangeAccent,
+                              color: withinBudget ? AppColors.success : AppColors.warning,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -112,10 +120,10 @@ class ItineraryDetailScreen extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Text('Budget Ceiling', style: TextStyle(color: AppColors.textMutedDark, fontSize: 11)),
+                          Text('Budget Ceiling', style: TextStyle(color: mutedColor, fontSize: 11)),
                           Text(
                             '₹${plan.budgetLimit.toInt()}',
-                            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -132,8 +140,8 @@ class ItineraryDetailScreen extends ConsumerWidget {
               'CHRONOLOGICAL ITINERARY TIMELINE',
               style: AppTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.bold,
-                color: AppColors.neonLime,
-                letterSpacing: 1.1,
+                color: accent,
+                letterSpacing: 1.0,
               ),
             ),
             const SizedBox(height: 12),
@@ -142,35 +150,32 @@ class ItineraryDetailScreen extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
-            // Partner Voucher CTA Card
+            // Partner Voucher CTA Card (Glanceable Deep Encre Card)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF2C194D), AppColors.surfaceDark],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                gradient: AppColors.encrePrismGradient,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.softPink.withValues(alpha: 0.6)),
+                border: Border.all(color: AppColors.encreBorderDark),
+                boxShadow: AppColors.primaryShadow,
               ),
               child: Column(
                 children: [
-                  Row(
+                  const Row(
                     children: [
-                      const Icon(Icons.confirmation_number_outlined, color: AppColors.softPink, size: 28),
-                      const SizedBox(width: 12),
+                      Icon(Icons.confirmation_number_outlined, color: AppColors.accent, size: 28),
+                      SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               '10% Instant Partner Bill Discount',
                               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                             ),
                             Text(
                               'Digital cryptographic voucher for Subko & partner cafes',
-                              style: TextStyle(color: AppColors.textMutedDark, fontSize: 11),
+                              style: TextStyle(color: AppColors.textSecondaryDark, fontSize: 11),
                             ),
                           ],
                         ),
@@ -180,8 +185,8 @@ class ItineraryDetailScreen extends ConsumerWidget {
                   const SizedBox(height: 14),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.softPink,
-                      foregroundColor: Colors.black,
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: AppColors.encreDeep,
                       minimumSize: const Size.fromHeight(44),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -204,8 +209,8 @@ class ItineraryDetailScreen extends ConsumerWidget {
             // Share to Match Chat Button
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.electricViolet,
-                foregroundColor: Colors.white,
+                backgroundColor: accent,
+                foregroundColor: AppColors.adaptiveOnAccent(isDark),
                 minimumSize: const Size.fromHeight(52),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
@@ -222,12 +227,21 @@ class ItineraryDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildStopCard(BuildContext context, ItineraryStop stop) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final headerBg = isDark ? AppColors.encreElevated : AppColors.glacierLight;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppColors.cardBackgroundDark,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: AppColors.adaptiveBorder(isDark)),
+        boxShadow: AppColors.softShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,21 +250,21 @@ class ItineraryDetailScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.surfaceDark,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              color: headerBg,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.neonLime,
+                    color: accent,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     'STOP ${stop.stepNumber}',
-                    style: const TextStyle(
-                      color: Colors.black,
+                    style: TextStyle(
+                      color: AppColors.adaptiveOnAccent(isDark),
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -259,12 +273,12 @@ class ItineraryDetailScreen extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Text(
                   stop.timeSlot,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.w500),
                 ),
                 const Spacer(),
                 Text(
                   '${stop.durationMinutes} mins',
-                  style: const TextStyle(color: AppColors.textMutedDark, fontSize: 11),
+                  style: TextStyle(color: mutedColor, fontSize: 11),
                 ),
               ],
             ),
@@ -276,8 +290,8 @@ class ItineraryDetailScreen extends ConsumerWidget {
               children: [
                 Text(
                   stop.venueName,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: textColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -285,34 +299,44 @@ class ItineraryDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(
                   stop.activityTitle,
-                  style: const TextStyle(
-                    color: AppColors.softPink,
+                  style: TextStyle(
+                    color: isDark ? AppColors.accentTeal : AppColors.glacierInk,
                     fontSize: 13,
-                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   stop.description,
-                  style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.35),
+                  style: TextStyle(color: mutedColor, fontSize: 13, height: 1.35),
                 ),
                 const SizedBox(height: 10),
                 if (stop.isQueerFriendlyPartner) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.electricViolet.withValues(alpha: 0.25),
+                      color: AppColors.adaptiveHighlightBg(isDark),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.neonLime.withValues(alpha: 0.4)),
+                      border: Border.all(
+                        color: isDark ? AppColors.borderDark : AppColors.glacierBorder,
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.verified, color: AppColors.neonLime, size: 14),
+                        Icon(
+                          Icons.verified,
+                          color: isDark ? AppColors.accent : AppColors.accentInk,
+                          size: 14,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           stop.partnerDiscountDetails ?? 'Queer-Friendly Partner Venue',
-                          style: const TextStyle(color: AppColors.neonLime, fontSize: 11, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: isDark ? AppColors.accent : AppColors.glacierInk,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -322,10 +346,10 @@ class ItineraryDetailScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    const Text('Est. Cost: ', style: TextStyle(color: AppColors.textMutedDark, fontSize: 12)),
+                    Text('Est. Cost: ', style: TextStyle(color: mutedColor, fontSize: 12)),
                     Text(
                       '₹${stop.estimatedCost.toInt()}',
-                      style: const TextStyle(color: AppColors.neonLime, fontWeight: FontWeight.bold, fontSize: 15),
+                      style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                   ],
                 ),
@@ -338,9 +362,16 @@ class ItineraryDetailScreen extends ConsumerWidget {
   }
 
   void _shareToMatchChat(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sheetBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surfaceDark,
+      backgroundColor: sheetBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -354,14 +385,13 @@ class ItineraryDetailScreen extends ConsumerWidget {
               Text(
                 'Share Date Plan into Chat',
                 style: AppTypography.headlineMedium.copyWith(
-                  color: Colors.white,
-                  fontStyle: FontStyle.italic,
+                  color: textColor,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Select a match to directly dispatch this curated itinerary with 10% partner discount:',
-                style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+                style: TextStyle(color: mutedColor, fontSize: 13),
               ),
               const SizedBox(height: 16),
               Material(
@@ -372,9 +402,9 @@ class ItineraryDetailScreen extends ConsumerWidget {
                       leading: const CircleAvatar(
                         backgroundImage: NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400'),
                       ),
-                      title: const Text('Aarya', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      subtitle: const Text('Active now', style: TextStyle(color: AppColors.neonLime, fontSize: 11)),
-                      trailing: const Icon(Icons.send, color: AppColors.neonLime),
+                      title: Text('Aarya', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+                      subtitle: const Text('Active now', style: TextStyle(color: AppColors.success, fontSize: 11)),
+                      trailing: Icon(Icons.send, color: accent),
                       onTap: () {
                         ref.read(conversationMessagesProvider('conv_1').notifier).sendMessage(
                           'Hey Aarya, check out this date itinerary I generated for us on Date²! 🍷✨',
@@ -386,9 +416,9 @@ class ItineraryDetailScreen extends ConsumerWidget {
                         );
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('🎉 Itinerary shared with Aarya!'),
-                            backgroundColor: AppColors.electricViolet,
+                          SnackBar(
+                            content: const Text('🎉 Itinerary shared with Aarya!'),
+                            backgroundColor: isDark ? AppColors.encreElevated : AppColors.primary,
                           ),
                         );
                       },
@@ -397,9 +427,9 @@ class ItineraryDetailScreen extends ConsumerWidget {
                       leading: const CircleAvatar(
                         backgroundImage: NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'),
                       ),
-                      title: const Text('Zayan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      subtitle: const Text('Matched yesterday', style: TextStyle(color: AppColors.textMutedDark, fontSize: 11)),
-                      trailing: const Icon(Icons.send, color: AppColors.neonLime),
+                      title: Text('Zayan', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
+                      subtitle: Text('Matched yesterday', style: TextStyle(color: mutedColor, fontSize: 11)),
+                      trailing: Icon(Icons.send, color: accent),
                       onTap: () {
                         ref.read(conversationMessagesProvider('conv_2').notifier).sendMessage(
                           'Hey Zayan, generated this date plan for us!',
@@ -411,9 +441,9 @@ class ItineraryDetailScreen extends ConsumerWidget {
                         );
                         Navigator.pop(ctx);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('🎉 Itinerary shared with Zayan!'),
-                            backgroundColor: AppColors.electricViolet,
+                          SnackBar(
+                            content: const Text('🎉 Itinerary shared with Zayan!'),
+                            backgroundColor: isDark ? AppColors.encreElevated : AppColors.primary,
                           ),
                         );
                       },

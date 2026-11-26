@@ -41,10 +41,11 @@ class _CompanionMarketplaceScreenState
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.softWhite;
-    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
-    final textColor = isDark ? Colors.white : AppColors.charcoal;
-    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.background;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedTextColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -59,13 +60,12 @@ class _CompanionMarketplaceScreenState
           'Companion Escrow',
           style: AppTypography.headlineMedium.copyWith(
             color: textColor,
-            fontWeight: FontWeight.w800,
-            fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.w700,
           ),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.assignment_ind_outlined, color: isDark ? AppColors.neonLime : AppColors.primary),
+            icon: Icon(Icons.assignment_ind_outlined, color: accent),
             tooltip: 'Companion KYC Verification',
             onPressed: () {
               Navigator.push(
@@ -75,7 +75,7 @@ class _CompanionMarketplaceScreenState
             },
           ),
           IconButton(
-            icon: Icon(Icons.tune, color: isDark ? AppColors.neonLime : AppColors.primary),
+            icon: Icon(Icons.tune, color: accent),
             tooltip: 'Filter Options',
             onPressed: () => _showFilterBottomSheet(context),
           ),
@@ -95,19 +95,19 @@ class _CompanionMarketplaceScreenState
               decoration: InputDecoration(
                 hintText: 'Search by companion, event, or skill...',
                 hintStyle: TextStyle(color: mutedTextColor),
-                prefixIcon: Icon(Icons.search, color: isDark ? AppColors.neonLime : AppColors.primary),
+                prefixIcon: Icon(Icons.search, color: accent),
                 filled: true,
                 fillColor: cardBg,
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide(
-                    color: isDark ? Colors.transparent : AppColors.softLavender,
+                    color: AppColors.adaptiveBorder(isDark),
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide(
-                    color: isDark ? AppColors.accent : AppColors.primary,
+                    color: accent,
                     width: 1.5,
                   ),
                 ),
@@ -123,7 +123,7 @@ class _CompanionMarketplaceScreenState
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               itemCount: _categories.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final cat = _categories[index];
                 final isSelected = filter.category == cat;
@@ -131,17 +131,19 @@ class _CompanionMarketplaceScreenState
                 return ChoiceChip(
                   label: Text(cat),
                   selected: isSelected,
-                  selectedColor: AppColors.butterYellow,
+                  selectedColor: isDark ? AppColors.accent : AppColors.glacierLight,
                   backgroundColor: cardBg,
                   labelStyle: TextStyle(
-                    color: isSelected ? AppColors.charcoal : textColor,
+                    color: isSelected
+                        ? (isDark ? AppColors.encreDeep : AppColors.glacierInk)
+                        : textColor,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     fontSize: 12,
                   ),
                   side: BorderSide(
                     color: isSelected
-                        ? AppColors.butterYellow
-                        : (isDark ? Colors.white12 : AppColors.softLavender),
+                        ? accent
+                        : AppColors.adaptiveBorder(isDark),
                   ),
                   onSelected: (_) {
                     ref.read(companionFilterProvider.notifier).updateCategory(cat);
@@ -158,17 +160,17 @@ class _CompanionMarketplaceScreenState
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.surfaceDark : AppColors.softLavender.withValues(alpha: 0.45),
-              borderRadius: BorderRadius.circular(16),
+              color: AppColors.adaptiveHighlightBg(isDark),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isDark ? AppColors.neonLime.withValues(alpha: 0.3) : AppColors.softLavender,
+                color: isDark ? AppColors.borderDark : AppColors.glacierBorder,
               ),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.verified_user_rounded,
-                  color: isDark ? AppColors.neonLime : AppColors.primary,
+                  color: isDark ? AppColors.accent : AppColors.accentInk,
                   size: 26,
                 ),
                 const SizedBox(width: 12),
@@ -219,11 +221,11 @@ class _CompanionMarketplaceScreenState
                   },
                 );
               },
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+              loading: () => Center(
+                child: CircularProgressIndicator(color: accent),
               ),
               error: (err, _) => Center(
-                child: Text('Error: $err', style: const TextStyle(color: Colors.red)),
+                child: Text('Error: $err', style: const TextStyle(color: AppColors.error)),
               ),
             ),
           ),
@@ -234,9 +236,10 @@ class _CompanionMarketplaceScreenState
 
   Widget _buildCompanionCard(BuildContext context, CompanionModel companion) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
-    final textColor = isDark ? Colors.white : AppColors.charcoal;
-    final mutedTextColor = isDark ? AppColors.textMutedDark : AppColors.textSecondary;
+    final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedTextColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -244,15 +247,9 @@ class _CompanionMarketplaceScreenState
         color: cardBg,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.softLavender,
+          color: AppColors.adaptiveBorder(isDark),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.softLavender.withValues(alpha: 0.25),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        boxShadow: AppColors.softShadow,
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
@@ -297,7 +294,11 @@ class _CompanionMarketplaceScreenState
                               ),
                             ),
                             const SizedBox(width: 4),
-                            const Icon(Icons.verified, color: AppColors.primary, size: 16),
+                            Icon(
+                              Icons.verified,
+                              color: isDark ? AppColors.accent : AppColors.accentTeal,
+                              size: 16,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -313,7 +314,7 @@ class _CompanionMarketplaceScreenState
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 15),
+                            const Icon(Icons.star, color: AppColors.warning, size: 15),
                             const SizedBox(width: 4),
                             Text(
                               '${companion.rating} (${companion.reviewCount} reviews)',
@@ -339,13 +340,16 @@ class _CompanionMarketplaceScreenState
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceElevatedDark : AppColors.softLavender.withValues(alpha: 0.4),
+                      color: isDark ? AppColors.encreElevated : AppColors.glacierSoft,
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isDark ? AppColors.borderDark : AppColors.glacierBorder,
+                      ),
                     ),
                     child: Text(
                       s,
                       style: TextStyle(
-                        color: isDark ? AppColors.softPink : AppColors.primary,
+                        color: isDark ? AppColors.accent : AppColors.glacierInk,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -354,7 +358,7 @@ class _CompanionMarketplaceScreenState
                 }).toList(),
               ),
               const SizedBox(height: 12),
-              Divider(color: isDark ? Colors.white10 : AppColors.softLavender.withValues(alpha: 0.6)),
+              Divider(color: AppColors.adaptiveBorder(isDark)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -368,7 +372,7 @@ class _CompanionMarketplaceScreenState
                       Text(
                         '₹${companion.hourlyRate.toInt()} / hr',
                         style: TextStyle(
-                          color: isDark ? AppColors.neonLime : AppColors.primary,
+                          color: accent,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -377,8 +381,8 @@ class _CompanionMarketplaceScreenState
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.butterYellow,
-                      foregroundColor: AppColors.charcoal,
+                      backgroundColor: accent,
+                      foregroundColor: AppColors.adaptiveOnAccent(isDark),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -407,10 +411,11 @@ class _CompanionMarketplaceScreenState
     final filter = ref.read(companionFilterProvider);
     double selectedRate = filter.maxRate;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = AppColors.adaptiveAccent(isDark);
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+      backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -426,22 +431,23 @@ class _CompanionMarketplaceScreenState
                   Text(
                     'Filter Companions',
                     style: AppTypography.headlineMedium.copyWith(
-                      color: isDark ? Colors.white : AppColors.charcoal,
-                      fontStyle: FontStyle.italic,
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Max Hourly Rate: ₹${selectedRate.toInt()}',
-                    style: TextStyle(color: isDark ? Colors.white70 : AppColors.charcoal),
+                    style: TextStyle(
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textPrimary,
+                    ),
                   ),
                   Slider(
                     value: selectedRate,
                     min: 500,
                     max: 3000,
                     divisions: 25,
-                    activeColor: AppColors.blushPink,
-                    inactiveColor: AppColors.softLavender,
+                    activeColor: accent,
+                    inactiveColor: AppColors.adaptiveBorder(isDark),
                     onChanged: (val) {
                       setSheetState(() => selectedRate = val);
                     },
@@ -449,8 +455,8 @@ class _CompanionMarketplaceScreenState
                   const SizedBox(height: 16),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.butterYellow,
-                      foregroundColor: AppColors.charcoal,
+                      backgroundColor: accent,
+                      foregroundColor: AppColors.adaptiveOnAccent(isDark),
                       minimumSize: const Size.fromHeight(48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
