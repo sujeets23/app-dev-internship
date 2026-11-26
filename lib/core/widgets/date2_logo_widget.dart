@@ -29,9 +29,7 @@ class Date2LogoWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final Color resolvedLogoTint = color ??
-        (showContainer
-            ? AppColors.textInverse
-            : (isDark ? AppColors.textPrimaryDark : AppColors.primary));
+        (isDark ? AppColors.textPrimaryDark : AppColors.primary);
 
     Widget logoCore = Image.asset(
       'assets/images/date2_logo.png',
@@ -43,37 +41,7 @@ class Date2LogoWidget extends StatelessWidget {
           _buildFallbackWordmark(context, resolvedLogoTint),
     );
 
-    if (showContainer) {
-      logoCore = Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: height * 0.45,
-          vertical: height * 0.24,
-        ),
-        decoration: BoxDecoration(
-          gradient: AppColors.encrePrismGradient,
-          borderRadius: BorderRadius.circular(height * 0.35),
-          boxShadow: AppColors.primaryShadow,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            logoCore,
-            if (showTagline) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Date Smart • Connect Meaningfully',
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontSize: height * 0.22,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
-          ],
-        ),
-      );
-    } else if (showTagline) {
+    if (showTagline) {
       logoCore = Column(
         mainAxisSize: MainAxisSize.min,
         children: [

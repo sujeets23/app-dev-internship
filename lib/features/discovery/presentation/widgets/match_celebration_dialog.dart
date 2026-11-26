@@ -144,7 +144,8 @@ class MatchCelebrationDialog extends StatelessWidget {
             SecondaryButton(
               label: 'Keep Swiping',
               textColor: Colors.white,
-              borderColor: AppColors.encreBorderDark,
+              backgroundColor: Colors.transparent,
+              borderColor: Colors.white38,
               onPressed: onKeepSwiping,
             ),
           ],

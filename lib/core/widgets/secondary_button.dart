@@ -9,6 +9,7 @@ class SecondaryButton extends StatelessWidget {
   final bool isFullWidth;
   final Color? textColor;
   final Color? borderColor;
+  final Color? backgroundColor;
 
   const SecondaryButton({
     super.key,
@@ -18,6 +19,7 @@ class SecondaryButton extends StatelessWidget {
     this.isFullWidth = true,
     this.textColor,
     this.borderColor,
+    this.backgroundColor,
   });
 
   @override
@@ -59,7 +61,8 @@ class SecondaryButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          backgroundColor: isDark ? Colors.transparent : AppColors.surface,
+          backgroundColor:
+              backgroundColor ?? (isDark ? Colors.transparent : AppColors.surface),
           side: BorderSide(
             color: borderColor ??
                 (isDark ? AppColors.borderDark : AppColors.borderWarm),

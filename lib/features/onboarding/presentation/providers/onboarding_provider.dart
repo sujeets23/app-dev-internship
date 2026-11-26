@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/onboarding_local_storage.dart';
 import '../../domain/models/gender_identity.dart';
+import '../../domain/models/onboarding_profile.dart';
 import '../../domain/models/pronouns.dart';
 import '../../domain/models/sexual_orientation.dart';
 import 'onboarding_state.dart';
@@ -146,6 +147,91 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     _persistState();
   }
 
+  /// Update Sex (strictly 4 options: Male, Female, Trans, Others)
+  void updateSex(String sex, {bool? isVisible}) {
+    final updated = state.profile.copyWith(
+      sex: sex,
+      isSexVisible: isVisible ?? state.profile.isSexVisible,
+    );
+    state = state.copyWith(profile: updated);
+    _persistState();
+  }
+
+  /// Toggle Sex visibility on profile
+  void toggleSexVisibility(bool isVisible) {
+    final updated = state.profile.copyWith(isSexVisible: isVisible);
+    state = state.copyWith(profile: updated);
+    _persistState();
+  }
+
+  /// Toggle an Interest tag (min 3 required)
+  void toggleInterest(String interest) {
+    final current = List<String>.from(state.profile.interests);
+    if (current.contains(interest)) {
+      current.remove(interest);
+    } else {
+      current.add(interest);
+    }
+    final updated = state.profile.copyWith(interests: current);
+    state = state.copyWith(profile: updated);
+    _persistState();
+  }
+
+  /// Set full list of interests
+  void setInterests(List<String> interests) {
+    final updated = state.profile.copyWith(interests: interests);
+    state = state.copyWith(profile: updated);
+    _persistState();
+  }
+
+  /// Toggle a Matching Sex Preference (Male, Female, Trans, Others)
+  void toggleMatchSexPreference(String sex) {
+    final current = List<String>.from(state.profile.matchSexPreferences);
+    if (current.contains(sex)) {
+      current.remove(sex);
+    } else {
+      current.add(sex);
+    }
+    final updated = state.profile.copyWith(matchSexPreferences: current);
+    state = state.copyWith(profile: updated);
+    _persistState();
+  }
+
+  /// Set matching sex preferences list
+  void setMatchSexPreferences(List<String> preferences) {
+    final updated = state.profile.copyWith(matchSexPreferences: preferences);
+    state = state.copyWith(profile: updated);
+    _persistState();
+  }
+
+  /// Update Discovery Preferences (Age range, Distance)
+  void updateDiscoveryPreferences({
+    int? minAge,
+    int? maxAge,
+    int? maxDistanceKm,
+  }) {
+    final updated = state.profile.copyWith(
+      minAgePreference: minAge ?? state.profile.minAgePreference,
+      maxAgePreference: maxAge ?? state.profile.maxAgePreference,
+      maxDistanceKm: maxDistanceKm ?? state.profile.maxDistanceKm,
+    );
+    state = state.copyWith(profile: updated);
+    _persistState();
+  }
+
+  /// Toggle Incognito Privacy Shield
+  void toggleIncognito(bool enabled) {
+    final updated = state.profile.copyWith(isIncognitoEnabled: enabled);
+    state = state.copyWith(profile: updated);
+    _persistState();
+  }
+
+  /// Update full profile state (used by Personal Info screen)
+  void updateFullProfile(OnboardingProfile profile) {
+    state = state.copyWith(profile: profile);
+    _persistState();
+  }
+
   /// Update Connection Preferences (Screen 6 - Multiple selection supported)
   void toggleConnectionPreference(String preference) {
     final current = List<String>.from(state.profile.connectionPreferences);
@@ -285,6 +371,24 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       currentStep: 7, // Success Screen
       isSaving: false,
     );
+  }
+
+  /// Fills demo profile values and marks onboarding completed for dev testing
+  Future<void> fillDemoProfileAndComplete() async {
+    final demoProfile = state.profile.copyWith(
+      firstName: state.profile.firstName.isNotEmpty ? state.profile.firstName : 'Sujeet',
+      bio: state.profile.bio.isNotEmpty ? state.profile.bio : 'Inclusive design & tech enthusiast ✨',
+      dateOfBirth: state.profile.dateOfBirth ?? DateTime(2000, 1, 1),
+      genderIdentity: state.profile.genderIdentity ?? const GenderIdentity(option: 'Non-Binary'),
+      pronouns: state.profile.pronouns ?? const Pronouns(option: 'They/Them'),
+      sexualOrientation: state.profile.sexualOrientation ?? const SexualOrientation(option: 'Queer'),
+      connectionPreferences: state.profile.connectionPreferences.isNotEmpty
+          ? state.profile.connectionPreferences
+          : ['Dating', 'Friendship', 'Networking'],
+      isCompleted: true,
+    );
+    state = state.copyWith(profile: demoProfile);
+    await completeProfile();
   }
 
   /// Resets onboarding data completely

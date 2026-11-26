@@ -39,6 +39,10 @@ class AppColors {
   /// Saturated mineral cyan-teal highlight (.lb-home_eyebrow / interactive dark icons)
   static const Color accentTeal = Color(0xFF2ED8C8);
 
+  /// Direct aliases for Glanceable Design Tokens
+  static const Color glanceableCyan = accent;
+  static const Color glanceableCyanDeep = accentTeal;
+
   /// --brand--blue-50: Pale cyan whisper tint
   static const Color accentLight = Color(0xFFE5FAFA);
 
@@ -89,6 +93,10 @@ class AppColors {
   static const Color surfaceDark = primary;
   static const Color surfaceMutedDark = encreDark;
   static const Color surfaceElevatedDark = encreElevated;
+
+  /// Surface variants for neutral cards and chips
+  static const Color surfaceVariant = surfaceMuted;
+  static const Color surfaceVariantDark = encreDark;
 
   // ===========================================================================
   // 5. TYPOGRAPHY & NEUTRAL INKS

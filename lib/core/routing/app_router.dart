@@ -13,6 +13,11 @@ import '../../features/verification/presentation/screens/biometric_verification_
 import '../../features/verification/presentation/screens/companion_kyc_screen.dart';
 import '../../features/verification/presentation/screens/government_id_verification_screen.dart';
 import '../../features/verification/presentation/screens/security_check_intro_screen.dart';
+import '../../features/profile/presentation/screens/personal_info_screen.dart';
+import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/onboarding/presentation/screens/interests_selection_screen.dart';
+import '../../features/onboarding/presentation/screens/matching_preferences_screen.dart';
+import '../../features/games/presentation/screens/games_lobby_screen.dart';
 import '../widgets/main_navigation_screen.dart';
 
 /// Named route constants supporting deep-link & guarded navigation across Module 1.
@@ -27,6 +32,11 @@ class AppRoutes {
   static const String faceScan = '/face-scan';
   static const String govId = '/gov-id';
   static const String personalInfo = '/personal-info';
+  static const String personalDetails = '/profile/personal-info';
+  static const String matchingPreferences = '/matching-preferences';
+  static const String interestsSelection = '/interests-selection';
+  static const String games = '/games';
+  static const String profile = '/profile';
   static const String home = '/home';
   static const String companionKyc = '/companion-kyc';
 }
@@ -123,6 +133,21 @@ class AppRouter {
         break;
       case AppRoutes.personalInfo:
         target = const OnboardingFlowScreen();
+        break;
+      case AppRoutes.personalDetails:
+        target = const PersonalInfoScreen();
+        break;
+      case AppRoutes.matchingPreferences:
+        target = const MatchingPreferencesScreen();
+        break;
+      case AppRoutes.interestsSelection:
+        target = const InterestsSelectionScreen();
+        break;
+      case AppRoutes.games:
+        target = const GamesLobbyScreen();
+        break;
+      case AppRoutes.profile:
+        target = const ProfileScreen();
         break;
       case AppRoutes.home:
         target = const MainNavigationScreen(initialIndex: 0);

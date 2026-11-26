@@ -8,8 +8,12 @@ import 'package:inclusive_dating/core/widgets/onboarding_progress_bar.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
 import '../providers/onboarding_provider.dart';
 import '../widgets/section_review_card.dart';
+import 'interests_selection_screen.dart';
+import 'matching_preferences_screen.dart';
 
 /// Screen 7: Review Profile
+/// Shows comprehensive review with profile completion meter, spectrum identity details,
+/// categorized interests, and matching preferences with inline edit controls.
 class ReviewProfileScreen extends ConsumerWidget {
   const ReviewProfileScreen({super.key});
 
@@ -20,6 +24,7 @@ class ReviewProfileScreen extends ConsumerWidget {
     final state = ref.watch(onboardingProvider);
     final notifier = ref.read(onboardingProvider.notifier);
     final profile = state.profile;
+    final completionPct = profile.completionPercentInt;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -90,7 +95,81 @@ class ReviewProfileScreen extends ConsumerWidget {
                         height: 1.45,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
+
+                    // Profile Completion Meter Card
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.surfaceDark
+                            : AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark ? AppColors.borderDark : AppColors.border,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'PROFILE COMPLETION',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.1,
+                                  color: isDark
+                                      ? AppColors.textTertiaryDark
+                                      : AppColors.textTertiary,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: completionPct >= 80
+                                      ? (isDark
+                                          ? AppColors.glanceableCyan
+                                              .withValues(alpha: 0.18)
+                                          : AppColors.glacierLight)
+                                      : AppColors.surfaceVariant,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '$completionPct%',
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: completionPct >= 80
+                                        ? AppColors.glanceableCyanDeep
+                                        : AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: LinearProgressIndicator(
+                              value: profile.completionPercentage,
+                              minHeight: 8,
+                              backgroundColor: isDark
+                                  ? AppColors.surfaceVariantDark
+                                  : AppColors.border,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.glanceableCyan,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
 
                     // Section 1: Basic Profile & Photo
                     SectionReviewCard(
@@ -121,7 +200,7 @@ class ReviewProfileScreen extends ConsumerWidget {
                                     const Icon(
                                       Icons.cake_outlined,
                                       size: 14,
-                                      color: AppColors.primary,
+                                      color: AppColors.glanceableCyanDeep,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -156,31 +235,60 @@ class ReviewProfileScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    // Section 2: Gender Identity
+                    // Section 2: Sex & Gender Identity
                     SectionReviewCard(
-                      title: 'Gender Identity',
+                      title: 'Sex & Gender Identity',
                       icon: Icons.diversity_3_rounded,
                       onEdit: () => notifier.goToStep(2, fromReview: true),
-                      content: Row(
+                      content: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppColors.encreElevated
-                                  : AppColors.glacierLight,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              profile.displayGender,
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: isDark
-                                    ? AppColors.accent
-                                    : AppColors.glacierInk,
-                                fontWeight: FontWeight.w600,
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.glanceableCyan
+                                      .withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: AppColors.glanceableCyan,
+                                    width: 1.0,
+                                  ),
+                                ),
+                                child: Text(
+                                  'Sex: ${profile.displaySex} (${profile.isSexVisible ? "Visible" : "Hidden"})',
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: isDark
+                                        ? AppColors.glanceableCyan
+                                        : AppColors.encreDeep,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ),
-                            ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? AppColors.surfaceVariantDark
+                                      : AppColors.surfaceVariant,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  'Identity: ${profile.displayGender}',
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -198,7 +306,7 @@ class ReviewProfileScreen extends ConsumerWidget {
                                 horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
                               color: isDark
-                                  ? AppColors.surfaceMutedDark
+                                  ? AppColors.surfaceVariantDark
                                   : AppColors.surfaceWarm,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
@@ -233,7 +341,7 @@ class ReviewProfileScreen extends ConsumerWidget {
                                 horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
                               color: isDark
-                                  ? AppColors.accentTeal.withValues(alpha: 0.14)
+                                  ? AppColors.glanceableCyan.withValues(alpha: 0.14)
                                   : AppColors.accentLight,
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -241,7 +349,7 @@ class ReviewProfileScreen extends ConsumerWidget {
                               profile.displayOrientation,
                               style: theme.textTheme.labelLarge?.copyWith(
                                 color: isDark
-                                    ? AppColors.accent
+                                    ? AppColors.glanceableCyan
                                     : AppColors.accentInk,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -251,37 +359,125 @@ class ReviewProfileScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    // Section 5: Connection Preferences
+                    // Section 5: What Do They Like (Interests)
                     SectionReviewCard(
-                      title: 'Connection Intent',
+                      title: 'Interests & Passions',
+                      icon: Icons.auto_awesome_rounded,
+                      onEdit: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const InterestsSelectionScreen(),
+                          ),
+                        );
+                      },
+                      content: profile.interests.isEmpty
+                          ? TextButton.icon(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const InterestsSelectionScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.add_rounded, size: 18),
+                              label: const Text('Add your interests (Min 3)'),
+                            )
+                          : Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: profile.interests.map((interest) {
+                                return Chip(
+                                  label: Text(interest),
+                                  labelStyle:
+                                      theme.textTheme.labelMedium?.copyWith(
+                                    color: isDark
+                                        ? AppColors.glanceableCyan
+                                        : AppColors.encreDeep,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  backgroundColor: isDark
+                                      ? AppColors.surfaceDark
+                                      : AppColors.glacierLight,
+                                  side: const BorderSide(
+                                    color: AppColors.glanceableCyan,
+                                    width: 1.0,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                    ),
+
+                    // Section 6: Matching Preferences & Intent
+                    SectionReviewCard(
+                      title: 'Matching & Intent',
                       icon: Icons.explore_outlined,
-                      onEdit: () => notifier.goToStep(5, fromReview: true),
-                      content: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: profile.connectionPreferences.map((intent) {
-                          return Chip(
-                            label: Text(intent),
-                            labelStyle: theme.textTheme.labelMedium?.copyWith(
+                      onEdit: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const MatchingPreferencesScreen(),
+                          ),
+                        );
+                      },
+                      content: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (profile.matchSexPreferences.isNotEmpty) ...[
+                            Text(
+                              'Interested in: ${profile.matchSexPreferences.join(', ')}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                          ],
+                          Text(
+                            'Range: ${profile.minAgePreference} - ${profile.maxAgePreference} yrs • Up to ${profile.maxDistanceKm} km',
+                            style: theme.textTheme.bodySmall?.copyWith(
                               color: isDark
-                                  ? AppColors.accent
-                                  : AppColors.glacierInk,
-                              fontWeight: FontWeight.w600,
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondary,
                             ),
-                            backgroundColor: isDark
-                                ? AppColors.encreElevated
-                                : AppColors.glacierLight,
-                            side: BorderSide(
-                              color: isDark
-                                  ? AppColors.borderDark
-                                  : AppColors.glacierBorder,
-                              width: 1.0,
+                          ),
+                          if (profile.connectionPreferences.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children:
+                                  profile.connectionPreferences.map((intent) {
+                                return Chip(
+                                  label: Text(intent),
+                                  labelStyle:
+                                      theme.textTheme.labelMedium?.copyWith(
+                                    color: isDark
+                                        ? AppColors.accent
+                                        : AppColors.glacierInk,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  backgroundColor: isDark
+                                      ? AppColors.encreElevated
+                                      : AppColors.glacierLight,
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? AppColors.borderDark
+                                        : AppColors.glacierBorder,
+                                    width: 1.0,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                );
+                              }).toList(),
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          );
-                        }).toList(),
+                          ],
+                        ],
                       ),
                     ),
 

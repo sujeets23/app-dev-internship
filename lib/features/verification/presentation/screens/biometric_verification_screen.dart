@@ -485,6 +485,23 @@ class _BiometricVerificationScreenState
             ),
           ),
           actions: [
+            TextButton(
+              onPressed: () async {
+                await _teardownCameraResources();
+                if (!context.mounted) return;
+                await ref.read(authProvider.notifier).skipVerificationForDev();
+                if (!context.mounted) return;
+                Navigator.of(context).pushReplacementNamed(AppRoutes.personalInfo);
+              },
+              child: const Text(
+                'Skip',
+                style: TextStyle(
+                  color: AppColors.accent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
             if (!widget.isCompanionFlow)
               TextButton(
                 onPressed: () async {

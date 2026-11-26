@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/constants/app_constants.dart';
+import 'package:inclusive_dating/core/constants/onboarding_options.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/widgets/avatar_picker_widget.dart';
 import 'package:inclusive_dating/core/widgets/custom_text_field.dart';
@@ -223,6 +224,163 @@ class _BasicProfileScreenState extends ConsumerState<BasicProfileScreen> {
             onChanged: (val) {
               notifier.updateBasicProfile(bio: val);
             },
+          ),
+
+          const SizedBox(height: 24),
+
+          // Sex (Strictly 4 options: Male, Female, Trans, Others)
+          Text(
+            'Sex',
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Strictly 4 options: Male, Female, Trans, or Others.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: OnboardingOptions.sexOptions.map((opt) {
+              final isSelected = profile.sex == opt;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      notifier.updateSex(opt);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? (isDark
+                                ? AppColors.glanceableCyan.withValues(alpha: 0.22)
+                                : AppColors.glacierLight)
+                            : (isDark ? AppColors.surfaceMutedDark : AppColors.surface),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.glanceableCyan
+                              : (isDark ? AppColors.borderDark : AppColors.border),
+                          width: isSelected ? 1.6 : 1.0,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        opt,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: isSelected
+                              ? (isDark ? AppColors.glanceableCyan : AppColors.encreDeep)
+                              : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 12),
+
+          // Profile Visibility Toggle
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.surfaceMutedDark : AppColors.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark ? AppColors.borderDark : AppColors.border,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Show sex on my public profile',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        'Visible to other users on your discovery card',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch.adaptive(
+                  value: profile.isSexVisible,
+                  activeColor: AppColors.glanceableCyan,
+                  onChanged: (val) {
+                    notifier.toggleSexVisibility(val);
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Matching Preference Checkboxes
+          Text(
+            'Who are you interested in seeing?',
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Select all that apply to filter discovery queues.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: OnboardingOptions.sexOptions.map((pref) {
+              final isChecked = profile.matchSexPreferences.contains(pref);
+              return FilterChip(
+                label: Text(pref),
+                selected: isChecked,
+                onSelected: (_) => notifier.toggleMatchSexPreference(pref),
+                selectedColor: isDark
+                    ? AppColors.glanceableCyan.withValues(alpha: 0.25)
+                    : AppColors.glacierLight,
+                checkmarkColor: isDark ? AppColors.glanceableCyan : AppColors.encreDeep,
+                labelStyle: TextStyle(
+                  color: isChecked
+                      ? (isDark ? AppColors.glanceableCyan : AppColors.encreDeep)
+                      : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+                  fontWeight: isChecked ? FontWeight.w700 : FontWeight.w500,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(
+                    color: isChecked
+                        ? AppColors.glanceableCyan
+                        : (isDark ? AppColors.borderDark : AppColors.border),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),

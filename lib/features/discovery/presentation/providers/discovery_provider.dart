@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/discovery_service.dart';
 import '../../domain/models/discovery_profile.dart';
 
@@ -42,10 +43,41 @@ final discoveryServiceProvider = Provider<IDiscoveryService>((ref) {
 });
 
 class IncognitoNotifier extends Notifier<bool> {
+  static const String _storageKey = 'date2_incognito_shield_v1';
+
   @override
-  bool build() => false;
-  void toggle() => state = !state;
-  void set(bool val) => state = val;
+  bool build() {
+    _loadFromStorage();
+    return false;
+  }
+
+  Future<void> _loadFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getBool(_storageKey);
+      if (saved != null && saved != state) {
+        state = saved;
+      }
+    } catch (_) {}
+  }
+
+  Future<void> toggle() async {
+    final next = !state;
+    state = next;
+    await _saveToStorage(next);
+  }
+
+  Future<void> set(bool val) async {
+    state = val;
+    await _saveToStorage(val);
+  }
+
+  Future<void> _saveToStorage(bool val) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_storageKey, val);
+    } catch (_) {}
+  }
 }
 
 final incognitoShieldProvider =

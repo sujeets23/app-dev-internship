@@ -91,56 +91,7 @@ class WelcomeScreen extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 14),
-
-              // Editorial Glanceable-inspired Brand Hero Visual
-              Container(
-                height: 160,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  gradient: AppColors.encrePrismGradient,
-                  boxShadow: AppColors.primaryShadow,
-                ),
-                child: Stack(
-                  children: [
-                    Center(
-                      child: Image.asset(
-                        'assets/images/date2_logo.png',
-                        height: 70,
-                        fit: BoxFit.contain,
-                        color: AppColors.accent,
-                        colorBlendMode: BlendMode.srcIn,
-                      ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(18),
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            AppColors.encreDeep.withValues(alpha: 0.55),
-                          ],
-                        ),
-                      ),
-                      padding: const EdgeInsets.all(14),
-                      alignment: Alignment.bottomLeft,
-                      child: const Text(
-                        'Authentic Dating & Verified Companionship',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          letterSpacing: 0.1,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
 
               // MAIN SECTION: Clean Architectural Headline
               Text(

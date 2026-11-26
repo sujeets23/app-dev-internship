@@ -215,8 +215,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               children: [
                 const Center(
                   child: Date2LogoWidget(
-                    height: 42,
-                    showContainer: true,
+                    height: 48,
+                    showContainer: false,
                   ),
                 ),
                 const SizedBox(height: 18),

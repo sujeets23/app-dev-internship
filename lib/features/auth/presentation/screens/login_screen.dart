@@ -168,8 +168,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 const Center(
                   child: Date2LogoWidget(
-                    height: 44,
-                    showContainer: true,
+                    height: 48,
+                    showContainer: false,
                   ),
                 ),
                 const SizedBox(height: 22),

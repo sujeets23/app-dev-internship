@@ -4,7 +4,7 @@
     <uses-feature android:name="android.hardware.camera.front" android:required="false" />
 
     <application
-        android:label="inclusive_dating"
+        android:label="Date²"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

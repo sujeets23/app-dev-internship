@@ -112,8 +112,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Date2LogoWidget(
-                          height: 72,
-                          showContainer: true,
+                          height: 80,
+                          showContainer: false,
                         ),
                         const SizedBox(height: 24),
                         Text(

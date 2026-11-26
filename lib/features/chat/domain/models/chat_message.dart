@@ -9,6 +9,9 @@ class ChatMessage {
   final MessageStatus status;
   final bool isFlagged;
   final Map<String, dynamic>? itinerarySnippet; // For shared AI Date plans!
+  final Map<String, dynamic>? gameScorecardSnippet; // For shared game results!
+  final bool isVanish;
+  final int? ttlSeconds;
 
   const ChatMessage({
     required this.id,
@@ -19,9 +22,40 @@ class ChatMessage {
     required this.status,
     this.isFlagged = false,
     this.itinerarySnippet,
+    this.gameScorecardSnippet,
+    this.isVanish = false,
+    this.ttlSeconds,
   });
 
   bool get isMe => senderId == 'current_user';
+
+  ChatMessage copyWith({
+    String? id,
+    String? conversationId,
+    String? senderId,
+    String? text,
+    DateTime? timestamp,
+    MessageStatus? status,
+    bool? isFlagged,
+    Map<String, dynamic>? itinerarySnippet,
+    Map<String, dynamic>? gameScorecardSnippet,
+    bool? isVanish,
+    int? ttlSeconds,
+  }) {
+    return ChatMessage(
+      id: id ?? this.id,
+      conversationId: conversationId ?? this.conversationId,
+      senderId: senderId ?? this.senderId,
+      text: text ?? this.text,
+      timestamp: timestamp ?? this.timestamp,
+      status: status ?? this.status,
+      isFlagged: isFlagged ?? this.isFlagged,
+      itinerarySnippet: itinerarySnippet ?? this.itinerarySnippet,
+      gameScorecardSnippet: gameScorecardSnippet ?? this.gameScorecardSnippet,
+      isVanish: isVanish ?? this.isVanish,
+      ttlSeconds: ttlSeconds ?? this.ttlSeconds,
+    );
+  }
 }
 
 class ChatConversation {

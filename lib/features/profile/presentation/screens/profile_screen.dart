@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:inclusive_dating/features/verification/presentation/providers/biometric_verification_provider.dart';
 import 'package:inclusive_dating/features/verification/presentation/screens/security_check_intro_screen.dart';
 import 'package:inclusive_dating/features/subscription/presentation/screens/subscription_pricing_screen.dart';
 import 'package:inclusive_dating/features/settings/presentation/screens/settings_screen.dart';
 import 'package:inclusive_dating/features/settings/presentation/screens/privacy_settings_screen.dart';
-import 'edit_profile_screen.dart';
+import 'personal_info_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -92,42 +93,56 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 14),
 
             // Name, Pronouns & Age
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Alex, 25',
-                  style: AppTypography.headlineMedium.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.encreElevated : AppColors.glacierLight,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isDark ? AppColors.borderDark : AppColors.glacierBorder,
-                    ),
-                  ),
-                  child: Text(
-                    'they/them',
-                    style: TextStyle(
-                      color: isDark ? AppColors.accent : AppColors.glacierInk,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            Consumer(
+              builder: (context, ref, _) {
+                final profile = ref.watch(onboardingProvider).profile;
+                final name = profile.firstName.isNotEmpty ? profile.firstName : 'Alex';
+                final age = profile.age ?? 25;
+                final pronouns = profile.displayPronouns != 'Not specified'
+                    ? profile.displayPronouns
+                    : 'they/them';
 
-            const SizedBox(height: 4),
-            Text(
-              'Mumbai, India • Non-Binary • Queer',
-              style: TextStyle(color: mutedTextColor, fontSize: 13),
+                return Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '$name, $age',
+                          style: AppTypography.headlineMedium.copyWith(
+                            color: textColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppColors.encreElevated : AppColors.glacierLight,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isDark ? AppColors.borderDark : AppColors.glacierBorder,
+                            ),
+                          ),
+                          child: Text(
+                            pronouns,
+                            style: TextStyle(
+                              color: isDark ? AppColors.accent : AppColors.glacierInk,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Sex: ${profile.displaySex} • ${profile.displayGender}',
+                      style: TextStyle(color: mutedTextColor, fontSize: 13),
+                    ),
+                  ],
+                );
+              },
             ),
 
             const SizedBox(height: 16),
@@ -184,7 +199,7 @@ class ProfileScreen extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
-            // Edit Profile Button
+            // Personal Information Button
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
                 backgroundColor: cardBg,
@@ -196,11 +211,11 @@ class ProfileScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               ),
               icon: const Icon(Icons.edit, size: 16),
-              label: const Text('Edit Profile & Preferences'),
+              label: const Text('Edit Personal Information & Preferences'),
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                  MaterialPageRoute(builder: (_) => const PersonalInfoScreen()),
                 );
               },
             ),

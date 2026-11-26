@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:inclusive_dating/core/routing/app_router.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
+import 'package:inclusive_dating/features/chat/presentation/providers/chat_provider.dart';
+import 'package:inclusive_dating/features/chat/presentation/screens/chat_screen.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
 import '../../domain/models/discovery_profile.dart';
 import '../providers/discovery_provider.dart';
+import '../widgets/incognito_privacy_shield_dialog.dart';
 import '../widgets/match_celebration_dialog.dart';
 import '../widgets/profile_detail_sheet.dart';
 import '../widgets/swipeable_card.dart';
@@ -27,12 +32,31 @@ class DiscoverScreen extends ConsumerWidget {
           builder: (dialogCtx) => MatchCelebrationDialog(
             match: next.latestMatch!,
             onSendMessage: () {
+              final matchedProfile = next.latestMatch!.profile;
               Navigator.of(dialogCtx).pop();
               notifier.clearMatchDialog();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Chat opened with ${next.latestMatch!.profile.name}!'),
-                  backgroundColor: isDark ? AppColors.encreElevated : AppColors.primary,
+
+              // Register match with chat service
+              ref.read(chatServiceProvider).addMatch(
+                    name: matchedProfile.name,
+                    avatar: matchedProfile.photoUrls.first,
+                    matchId: matchedProfile.id,
+                    isVerified: matchedProfile.isVerified,
+                  );
+              ref.invalidate(conversationsProvider);
+
+              // Navigate directly to Chat
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatScreen(
+                    conversationId: 'conv_${matchedProfile.id}',
+                    participantName: matchedProfile.name,
+                    participantAvatar: matchedProfile.photoUrls.first,
+                    isVerified: matchedProfile.isVerified,
+                    sharedInterests:
+                        matchedProfile.interests.take(3).toList(),
+                  ),
                 ),
               );
             },
@@ -46,6 +70,7 @@ class DiscoverScreen extends ConsumerWidget {
     });
 
     final accent = AppColors.adaptiveAccent(isDark);
+    final userInterests = ref.watch(onboardingProvider).profile.interests;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
@@ -59,41 +84,47 @@ class DiscoverScreen extends ConsumerWidget {
               showContainer: false,
             ),
             const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: state.isIncognitoEnabled
-                    ? AppColors.adaptiveHighlightBg(isDark)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
-                border: state.isIncognitoEnabled
-                    ? Border.all(color: accent, width: 1)
-                    : null,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    state.isIncognitoEnabled
-                        ? Icons.shield_rounded
-                        : Icons.location_on_outlined,
+            GestureDetector(
+              onTap: () => IncognitoPrivacyShieldSheet.show(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: state.isIncognitoEnabled
+                      ? AppColors.adaptiveHighlightBg(isDark)
+                      : (isDark ? AppColors.surfaceDark : AppColors.surface),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
                     color: state.isIncognitoEnabled
                         ? accent
-                        : AppColors.textTertiary,
-                    size: 14,
+                        : (isDark ? AppColors.borderDark : AppColors.border),
+                    width: 1,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    state.isIncognitoEnabled ? 'Incognito' : 'Nearby (10km)',
-                    style: TextStyle(
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      state.isIncognitoEnabled
+                          ? Icons.shield_rounded
+                          : Icons.location_on_outlined,
                       color: state.isIncognitoEnabled
                           ? accent
                           : AppColors.textTertiary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      size: 14,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Text(
+                      state.isIncognitoEnabled ? 'Incognito' : 'Nearby (10km)',
+                      style: TextStyle(
+                        color: state.isIncognitoEnabled
+                            ? accent
+                            : AppColors.textTertiary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -110,34 +141,26 @@ class DiscoverScreen extends ConsumerWidget {
                   ? accent
                   : (isDark ? AppColors.textSecondaryDark : AppColors.textPrimary),
             ),
-            onPressed: () {
-              final newMode = !state.isIncognitoEnabled;
-              notifier.toggleIncognito(newMode);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    newMode
-                        ? '🛡️ Incognito Shield Enabled: Your profile is hidden from the public deck.'
-                        : '🌐 Incognito Disabled: Your profile is visible to compatible matches.',
-                  ),
-                  backgroundColor: isDark ? AppColors.encreElevated : AppColors.primary,
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            },
+            onPressed: () => IncognitoPrivacyShieldSheet.show(context),
           ),
           IconButton(
+            tooltip: 'Matching Preferences',
             icon: Icon(
               Icons.tune_rounded,
               color: isDark ? AppColors.textSecondaryDark : AppColors.textPrimary,
             ),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Preferences: Age 20-32 • Max Distance 25km'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
+              Navigator.of(context).pushNamed(AppRoutes.matchingPreferences);
+            },
+          ),
+          IconButton(
+            tooltip: 'My Profile',
+            icon: Icon(
+              Icons.person_outline_rounded,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textPrimary,
+            ),
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRoutes.profile);
             },
           ),
         ],
@@ -165,6 +188,7 @@ class DiscoverScreen extends ConsumerWidget {
                                     child: SwipeableCard(
                                       key: ValueKey(state.deck[1].id),
                                       profile: state.deck[1],
+                                      userInterests: userInterests,
                                       onSwiped: (_) {},
                                       onTapInfo: () {},
                                     ),
@@ -177,6 +201,10 @@ class DiscoverScreen extends ConsumerWidget {
                               child: SwipeableCard(
                                 key: ValueKey(state.deck.first.id),
                                 profile: state.deck.first,
+                                userInterests: userInterests,
+                                nextProfile: state.deck.length > 1
+                                    ? state.deck[1]
+                                    : null,
                                 onSwiped: (dir) => notifier.swipe(dir),
                                 onTapInfo: () => _openProfileSheet(
                                   context,

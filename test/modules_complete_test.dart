@@ -188,6 +188,25 @@ void main() {
       );
       expect(success, isTrue);
     });
+
+    test('Date Planner generates plan with itinerary snippet ready for Chat', () async {
+      final plan = await service.generateDatePlan(
+        budget: 1500,
+        neighborhood: 'Bandra West, Mumbai',
+        vibe: 'Romantic',
+        dietary: 'Any',
+      );
+
+      final snippet = {
+        'title': plan.title,
+        'summary': plan.stops.map((s) => s.venueName).join(' ➔ '),
+        'budget': plan.totalEstimatedCost.toInt().toString(),
+      };
+
+      expect(snippet['title'], isNotEmpty);
+      expect(snippet['summary'], contains('➔'));
+      expect(int.parse(snippet['budget']!), lessThanOrEqualTo(1500));
+    });
   });
 
   group('Module 6: Micro-Subscriptions & Payments Ledger', () {

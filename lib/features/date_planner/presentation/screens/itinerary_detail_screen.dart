@@ -8,8 +8,15 @@ import 'voucher_screen.dart';
 
 class ItineraryDetailScreen extends ConsumerWidget {
   final DatePlan plan;
+  final String? targetConversationId;
+  final String? matchName;
 
-  const ItineraryDetailScreen({super.key, required this.plan});
+  const ItineraryDetailScreen({
+    super.key,
+    required this.plan,
+    this.targetConversationId,
+    this.matchName,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -215,7 +222,12 @@ class ItineraryDetailScreen extends ConsumerWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               icon: const Icon(Icons.send_rounded),
-              label: const Text('Share Itinerary to Match Chat', style: TextStyle(fontWeight: FontWeight.bold)),
+              label: Text(
+                targetConversationId != null && matchName != null
+                    ? 'Send Date Plan to $matchName'
+                    : 'Share Itinerary to Match Chat',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               onPressed: () => _shareToMatchChat(context, ref),
             ),
 
@@ -363,6 +375,27 @@ class ItineraryDetailScreen extends ConsumerWidget {
 
   void _shareToMatchChat(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (targetConversationId != null) {
+      ref.read(conversationMessagesProvider(targetConversationId!).notifier).sendMessage(
+        'Hey ${matchName ?? ''}, I generated this date plan for us on Date²! 🍷✨',
+        itinerarySnippet: {
+          'title': plan.title,
+          'summary': plan.stops.map((s) => s.venueName).join(' ➔ '),
+          'budget': plan.totalEstimatedCost.toInt().toString(),
+        },
+      );
+      Navigator.pop(context); // pop detail screen
+      Navigator.pop(context); // pop planner screen back to chat
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('🎉 Date plan shared in chat with ${matchName ?? 'match'}!'),
+          backgroundColor: isDark ? AppColors.encreElevated : AppColors.primary,
+        ),
+      );
+      return;
+    }
+
     final sheetBg = isDark ? AppColors.surfaceDark : AppColors.surface;
     final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
     final mutedColor =

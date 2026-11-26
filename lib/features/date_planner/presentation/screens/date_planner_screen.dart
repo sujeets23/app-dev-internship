@@ -6,7 +6,14 @@ import '../providers/date_planner_provider.dart';
 import 'itinerary_detail_screen.dart';
 
 class DatePlannerScreen extends ConsumerStatefulWidget {
-  const DatePlannerScreen({super.key});
+  final String? targetConversationId;
+  final String? matchName;
+
+  const DatePlannerScreen({
+    super.key,
+    this.targetConversationId,
+    this.matchName,
+  });
 
   @override
   ConsumerState<DatePlannerScreen> createState() => _DatePlannerScreenState();
@@ -58,8 +65,14 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
       appBar: AppBar(
         backgroundColor: bgColor,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: textColor),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
-          'AI Date Planner',
+          widget.matchName != null
+              ? 'Date Planner • ${widget.matchName}'
+              : 'AI Date Planner',
           style: AppTypography.headlineMedium.copyWith(
             color: textColor,
             fontWeight: FontWeight.w700,
@@ -310,7 +323,11 @@ class _DatePlannerScreenState extends ConsumerState<DatePlannerScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => ItineraryDetailScreen(plan: plan),
+                              builder: (_) => ItineraryDetailScreen(
+                                plan: plan,
+                                targetConversationId: widget.targetConversationId,
+                                matchName: widget.matchName,
+                              ),
                             ),
                           );
                         }

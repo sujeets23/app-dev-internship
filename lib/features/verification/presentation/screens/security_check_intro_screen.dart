@@ -46,6 +46,21 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
           ),
         ),
         actions: [
+          TextButton(
+            onPressed: () async {
+              await ref.read(authProvider.notifier).skipVerificationForDev();
+              if (!context.mounted) return;
+              Navigator.of(context).pushReplacementNamed(AppRoutes.personalInfo);
+            },
+            child: Text(
+              'Skip',
+              style: TextStyle(
+                color: AppColors.adaptiveAccent(isDark),
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
           if (!Navigator.canPop(context))
             TextButton(
               onPressed: () async {
@@ -316,6 +331,36 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
                     );
                   }
                 },
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                  side: BorderSide(
+                    color: AppColors.adaptiveAccent(isDark),
+                    width: 1.5,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: () async {
+                  await ref.read(authProvider.notifier).skipVerificationForDev();
+                  if (!context.mounted) return;
+                  Navigator.of(context).pushReplacementNamed(AppRoutes.personalInfo);
+                },
+                icon: Icon(
+                  Icons.skip_next_rounded,
+                  color: AppColors.adaptiveAccent(isDark),
+                ),
+                label: Text(
+                  'Skip Verification for Now',
+                  style: TextStyle(
+                    color: AppColors.adaptiveAccent(isDark),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
             ],

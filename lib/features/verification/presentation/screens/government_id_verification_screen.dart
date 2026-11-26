@@ -169,6 +169,21 @@ class _GovernmentIdVerificationScreenState
           ),
         ),
         actions: [
+          TextButton(
+            onPressed: () async {
+              await ref.read(authProvider.notifier).skipVerificationForDev();
+              if (!context.mounted) return;
+              Navigator.of(context).pushReplacementNamed(AppRoutes.personalInfo);
+            },
+            child: Text(
+              'Skip',
+              style: TextStyle(
+                color: AppColors.adaptiveAccent(isDark),
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
           if (!Navigator.canPop(context))
             TextButton(
               onPressed: () async {

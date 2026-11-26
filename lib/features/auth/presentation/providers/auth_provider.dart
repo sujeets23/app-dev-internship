@@ -379,6 +379,57 @@ class AuthNotifier extends Notifier<AuthUserState> {
     _persistDevMockState();
   }
 
+  /// Skip verification for development / demo mode, marking email, face, and doc as verified
+  Future<void> skipVerificationForDev() async {
+    state = state.copyWith(
+      isAuthenticated: true,
+      isEmailVerified: true,
+      isFaceVerified: true,
+      isDocVerified: true,
+      faceVerificationStatus: FaceVerificationStatus.verified,
+      docVerificationStatus: GovIdStatus.verified,
+      faceProofId: 'mock_face_proof_dev_skip',
+      docProofId: 'mock_doc_proof_dev_skip',
+      clearError: true,
+    );
+    if (state.email != null) {
+      _repo.updateAccountVerificationFlags(
+        email: state.email!,
+        isFaceVerified: true,
+        isDocVerified: true,
+        faceProofId: state.faceProofId,
+        docProofId: state.docProofId,
+      );
+    }
+    await _persistDevMockState();
+  }
+
+  /// Skip both verification and onboarding directly to home for rapid dev testing
+  Future<void> skipAllToHomeForDev() async {
+    state = state.copyWith(
+      isAuthenticated: true,
+      isEmailVerified: true,
+      isFaceVerified: true,
+      isDocVerified: true,
+      isPersonalInfoCompleted: true,
+      faceVerificationStatus: FaceVerificationStatus.verified,
+      docVerificationStatus: GovIdStatus.verified,
+      faceProofId: 'mock_face_proof_dev_skip',
+      docProofId: 'mock_doc_proof_dev_skip',
+      clearError: true,
+    );
+    if (state.email != null) {
+      _repo.updateAccountVerificationFlags(
+        email: state.email!,
+        isFaceVerified: true,
+        isDocVerified: true,
+        faceProofId: state.faceProofId,
+        docProofId: state.docProofId,
+      );
+    }
+    await _persistDevMockState();
+  }
+
   /// Strict navigation guard evaluation enforcing sequential Module 1 pipeline
   bool canAccessStep(AuthFlowStep step) {
     switch (step) {

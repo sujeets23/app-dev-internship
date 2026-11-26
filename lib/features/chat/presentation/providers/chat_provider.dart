@@ -39,18 +39,40 @@ class ConversationNotifier extends AsyncNotifier<List<ChatMessage>> {
     return initial;
   }
 
-  Future<void> sendMessage(String text, {Map<String, dynamic>? itinerarySnippet}) async {
-    if (text.trim().isEmpty && itinerarySnippet == null) return;
+  Future<void> sendMessage(
+    String text, {
+    Map<String, dynamic>? itinerarySnippet,
+    Map<String, dynamic>? gameScorecardSnippet,
+    bool isVanish = false,
+    int? ttlSeconds,
+  }) async {
+    if (text.trim().isEmpty &&
+        itinerarySnippet == null &&
+        gameScorecardSnippet == null) {
+      return;
+    }
     try {
       final sentMsg = await _service.sendMessage(
         conversationId: conversationId,
         text: text,
         itinerarySnippet: itinerarySnippet,
+        gameScorecardSnippet: gameScorecardSnippet,
+        isVanish: isVanish,
+        ttlSeconds: ttlSeconds,
       );
 
       final current = state.value ?? [];
       if (!current.any((m) => m.id == sentMsg.id)) {
         state = AsyncValue.data([...current, sentMsg]);
+      }
+
+      if (isVanish) {
+        final duration = Duration(seconds: ttlSeconds ?? 10);
+        Timer(duration, () {
+          final msgs = state.value ?? [];
+          state =
+              AsyncValue.data(msgs.where((m) => m.id != sentMsg.id).toList());
+        });
       }
     } catch (_) {}
   }

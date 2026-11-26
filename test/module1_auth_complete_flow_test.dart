@@ -320,6 +320,34 @@ void main() {
       container2.dispose();
     });
 
+    test('skipVerificationForDev immediately grants fully verified status for onboarding', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [optionalSharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      final notifier = container.read(authProvider.notifier);
+      await notifier.signUp(
+        username: 'dev_skipper',
+        email: 'skipper@date2.app',
+        password: 'Date2Password!2026',
+      );
+
+      expect(container.read(authProvider).isFullyVerified, isFalse);
+      await notifier.skipVerificationForDev();
+
+      final state = container.read(authProvider);
+      expect(state.isFullyVerified, isTrue);
+      expect(state.isEmailVerified, isTrue);
+      expect(state.isFaceVerified, isTrue);
+      expect(state.isDocVerified, isTrue);
+      expect(notifier.canAccessStep(AuthFlowStep.personalInfo), isTrue);
+
+      await notifier.skipAllToHomeForDev();
+      expect(notifier.canAccessStep(AuthFlowStep.completed), isTrue);
+      container.dispose();
+    });
+
     testWidgets('Strict VerificationRouteGuard blocks unverified access to Personal Info and Home',
         (tester) async {
       SharedPreferences.setMockInitialValues({});

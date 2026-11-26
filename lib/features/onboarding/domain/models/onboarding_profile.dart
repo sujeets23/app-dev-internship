@@ -9,10 +9,18 @@ class OnboardingProfile {
   final String? profileImagePath;
   final String? presetAvatarId;
   final String bio;
+  final String? sex; // Male, Female, Trans, Others
+  final bool isSexVisible;
   final GenderIdentity? genderIdentity;
   final Pronouns? pronouns;
   final SexualOrientation? sexualOrientation;
+  final List<String> interests;
+  final List<String> matchSexPreferences; // Male, Female, Trans, Others
+  final int minAgePreference;
+  final int maxAgePreference;
+  final int maxDistanceKm;
   final List<String> connectionPreferences;
+  final bool isIncognitoEnabled;
   final bool isCompleted;
 
   const OnboardingProfile({
@@ -21,10 +29,18 @@ class OnboardingProfile {
     this.profileImagePath,
     this.presetAvatarId,
     this.bio = '',
+    this.sex,
+    this.isSexVisible = true,
     this.genderIdentity,
     this.pronouns,
     this.sexualOrientation,
+    this.interests = const [],
+    this.matchSexPreferences = const [],
+    this.minAgePreference = 18,
+    this.maxAgePreference = 50,
+    this.maxDistanceKm = 30,
     this.connectionPreferences = const [],
+    this.isIncognitoEnabled = false,
     this.isCompleted = false,
   });
 
@@ -58,6 +74,23 @@ class OnboardingProfile {
   String get displayGender => genderIdentity?.displayValue ?? 'Not specified';
   String get displayPronouns => pronouns?.displayValue ?? 'Not specified';
   String get displayOrientation => sexualOrientation?.displayValue ?? 'Not specified';
+  String get displaySex => sex ?? 'Not specified';
+
+  /// Profile completion score between 0.0 and 1.0 (0% to 100%)
+  double get completionPercentage {
+    double score = 0.0;
+    if (firstName.trim().isNotEmpty) score += 0.15;
+    if (dateOfBirth != null) score += 0.15;
+    if (bio.trim().isNotEmpty) score += 0.10;
+    if (sex != null && sex!.isNotEmpty) score += 0.15;
+    if (genderIdentity != null) score += 0.10;
+    if (pronouns != null) score += 0.10;
+    if (sexualOrientation != null) score += 0.10;
+    if (interests.length >= 3) score += 0.15;
+    return score > 1.0 ? 1.0 : score;
+  }
+
+  int get completionPercentInt => (completionPercentage * 100).round();
 
   Map<String, dynamic> toJson() => {
         'firstName': firstName,
@@ -65,10 +98,18 @@ class OnboardingProfile {
         'profileImagePath': profileImagePath,
         'presetAvatarId': presetAvatarId,
         'bio': bio,
+        'sex': sex,
+        'isSexVisible': isSexVisible,
         'genderIdentity': genderIdentity?.toJson(),
         'pronouns': pronouns?.toJson(),
         'sexualOrientation': sexualOrientation?.toJson(),
+        'interests': interests,
+        'matchSexPreferences': matchSexPreferences,
+        'minAgePreference': minAgePreference,
+        'maxAgePreference': maxAgePreference,
+        'maxDistanceKm': maxDistanceKm,
         'connectionPreferences': connectionPreferences,
+        'isIncognitoEnabled': isIncognitoEnabled,
         'isCompleted': isCompleted,
       };
 
@@ -81,6 +122,8 @@ class OnboardingProfile {
       profileImagePath: json['profileImagePath'] as String?,
       presetAvatarId: json['presetAvatarId'] as String?,
       bio: json['bio'] as String? ?? '',
+      sex: json['sex'] as String?,
+      isSexVisible: json['isSexVisible'] as bool? ?? true,
       genderIdentity: json['genderIdentity'] != null
           ? GenderIdentity.fromJson(
               Map<String, dynamic>.from(json['genderIdentity'] as Map))
@@ -92,10 +135,22 @@ class OnboardingProfile {
           ? SexualOrientation.fromJson(
               Map<String, dynamic>.from(json['sexualOrientation'] as Map))
           : null,
+      interests: (json['interests'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+      matchSexPreferences: (json['matchSexPreferences'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+      minAgePreference: json['minAgePreference'] as int? ?? 18,
+      maxAgePreference: json['maxAgePreference'] as int? ?? 50,
+      maxDistanceKm: json['maxDistanceKm'] as int? ?? 30,
       connectionPreferences: (json['connectionPreferences'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
+      isIncognitoEnabled: json['isIncognitoEnabled'] as bool? ?? false,
       isCompleted: json['isCompleted'] as bool? ?? false,
     );
   }
@@ -106,10 +161,18 @@ class OnboardingProfile {
     String? profileImagePath,
     String? presetAvatarId,
     String? bio,
+    String? sex,
+    bool? isSexVisible,
     GenderIdentity? genderIdentity,
     Pronouns? pronouns,
     SexualOrientation? sexualOrientation,
+    List<String>? interests,
+    List<String>? matchSexPreferences,
+    int? minAgePreference,
+    int? maxAgePreference,
+    int? maxDistanceKm,
     List<String>? connectionPreferences,
+    bool? isIncognitoEnabled,
     bool? isCompleted,
     bool clearProfileImagePath = false,
     bool clearPresetAvatarId = false,
@@ -124,11 +187,19 @@ class OnboardingProfile {
           ? null
           : (presetAvatarId ?? this.presetAvatarId),
       bio: bio ?? this.bio,
+      sex: sex ?? this.sex,
+      isSexVisible: isSexVisible ?? this.isSexVisible,
       genderIdentity: genderIdentity ?? this.genderIdentity,
       pronouns: pronouns ?? this.pronouns,
       sexualOrientation: sexualOrientation ?? this.sexualOrientation,
+      interests: interests ?? this.interests,
+      matchSexPreferences: matchSexPreferences ?? this.matchSexPreferences,
+      minAgePreference: minAgePreference ?? this.minAgePreference,
+      maxAgePreference: maxAgePreference ?? this.maxAgePreference,
+      maxDistanceKm: maxDistanceKm ?? this.maxDistanceKm,
       connectionPreferences:
           connectionPreferences ?? this.connectionPreferences,
+      isIncognitoEnabled: isIncognitoEnabled ?? this.isIncognitoEnabled,
       isCompleted: isCompleted ?? this.isCompleted,
     );
   }
