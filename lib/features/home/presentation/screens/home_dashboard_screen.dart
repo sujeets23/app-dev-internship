@@ -15,6 +15,7 @@ import 'package:inclusive_dating/features/settings/presentation/screens/notifica
 import 'package:inclusive_dating/features/chat/presentation/screens/chat_screen.dart';
 import 'package:inclusive_dating/features/discovery/domain/models/discovery_profile.dart';
 import 'package:inclusive_dating/features/discovery/presentation/providers/discovery_provider.dart';
+import 'package:inclusive_dating/features/discovery/presentation/widgets/active_friends_rail.dart';
 
 class HomeDashboardScreen extends ConsumerWidget {
   final Function(int) onTabSelected;
@@ -57,6 +58,11 @@ class HomeDashboardScreen extends ConsumerWidget {
 
                 // Welcome Greeting Section
                 _buildWelcomeGreetingSection(context),
+
+                const SizedBox(height: 12),
+
+                // Active Friends & Live Connections Rail
+                const ActiveFriendsRail(),
 
                 const SizedBox(height: 16),
 
