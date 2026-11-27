@@ -6,6 +6,7 @@ import 'package:inclusive_dating/features/companions/domain/models/companion_boo
 import 'package:inclusive_dating/features/companions/presentation/providers/companion_provider.dart';
 import 'package:inclusive_dating/features/date_planner/data/date_planner_service.dart';
 import 'package:inclusive_dating/features/discovery/data/discovery_service.dart';
+import 'package:inclusive_dating/features/discovery/domain/models/active_friend.dart';
 import 'package:inclusive_dating/features/discovery/domain/models/discovery_profile.dart';
 import 'package:inclusive_dating/features/discovery/presentation/providers/discovery_provider.dart';
 import 'package:inclusive_dating/features/games/domain/models/game_models.dart';
@@ -16,8 +17,6 @@ import 'package:inclusive_dating/features/onboarding/domain/models/pronouns.dart
 import 'package:inclusive_dating/features/onboarding/domain/models/sexual_orientation.dart';
 import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:inclusive_dating/features/subscription/data/payment_service.dart';
-import 'package:inclusive_dating/features/subscription/domain/models/subscription_model.dart';
-import 'package:inclusive_dating/features/subscription/presentation/providers/subscription_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -338,6 +337,56 @@ void main() {
       final reloaded = await service2.fetchBillingProfile();
       expect(reloaded.inGracePeriod, isTrue);
       expect(reloaded.transactionHistory.any((t) => t.transactionId == txn.transactionId), isTrue);
+    });
+  });
+
+  group('Module 2: Feature 6 — Friends & Active Connections & Expanded Dummy Profiles', () {
+    test('MockDiscoveryService contains 16 diverse inclusive dummy profiles', () async {
+      final service = MockDiscoveryService();
+      final deck = await service.fetchDeck();
+
+      expect(deck.length, 16);
+      expect(deck.map((p) => p.name).toSet().length, 16);
+
+      // Verify diverse gender identities
+      final genders = deck.map((p) => p.gender).toSet();
+      expect(genders.contains('Non-binary'), isTrue);
+      expect(genders.contains('Man'), isTrue);
+      expect(genders.contains('Woman'), isTrue);
+      expect(genders.contains('Genderfluid'), isTrue);
+      expect(genders.contains('Transgender Man'), isTrue);
+      expect(genders.contains('Genderqueer'), isTrue);
+      expect(genders.contains('Agender'), isTrue);
+
+      // Verify verified badges and photo URLs
+      expect(deck.every((p) => p.photoUrls.isNotEmpty), isTrue);
+      expect(deck.every((p) => p.interests.isNotEmpty), isTrue);
+      expect(deck.where((p) => p.isVerified).length, greaterThanOrEqualTo(14));
+    });
+
+    test('ActiveFriend mock pool exposes online presence and live activities', () {
+      const friends = ActiveFriend.mockFriends;
+
+      expect(friends.length, greaterThanOrEqualTo(9));
+
+      // Test online status filtering
+      final onlineFriends = friends.where((f) => f.isOnline).toList();
+      final offlineFriends = friends.where((f) => !f.isOnline).toList();
+
+      expect(onlineFriends.isNotEmpty, isTrue);
+      expect(offlineFriends.isNotEmpty, isTrue);
+
+      // Check friend attributes
+      final aarya = friends.firstWhere((f) => f.name == 'Aarya');
+      expect(aarya.isOnline, isTrue);
+      expect(aarya.activityStatus, contains('Coffee'));
+      expect(aarya.sharedInterests, isNotEmpty);
+      expect(aarya.conversationId, isNotEmpty);
+      expect(aarya.compatibilityPct, 94);
+
+      final samira = friends.firstWhere((f) => f.name == 'Samira');
+      expect(samira.isOnline, isFalse);
+      expect(samira.activityStatus, contains('Yoga'));
     });
   });
 }

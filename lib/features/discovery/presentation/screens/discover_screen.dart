@@ -11,6 +11,7 @@ import 'package:inclusive_dating/features/onboarding/presentation/providers/onbo
 import 'package:inclusive_dating/features/subscription/presentation/screens/subscription_pricing_screen.dart';
 import '../../domain/models/discovery_profile.dart';
 import '../providers/discovery_provider.dart';
+import '../widgets/active_friends_rail.dart';
 import '../widgets/incognito_privacy_shield_dialog.dart';
 import '../widgets/match_celebration_dialog.dart';
 import '../widgets/profile_detail_sheet.dart';
@@ -173,63 +174,67 @@ class DiscoverScreen extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
-        child: state.isLoading
-            ? Center(
-                child: CircularProgressIndicator(color: accent),
-              )
-            : state.deck.isEmpty
-                ? _buildEmptyState(context, notifier, isDark)
-                : Column(
-                    children: [
-                      // Quick Access Modules Rail (Companions, AI Date Planner, Subscriptions)
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                        child: Row(
-                          children: [
-                            _buildQuickModuleChip(
-                              context,
-                              icon: Icons.diversity_1_rounded,
-                              label: 'Companions (Escrow)',
-                              isDark: isDark,
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const CompanionMarketplaceScreen(),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            _buildQuickModuleChip(
-                              context,
-                              icon: Icons.auto_awesome_rounded,
-                              label: 'AI Date Planner',
-                              isDark: isDark,
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const DatePlannerScreen(),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            _buildQuickModuleChip(
-                              context,
-                              icon: Icons.workspace_premium_outlined,
-                              label: 'Plans & Boosts',
-                              isDark: isDark,
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const SubscriptionPricingScreen(),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+        child: Column(
+          children: [
+            // Friends & Active Connections Rail
+            const ActiveFriendsRail(),
+
+            // Quick Access Modules Rail (Companions, AI Date Planner, Subscriptions)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: Row(
+                children: [
+                  _buildQuickModuleChip(
+                    context,
+                    icon: Icons.diversity_1_rounded,
+                    label: 'Companions (Escrow)',
+                    isDark: isDark,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const CompanionMarketplaceScreen(),
                       ),
-                      // Active Card Viewport
-                      Expanded(
-                        child: Stack(
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildQuickModuleChip(
+                    context,
+                    icon: Icons.auto_awesome_rounded,
+                    label: 'AI Date Planner',
+                    isDark: isDark,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const DatePlannerScreen(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildQuickModuleChip(
+                    context,
+                    icon: Icons.workspace_premium_outlined,
+                    label: 'Plans & Boosts',
+                    isDark: isDark,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const SubscriptionPricingScreen(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Active Card Viewport / Loading / Empty
+            Expanded(
+              child: state.isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(color: accent),
+                    )
+                  : state.deck.isEmpty
+                      ? _buildEmptyState(context, notifier, isDark)
+                      : Stack(
                           children: [
                             // Next Card in Deck preview
                             if (state.deck.length > 1)
@@ -268,63 +273,64 @@ class DiscoverScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
-                      ),
+            ),
 
-                      // Swipe Action Controls
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 14,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            // Undo
-                            _buildActionButton(
-                              context: context,
-                              icon: Icons.undo_rounded,
-                              iconColor: AppColors.warning,
-                              size: 46,
-                              onTap: state.history.isNotEmpty
-                                  ? () => notifier.undoSwipe()
-                                  : null,
-                            ),
+            if (!state.isLoading && state.deck.isNotEmpty)
+              // Swipe Action Controls
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 14,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Undo
+                    _buildActionButton(
+                      context: context,
+                      icon: Icons.undo_rounded,
+                      iconColor: AppColors.warning,
+                      size: 46,
+                      onTap: state.history.isNotEmpty
+                          ? () => notifier.undoSwipe()
+                          : null,
+                    ),
 
-                            // Pass
-                            _buildActionButton(
-                              context: context,
-                              icon: Icons.close_rounded,
-                              iconColor: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondary,
-                              size: 58,
-                              onTap: () => notifier.swipe(SwipeDirection.left),
-                            ),
+                    // Pass
+                    _buildActionButton(
+                      context: context,
+                      icon: Icons.close_rounded,
+                      iconColor: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
+                      size: 58,
+                      onTap: () => notifier.swipe(SwipeDirection.left),
+                    ),
 
-                            // Superlike
-                            _buildActionButton(
-                              context: context,
-                              icon: Icons.star_rounded,
-                              iconColor: isDark
-                                  ? AppColors.accentTeal
-                                  : AppColors.glacierInk,
-                              size: 48,
-                              onTap: () => notifier.swipe(SwipeDirection.up),
-                            ),
+                    // Superlike
+                    _buildActionButton(
+                      context: context,
+                      icon: Icons.star_rounded,
+                      iconColor: isDark
+                          ? AppColors.accentTeal
+                          : AppColors.glacierInk,
+                      size: 48,
+                      onTap: () => notifier.swipe(SwipeDirection.up),
+                    ),
 
-                            // Like
-                            _buildActionButton(
-                              context: context,
-                              icon: Icons.favorite_rounded,
-                              iconColor: AppColors.adaptiveAccent(isDark),
-                              size: 58,
-                              onTap: () => notifier.swipe(SwipeDirection.right),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                    // Like
+                    _buildActionButton(
+                      context: context,
+                      icon: Icons.favorite_rounded,
+                      iconColor: AppColors.adaptiveAccent(isDark),
+                      size: 58,
+                      onTap: () => notifier.swipe(SwipeDirection.right),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
