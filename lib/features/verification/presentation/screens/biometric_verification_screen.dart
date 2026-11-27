@@ -17,6 +17,7 @@ import '../../domain/liveness_state_machine.dart';
 import '../../domain/models/biometric_verification_model.dart';
 import '../providers/biometric_verification_provider.dart';
 import 'companion_kyc_screen.dart';
+import 'government_id_verification_screen.dart';
 import 'security_check_intro_screen.dart';
 import 'verification_result_screen.dart';
 
@@ -485,6 +486,28 @@ class _BiometricVerificationScreenState
             ),
           ),
           actions: [
+            TextButton(
+              onPressed: () async {
+                await _teardownCameraResources();
+                ref
+                    .read(authProvider.notifier)
+                    .setFaceVerified('demo-face-proof-skipped');
+                if (!context.mounted) return;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const GovernmentIdVerificationScreen()),
+                );
+              },
+              child: const Text(
+                'Skip for now',
+                style: TextStyle(
+                  color: AppColors.accentTeal,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
             if (!widget.isCompanionFlow)
               TextButton(
                 onPressed: () async {

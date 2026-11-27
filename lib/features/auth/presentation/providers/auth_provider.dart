@@ -347,6 +347,20 @@ class AuthNotifier extends Notifier<AuthUserState> {
     _persistDevMockState();
   }
 
+  /// Fast-forward verification in demo mode
+  void skipVerificationForDemo() {
+    state = state.copyWith(
+      isFaceVerified: true,
+      faceVerificationStatus: FaceVerificationStatus.verified,
+      faceProofId: 'demo-face-proof-skipped',
+      isDocVerified: true,
+      docVerificationStatus: GovIdStatus.verified,
+      selectedDocType: 'Aadhaar Card (Demo Mode)',
+      docProofId: 'demo-doc-proof-skipped',
+    );
+    _persistDevMockState();
+  }
+
   /// Mark government ID verification as completed
   void setDocVerified({
     required String country,

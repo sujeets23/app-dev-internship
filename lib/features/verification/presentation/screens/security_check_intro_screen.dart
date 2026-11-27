@@ -8,6 +8,8 @@ import 'package:inclusive_dating/core/widgets/primary_button.dart';
 import 'package:inclusive_dating/features/auth/domain/models/auth_state.dart';
 import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
 import 'package:inclusive_dating/features/auth/presentation/screens/login_screen.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/screens/onboarding_flow_screen.dart';
 import 'biometric_verification_screen.dart';
 import 'government_id_verification_screen.dart';
 
@@ -46,6 +48,26 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
           ),
         ),
         actions: [
+          TextButton(
+            onPressed: () {
+              ref.read(authProvider.notifier).skipVerificationForDemo();
+              if (ref.read(onboardingProvider).currentStep == 0) {
+                ref.read(onboardingProvider.notifier).startOnboarding();
+              }
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const OnboardingFlowScreen()),
+                (route) => false,
+              );
+            },
+            child: const Text(
+              'Skip for now',
+              style: TextStyle(
+                color: AppColors.accentTeal,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
           if (!Navigator.canPop(context))
             TextButton(
               onPressed: () async {
@@ -316,6 +338,32 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
                     );
                   }
                 },
+              ),
+              const SizedBox(height: 12),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () {
+                    ref.read(authProvider.notifier).skipVerificationForDemo();
+                    if (ref.read(onboardingProvider).currentStep == 0) {
+                      ref.read(onboardingProvider.notifier).startOnboarding();
+                    }
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (_) => const OnboardingFlowScreen()),
+                      (route) => false,
+                    );
+                  },
+                  icon: const Icon(Icons.fast_forward_rounded,
+                      size: 18, color: AppColors.accentTeal),
+                  label: const Text(
+                    'Skip Verification (Demo Mode)',
+                    style: TextStyle(
+                      color: AppColors.accentTeal,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
             ],

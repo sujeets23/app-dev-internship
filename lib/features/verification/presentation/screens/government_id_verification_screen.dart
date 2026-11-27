@@ -190,6 +190,26 @@ class _GovernmentIdVerificationScreenState
           ),
         ),
         actions: [
+          TextButton(
+            onPressed: () {
+              ref.read(authProvider.notifier).skipVerificationForDemo();
+              if (ref.read(onboardingProvider).currentStep == 0) {
+                ref.read(onboardingProvider.notifier).startOnboarding();
+              }
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const OnboardingFlowScreen()),
+                (route) => false,
+              );
+            },
+            child: const Text(
+              'Skip for now',
+              style: TextStyle(
+                color: AppColors.accentTeal,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
           if (!Navigator.canPop(context))
             TextButton(
               onPressed: () async {
