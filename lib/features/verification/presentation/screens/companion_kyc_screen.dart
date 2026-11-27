@@ -36,6 +36,7 @@ class _CompanionKycScreenState extends ConsumerState<CompanionKycScreen> {
   String? _biometricProofId;
   bool _policeClearanceChecked = false;
   bool _isSubmitting = false;
+  bool _docNumberTouched = false;
   String? _kycReferenceId;
   String? _kycStatusMessage;
   CompanionKycStatus _resultStatus = CompanionKycStatus.notStarted;
@@ -81,6 +82,24 @@ class _CompanionKycScreenState extends ConsumerState<CompanionKycScreen> {
   }
 
   Future<void> _submitKyc() async {
+    final docError = GovernmentIdValidator.validate(
+      _selectedIdType,
+      _docNumberController.text,
+    );
+    if (docError != null) {
+      setState(() {
+        _docNumberTouched = true;
+        _currentStep = 1;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(docError),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     if (!_policeClearanceChecked) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -468,10 +487,28 @@ class _CompanionKycScreenState extends ConsumerState<CompanionKycScreen> {
 
         TextField(
           controller: _docNumberController,
-          decoration: const InputDecoration(
-            labelText: 'Document Reference Number',
-            hintText: 'Enter ID reference (or APPROVE / REJECT for demo)',
-            prefixIcon: Icon(Icons.pin_outlined),
+          textCapitalization: TextCapitalization.characters,
+          onChanged: (_) => setState(() => _docNumberTouched = true),
+          decoration: InputDecoration(
+            labelText: '$_selectedIdType Number (Mandatory Proof) *',
+            hintText: GovernmentIdValidator.hintForDocumentType(_selectedIdType),
+            helperText: 'Mandatory proof • Demo: APPROVE / REJECT',
+            helperMaxLines: 2,
+            errorText: _docNumberTouched
+                ? GovernmentIdValidator.validate(
+                    _selectedIdType,
+                    _docNumberController.text,
+                  )
+                : null,
+            errorMaxLines: 2,
+            prefixIcon: const Icon(Icons.pin_outlined),
+            suffixIcon: GovernmentIdValidator.validate(
+                      _selectedIdType,
+                      _docNumberController.text,
+                    ) ==
+                    null
+                ? const Icon(Icons.check_circle_rounded, color: AppColors.success)
+                : null,
           ),
         ),
         const SizedBox(height: 16),
@@ -526,7 +563,19 @@ class _CompanionKycScreenState extends ConsumerState<CompanionKycScreen> {
         PrimaryButton(
           label: 'Proceed to Biometric Selfie',
           icon: Icons.arrow_forward_rounded,
-          onPressed: hasDocs ? () => setState(() => _currentStep = 2) : null,
+          onPressed: hasDocs
+              ? () {
+                  setState(() => _docNumberTouched = true);
+                  if (GovernmentIdValidator.validate(
+                        _selectedIdType,
+                        _docNumberController.text,
+                      ) !=
+                      null) {
+                    return;
+                  }
+                  setState(() => _currentStep = 2);
+                }
+              : null,
         ),
         if (!hasDocs) ...[
           const SizedBox(height: 8),
@@ -691,6 +740,11 @@ class _CompanionKycScreenState extends ConsumerState<CompanionKycScreen> {
               ),
               const Divider(height: 20),
               _buildReviewRow('Document Type', _selectedIdType),
+              const Divider(height: 20),
+              _buildReviewRow(
+                'ID Proof Number',
+                _docNumberController.text.trim(),
+              ),
               const Divider(height: 20),
               _buildReviewRow(
                 'ID Front/Back',

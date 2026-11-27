@@ -47,7 +47,10 @@ class CompanionFilterNotifier extends Notifier<CompanionFilterState> {
   void setFilter(CompanionFilterState filter) => state = filter;
   void updateCategory(String category) => state = state.copyWith(category: category);
   void updateMaxRate(double rate) => state = state.copyWith(maxRate: rate);
+  void updateLanguage(String language) => state = state.copyWith(language: language);
+  void updateMinRating(double minRating) => state = state.copyWith(minRating: minRating);
   void updateSearch(String query) => state = state.copyWith(searchQuery: query);
+  void resetFilters() => state = const CompanionFilterState();
 }
 
 final companionFilterProvider =
@@ -90,7 +93,7 @@ class ActiveBookingNotifier extends Notifier<CompanionBooking?> {
   }
 
   void setBooking(CompanionBooking booking) {
-    state = booking;
+    state = booking.copyWith(lastTelemetryAt: DateTime.now());
     _startGpsHeartbeat();
   }
 
@@ -98,17 +101,22 @@ class ActiveBookingNotifier extends Notifier<CompanionBooking?> {
     _gpsTimer?.cancel();
     if (state != null && state!.isGpsTrackingActive) {
       _gpsTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-        if (state != null && state!.bookingState == BookingState.inProgress) {
-          // Live background GPS location updates at fixed intervals
-        }
+        simulateTelemetryPulse();
       });
+    }
+  }
+
+  void simulateTelemetryPulse() {
+    if (state != null && state!.bookingState == BookingState.inProgress) {
+      state = state!.copyWith(lastTelemetryAt: DateTime.now());
     }
   }
 
   Future<void> checkIn(String otp) async {
     if (state == null) return;
     final updated = await _service.checkInWithOtp(bookingId: state!.id, otp: otp);
-    state = updated;
+    state = updated.copyWith(lastTelemetryAt: DateTime.now());
+    _startGpsHeartbeat();
   }
 
   Future<void> triggerSos() async {

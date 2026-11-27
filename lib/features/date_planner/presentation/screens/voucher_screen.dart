@@ -221,13 +221,18 @@ class VoucherScreen extends ConsumerWidget {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
                 icon: const Icon(Icons.qr_code_scanner),
-                label: const Text('Redeem at Venue Cashier (POST /v1/venues/vouchers/redeem)'),
+                label: Text(
+                  'Redeem 10% Partner Voucher (Save ₹${(activePlan.totalEstimatedCost * 0.10).round()} • Demo)',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
                 onPressed: () async {
                   final ok = await ref.read(datePlanStateProvider.notifier).redeemVoucher();
                   if (ok && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('🎉 10% discount verified & redeemed successfully!'),
+                        content: Text(
+                          'Demo 10% partner discount (₹${(activePlan.totalEstimatedCost * 0.10).round()} savings) marked redeemed!',
+                        ),
                         backgroundColor: isDark ? AppColors.encreElevated : AppColors.primary,
                       ),
                     );

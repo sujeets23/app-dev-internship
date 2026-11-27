@@ -4,6 +4,7 @@ import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import '../../domain/models/companion_model.dart';
 import '../providers/companion_provider.dart';
+import '../widgets/safety_hud_widget.dart';
 import 'companion_detail_screen.dart';
 import 'package:inclusive_dating/features/verification/presentation/screens/companion_kyc_screen.dart';
 
@@ -83,6 +84,7 @@ class _CompanionMarketplaceScreenState
       ),
       body: Column(
         children: [
+          const SafetyHudWidget(),
           // Search Bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -187,7 +189,7 @@ class _CompanionMarketplaceScreenState
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Background-checked companions. Funds held safely in escrow until completion.',
+                        'Background-checked companions (Demo Marketplace). Simulated escrow until backend/payment APIs connect.',
                         style: TextStyle(color: mutedTextColor, fontSize: 11),
                       ),
                     ],
@@ -410,11 +412,15 @@ class _CompanionMarketplaceScreenState
   void _showFilterBottomSheet(BuildContext context) {
     final filter = ref.read(companionFilterProvider);
     double selectedRate = filter.maxRate;
+    String selectedLanguage = filter.language;
+    double selectedRating = filter.minRating;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = AppColors.adaptiveAccent(isDark);
+    final languages = ['All', 'English', 'Hindi', 'Bengali', 'Konkani', 'Punjabi'];
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -422,53 +428,130 @@ class _CompanionMarketplaceScreenState
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            return Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Filter Companions',
-                    style: AppTypography.headlineMedium.copyWith(
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Filter Companions',
+                          style: AppTypography.headlineMedium.copyWith(
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimary,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            ref
+                                .read(companionFilterProvider.notifier)
+                                .resetFilters();
+                            Navigator.pop(ctx);
+                          },
+                          child: const Text('Reset'),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Max Hourly Rate: ₹${selectedRate.toInt()}',
-                    style: TextStyle(
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textPrimary,
-                    ),
-                  ),
-                  Slider(
-                    value: selectedRate,
-                    min: 500,
-                    max: 3000,
-                    divisions: 25,
-                    activeColor: accent,
-                    inactiveColor: AppColors.adaptiveBorder(isDark),
-                    onChanged: (val) {
-                      setSheetState(() => selectedRate = val);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: accent,
-                      foregroundColor: AppColors.adaptiveOnAccent(isDark),
-                      minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Max Hourly Rate: ₹${selectedRate.toInt()}',
+                      style: TextStyle(
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    onPressed: () {
-                      ref.read(companionFilterProvider.notifier).updateMaxRate(selectedRate);
-                      Navigator.pop(ctx);
-                    },
-                    child: const Text('Apply Filters', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ],
+                    Slider(
+                      value: selectedRate,
+                      min: 500,
+                      max: 3000,
+                      divisions: 25,
+                      activeColor: accent,
+                      inactiveColor: AppColors.adaptiveBorder(isDark),
+                      onChanged: (val) {
+                        setSheetState(() => selectedRate = val);
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Spoken Language',
+                      style: TextStyle(
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: languages.map((lang) {
+                        final isSel = selectedLanguage == lang;
+                        return ChoiceChip(
+                          label: Text(lang),
+                          selected: isSel,
+                          selectedColor: accent.withValues(alpha: 0.24),
+                          onSelected: (_) =>
+                              setSheetState(() => selectedLanguage = lang),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Minimum Rating',
+                      style: TextStyle(
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [0.0, 4.8, 4.9].map((r) {
+                        final isSel = selectedRating == r;
+                        return ChoiceChip(
+                          label: Text(r == 0.0 ? 'Any' : '$r+ ★'),
+                          selected: isSel,
+                          selectedColor: accent.withValues(alpha: 0.24),
+                          onSelected: (_) =>
+                              setSheetState(() => selectedRating = r),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 18),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accent,
+                        foregroundColor: AppColors.adaptiveOnAccent(isDark),
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        ref
+                            .read(companionFilterProvider.notifier)
+                            .setFilter(filter.copyWith(
+                              maxRate: selectedRate,
+                              language: selectedLanguage,
+                              minRating: selectedRating,
+                            ));
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text('Apply Filters',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
               ),
             );
           },

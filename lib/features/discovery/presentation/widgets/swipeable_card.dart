@@ -447,7 +447,7 @@ class _SwipeableCardState extends State<SwipeableCard>
                           decoration: BoxDecoration(
                             color: AppColors.encreDeep.withValues(alpha: 0.7),
                             border: Border.all(
-                              color: const Color(0xFFFF6B6B),
+                              color: AppColors.error,
                               width: 3.5,
                             ),
                             borderRadius: BorderRadius.circular(16),
@@ -455,10 +455,42 @@ class _SwipeableCardState extends State<SwipeableCard>
                           child: const Text(
                             'PASS',
                             style: TextStyle(
-                              color: Color(0xFFFF6B6B),
+                              color: AppColors.error,
                               fontWeight: FontWeight.w900,
                               fontSize: 32,
                               letterSpacing: 2.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  if (_dragOffset.dy < -65 && dragRatio.abs() < 0.35)
+                    Positioned(
+                      bottom: 120,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.encreDeep.withValues(alpha: 0.85),
+                            border: Border.all(
+                              color: AppColors.accentTeal,
+                              width: 3.0,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Text(
+                            'SUPER LIKE',
+                            style: TextStyle(
+                              color: AppColors.accentTeal,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 24,
+                              letterSpacing: 2.0,
                             ),
                           ),
                         ),

@@ -32,6 +32,7 @@ class CompanionBooking {
   final String qrCodeToken;
   final bool isGpsTrackingActive;
   final DateTime? checkInTime;
+  final DateTime? lastTelemetryAt;
 
   const CompanionBooking({
     required this.id,
@@ -52,6 +53,7 @@ class CompanionBooking {
     required this.qrCodeToken,
     this.isGpsTrackingActive = false,
     this.checkInTime,
+    this.lastTelemetryAt,
   });
 
   CompanionBooking copyWith({
@@ -73,6 +75,7 @@ class CompanionBooking {
     String? qrCodeToken,
     bool? isGpsTrackingActive,
     DateTime? checkInTime,
+    DateTime? lastTelemetryAt,
   }) {
     return CompanionBooking(
       id: id ?? this.id,
@@ -93,6 +96,7 @@ class CompanionBooking {
       qrCodeToken: qrCodeToken ?? this.qrCodeToken,
       isGpsTrackingActive: isGpsTrackingActive ?? this.isGpsTrackingActive,
       checkInTime: checkInTime ?? this.checkInTime,
+      lastTelemetryAt: lastTelemetryAt ?? this.lastTelemetryAt,
     );
   }
 }

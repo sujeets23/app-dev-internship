@@ -18,9 +18,15 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/onboarding/presentation/screens/interests_selection_screen.dart';
 import '../../features/onboarding/presentation/screens/matching_preferences_screen.dart';
 import '../../features/games/presentation/screens/games_lobby_screen.dart';
+import '../../features/companions/presentation/screens/companion_marketplace_screen.dart';
+import '../../features/date_planner/presentation/screens/date_planner_screen.dart';
+import '../../features/subscription/presentation/screens/subscription_pricing_screen.dart';
+import '../../features/subscription/presentation/screens/billing_ledger_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/settings/presentation/screens/privacy_settings_screen.dart';
 import '../widgets/main_navigation_screen.dart';
 
-/// Named route constants supporting deep-link & guarded navigation across Module 1.
+/// Named route constants supporting deep-link & guarded navigation across all modules.
 class AppRoutes {
   static const String splash = '/';
   static const String welcome = '/welcome';
@@ -39,6 +45,12 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String home = '/home';
   static const String companionKyc = '/companion-kyc';
+  static const String companions = '/companions';
+  static const String datePlanner = '/date-planner';
+  static const String subscriptions = '/subscriptions';
+  static const String billing = '/billing';
+  static const String settings = '/settings';
+  static const String privacySettings = '/privacy-settings';
 }
 
 /// Centralized navigation and verification guard router.
@@ -154,6 +166,24 @@ class AppRouter {
         break;
       case AppRoutes.companionKyc:
         target = const CompanionKycScreen();
+        break;
+      case AppRoutes.companions:
+        target = const CompanionMarketplaceScreen();
+        break;
+      case AppRoutes.datePlanner:
+        target = const DatePlannerScreen();
+        break;
+      case AppRoutes.subscriptions:
+        target = const SubscriptionPricingScreen();
+        break;
+      case AppRoutes.billing:
+        target = const BillingLedgerScreen();
+        break;
+      case AppRoutes.settings:
+        target = const SettingsScreen();
+        break;
+      case AppRoutes.privacySettings:
+        target = const PrivacySettingsScreen();
         break;
       default:
         target = const WelcomeScreen();

@@ -3,7 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:inclusive_dating/core/constants/app_constants.dart';
 import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/screens/basic_profile_screen.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/screens/connection_preferences_screen.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/screens/gender_identity_screen.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/screens/interests_selection_screen.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/screens/matching_preferences_screen.dart';
 import 'package:inclusive_dating/features/onboarding/presentation/screens/onboarding_flow_screen.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/screens/pronouns_screen.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/screens/review_profile_screen.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/screens/sexual_orientation_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -86,5 +94,36 @@ void main() {
     // Verifies returned to Welcome Screen (Step 0)
     expect(find.text('Get Started'), findsOneWidget);
     expect(find.text(AppConstants.appName), findsOneWidget);
+  });
+
+  testWidgets('All 6 onboarding steps (including The Essentials) do not expose any Skip bypass',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    final screens = <Widget>[
+      const BasicProfileScreen(), // Step 1: The Essentials
+      const GenderIdentityScreen(), // Step 2
+      const PronounsScreen(), // Step 3
+      const SexualOrientationScreen(), // Step 4
+      const ConnectionPreferencesScreen(), // Step 5
+      const ReviewProfileScreen(), // Step 6
+      const InterestsSelectionScreen(),
+      const MatchingPreferencesScreen(),
+    ];
+
+    for (final screen in screens) {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+          ],
+          child: MaterialApp(home: screen),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Skip'), findsNothing);
+      expect(tester.takeException(), isNull);
+    }
   });
 }

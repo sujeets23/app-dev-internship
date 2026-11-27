@@ -439,7 +439,7 @@ class _CompanionBookingFlowScreenState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '🛡️ Payment is safely locked in Date² Escrow. Funds are only released to the companion AFTER the event completes successfully.',
+                    'Demo Escrow Simulation: No real transaction or payment charge occurs until backend payment & escrow APIs are integrated.',
                     style: TextStyle(color: textMuted, fontSize: 11),
                   ),
                 ],
@@ -582,38 +582,100 @@ class _CompanionBookingFlowScreenState
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Simulate Companion Check-In Action
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accent,
-                foregroundColor: onAccent,
-                minimumSize: const Size.fromHeight(50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            // Interactive QR & 4-Digit Arrival OTP Verification Box
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: glacierBorder),
               ),
-              icon: const Icon(Icons.check_circle_outline),
-              label: const Text('Simulate Companion Check-in (OTP 7492)', style: TextStyle(fontWeight: FontWeight.w700)),
-              onPressed: () async {
-                try {
-                  await ref.read(activeBookingProvider.notifier).checkIn('7492');
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('✅ Check-in verified! Live GPS Tracking & Safety HUD is now active.'),
-                        backgroundColor: AppColors.primary,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'ON-SITE ARRIVAL CHECK-IN (QR / 4-DIGIT OTP)',
+                    style: TextStyle(
+                      color: isDark ? AppColors.accent : AppColors.primary,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.9,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _otpCheckInController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 4,
+                    decoration: InputDecoration(
+                      labelText: 'Enter Arrival Check-in OTP',
+                      hintText: 'Enter 4-digit OTP (e.g. ${booking.checkInOtp})',
+                      prefixIcon: const Icon(Icons.qr_code_scanner_rounded),
+                      suffixIcon: TextButton(
+                        onPressed: () {
+                          _otpCheckInController.text = booking.checkInOtp;
+                        },
+                        child: Text('Scan Demo QR (${booking.checkInOtp})'),
                       ),
-                    );
-                    Navigator.pop(context);
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
-                    );
-                  }
-                }
-              },
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: accent,
+                      foregroundColor: onAccent,
+                      minimumSize: const Size.fromHeight(50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: const Text(
+                      'Verify Arrival & Activate Safety HUD',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    onPressed: () async {
+                      final enteredOtp = _otpCheckInController.text.trim();
+                      if (enteredOtp.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please enter or scan the 4-digit arrival OTP.'),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                        return;
+                      }
+                      try {
+                        await ref
+                            .read(activeBookingProvider.notifier)
+                            .checkIn(enteredOtp);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Check-in verified (Demo)! Live Safety HUD & GPS Telemetry active.',
+                              ),
+                              backgroundColor: AppColors.primary,
+                            ),
+                          );
+                          Navigator.pop(context);
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Check-in Failed: $e'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),

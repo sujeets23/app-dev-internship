@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
+import 'package:inclusive_dating/features/companions/presentation/screens/companion_marketplace_screen.dart';
+import 'package:inclusive_dating/features/date_planner/presentation/screens/date_planner_screen.dart';
 import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:inclusive_dating/features/verification/presentation/providers/biometric_verification_provider.dart';
 import 'package:inclusive_dating/features/verification/presentation/screens/security_check_intro_screen.dart';
@@ -222,104 +224,149 @@ class ProfileScreen extends ConsumerWidget {
 
             const SizedBox(height: 24),
 
-            // Profile Sections (Bio & Interests)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.adaptiveBorder(isDark),
-                ),
-                boxShadow: AppColors.softShadow,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'ABOUT ME',
-                    style: TextStyle(
-                      color: accent,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Designer & creative thinker. Big on analog photography, indie poetry, specialty coffees, and queer social events across the city. Looking for meaningful dating & creative friendships.',
-                    style: TextStyle(color: mutedTextColor, fontSize: 13, height: 1.4),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 14),
-
-            // Interests Wrap
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.adaptiveBorder(isDark),
-                ),
-                boxShadow: AppColors.softShadow,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'INTERESTS & PASSIONS',
-                    style: TextStyle(
-                      color: accent,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      'Art Exhibitions',
-                      'Analog Film',
-                      'Specialty Coffee',
-                      'Indie Music',
-                      'Queer Literature',
-                      'Baking',
-                    ].map((interest) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.encreElevated : AppColors.glacierSoft,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: isDark ? AppColors.borderDark : AppColors.glacierBorder,
-                          ),
+            // Profile Sections (Bio & Interests bound to OnboardingProfile)
+            Consumer(
+              builder: (context, ref, _) {
+                final profile = ref.watch(onboardingProvider).profile;
+                final displayBio = profile.bio.isNotEmpty
+                    ? profile.bio
+                    : 'Designer & creative thinker exploring meaningful dating & authentic friendships.';
+                final displayInterests = profile.interests.isNotEmpty
+                    ? profile.interests
+                    : const [
+                        'Art Exhibitions',
+                        'Analog Film',
+                        'Specialty Coffee',
+                        'Indie Music',
+                      ];
+                return Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.adaptiveBorder(isDark),
                         ),
-                        child: Text(
-                          interest,
-                          style: TextStyle(
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.glacierInk,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                        boxShadow: AppColors.softShadow,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ABOUT ME',
+                            style: TextStyle(
+                              color: accent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              letterSpacing: 1.0,
+                            ),
                           ),
+                          const SizedBox(height: 6),
+                          Text(
+                            displayBio,
+                            style: TextStyle(
+                                color: mutedTextColor,
+                                fontSize: 13,
+                                height: 1.4),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.adaptiveBorder(isDark),
                         ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
+                        boxShadow: AppColors.softShadow,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'INTERESTS & PASSIONS',
+                            style: TextStyle(
+                              color: accent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: displayInterests.map((interest) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? AppColors.encreElevated
+                                      : AppColors.glacierSoft,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? AppColors.borderDark
+                                        : AppColors.glacierBorder,
+                                  ),
+                                ),
+                                child: Text(
+                                  interest,
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.glacierInk,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
 
             const SizedBox(height: 20),
 
             // Menu Shortcuts
+            _buildProfileMenuItem(
+              context: context,
+              icon: Icons.diversity_1_outlined,
+              title: 'Companion Marketplace & Escrow',
+              subtitle: 'Book verified platonic companions for public events',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const CompanionMarketplaceScreen()),
+                );
+              },
+            ),
+            _buildProfileMenuItem(
+              context: context,
+              icon: Icons.auto_awesome_outlined,
+              title: 'AI Budget Date Planner',
+              subtitle: 'Generate ₹500–₹5,000 itineraries & 10% vouchers',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DatePlannerScreen()),
+                );
+              },
+            ),
             _buildProfileMenuItem(
               context: context,
               icon: Icons.shield_moon_outlined,

@@ -1,6 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:inclusive_dating/core/constants/onboarding_options.dart';
+import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
+import 'package:inclusive_dating/features/companions/domain/models/companion_booking.dart';
+import 'package:inclusive_dating/features/companions/presentation/providers/companion_provider.dart';
+import 'package:inclusive_dating/features/date_planner/data/date_planner_service.dart';
 import 'package:inclusive_dating/features/discovery/data/discovery_service.dart';
 import 'package:inclusive_dating/features/discovery/domain/models/discovery_profile.dart';
 import 'package:inclusive_dating/features/discovery/presentation/providers/discovery_provider.dart';
@@ -11,6 +15,9 @@ import 'package:inclusive_dating/features/onboarding/domain/models/onboarding_pr
 import 'package:inclusive_dating/features/onboarding/domain/models/pronouns.dart';
 import 'package:inclusive_dating/features/onboarding/domain/models/sexual_orientation.dart';
 import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
+import 'package:inclusive_dating/features/subscription/data/payment_service.dart';
+import 'package:inclusive_dating/features/subscription/domain/models/subscription_model.dart';
+import 'package:inclusive_dating/features/subscription/presentation/providers/subscription_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -218,6 +225,119 @@ void main() {
 
       expect(dilemma.percentA + dilemma.percentB, 100);
       expect(dilemma.percentA, 58);
+    });
+  });
+
+  group('Modules 2, 4, 5 & 6 — Swipe Cache, Neighborhoods, Escrow Telemetry & Billing Persistence', () {
+    test('DiscoveryNotifier persists swipe decisions locally and resets cache on demand', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final container1 = ProviderContainer(
+        overrides: [optionalSharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container1.dispose);
+
+      await container1.read(discoveryProvider.notifier).loadDeck();
+      final firstProfile = container1.read(discoveryProvider).currentProfile!;
+      await container1.read(discoveryProvider.notifier).swipe(SwipeDirection.right);
+
+      final container2 = ProviderContainer(
+        overrides: [optionalSharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container2.dispose);
+
+      await container2.read(discoveryProvider.notifier).loadDeck();
+      final state2 = container2.read(discoveryProvider);
+      expect(state2.cachedSwipes[firstProfile.id], SwipeDirection.right);
+      expect(state2.deck.any((p) => p.id == firstProfile.id), isFalse);
+
+      await container2.read(discoveryProvider.notifier).loadDeck(resetCache: true);
+      final resetState = container2.read(discoveryProvider);
+      expect(resetState.cachedSwipes, isEmpty);
+      expect(resetState.deck.any((p) => p.id == firstProfile.id), isTrue);
+    });
+
+    test('MockDatePlannerService adapts stops by neighborhood and caps budget cleanly', () async {
+      final service = MockDatePlannerService();
+
+      final blrPlan = await service.generateDatePlan(
+        budget: 500,
+        neighborhood: 'Indiranagar, Bengaluru',
+        vibe: 'Artisan Coffee',
+        dietary: 'Vegan Friendly',
+      );
+      final bomPlan = await service.generateDatePlan(
+        budget: 1800,
+        neighborhood: 'Bandra West, Mumbai',
+        vibe: 'Sunset Stroll',
+        dietary: 'No Restrictions',
+      );
+
+      expect(blrPlan.stops.first.venueName, contains('Araku'));
+      expect(bomPlan.stops.first.venueName, contains('Subko'));
+      expect(blrPlan.totalEstimatedCost, lessThanOrEqualTo(500));
+    });
+
+    test('ActiveBookingNotifier validates 4-digit check-in OTP and emits telemetry heartbeat', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(activeBookingProvider.notifier);
+      notifier.setBooking(
+        CompanionBooking(
+          id: 'bk_test_1',
+          companionId: 'comp_1',
+          companionName: 'Advika Sengupta',
+          companionAvatar: 'https://example.com/advika.jpg',
+          scheduledDateTime: DateTime.now(),
+          durationHours: 2,
+          eventCategory: 'Gallery & Arts',
+          publicVenueName: 'Kala Ghoda Art Pavilion',
+          publicVenueAddress: 'Kala Ghoda, Mumbai',
+          venueLat: 18.9298,
+          venueLng: 72.8331,
+          totalAmount: 1700,
+          escrowStatus: EscrowStatus.heldInEscrow,
+          bookingState: BookingState.confirmed,
+          checkInOtp: '7492',
+          qrCodeToken: 'DATE2-TEST',
+          isGpsTrackingActive: true,
+        ),
+      );
+
+      await expectLater(notifier.checkIn('0000'), throwsException);
+
+      await notifier.checkIn('7492');
+      final checkedIn = container.read(activeBookingProvider)!;
+      expect(checkedIn.bookingState, BookingState.inProgress);
+      final t1 = checkedIn.lastTelemetryAt!;
+
+      await Future.delayed(const Duration(milliseconds: 20));
+      notifier.simulateTelemetryPulse();
+      final t2 = container.read(activeBookingProvider)!.lastTelemetryAt!;
+      expect(t2.isAfter(t1) || t2.isAtSameMomentAs(t1), isTrue);
+    });
+
+    test('MockPaymentService processes plan_29 unlock and persists grace period state', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+
+      final service1 = MockPaymentService(prefs);
+      final txn = await service1.processMicroUnlock(
+        unlockType: 'plan_29',
+        amount: 29,
+        paymentMethod: 'UPI • Demo',
+      );
+      expect(txn.description, 'Single AI Date Plan Unlock (Demo)');
+      expect(txn.amount, 29);
+
+      await service1.setGracePeriodDemo(true);
+
+      final service2 = MockPaymentService(prefs);
+      final reloaded = await service2.fetchBillingProfile();
+      expect(reloaded.inGracePeriod, isTrue);
+      expect(reloaded.transactionHistory.any((t) => t.transactionId == txn.transactionId), isTrue);
     });
   });
 }

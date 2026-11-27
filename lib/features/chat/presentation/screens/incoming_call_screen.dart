@@ -46,6 +46,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
           matchId: widget.channelId,
           matchName: widget.callerName,
           matchAvatar: widget.callerAvatar,
+          consentAlreadyGranted: true,
         ),
       ),
     );

@@ -9,12 +9,14 @@ class VideoCallScreen extends ConsumerStatefulWidget {
   final String matchId;
   final String matchName;
   final String matchAvatar;
+  final bool consentAlreadyGranted;
 
   const VideoCallScreen({
     super.key,
     required this.matchId,
     required this.matchName,
     required this.matchAvatar,
+    this.consentAlreadyGranted = false,
   });
 
   @override
@@ -27,8 +29,17 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
   @override
   void initState() {
     super.initState();
+    _hasUserConsented = widget.consentAlreadyGranted;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showMutualConsentDialog();
+      if (widget.consentAlreadyGranted) {
+        ref.read(videoCallProvider.notifier).initiateCall(
+              matchId: widget.matchId,
+              matchName: widget.matchName,
+              matchAvatar: widget.matchAvatar,
+            );
+      } else {
+        _showMutualConsentDialog();
+      }
     });
   }
 
@@ -286,8 +297,8 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
             top: 100,
             right: 16,
             child: Container(
-              width: 100,
-              height: 145,
+              width: 104,
+              height: 150,
               decoration: BoxDecoration(
                 color: AppColors.surfaceDark,
                 borderRadius: BorderRadius.circular(14),
@@ -300,20 +311,40 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
                   children: [
                     Container(
                       color: AppColors.encreDark,
-                      child: const Center(
-                        child: Icon(Icons.person, color: Colors.white54, size: 40),
+                      child: Center(
+                        child: Icon(
+                          call.isVideoMuted
+                              ? Icons.videocam_off_outlined
+                              : (call.isFrontCamera
+                                  ? Icons.face_rounded
+                                  : Icons.camera_rear_rounded),
+                          color: call.isVideoMuted
+                              ? AppColors.error
+                              : AppColors.accent.withValues(alpha: 0.8),
+                          size: 40,
+                        ),
                       ),
                     ),
                     Positioned(
                       bottom: 4,
                       left: 6,
+                      right: 6,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 2),
                         decoration: BoxDecoration(
                           color: Colors.black54,
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text('You', style: TextStyle(color: Colors.white, fontSize: 9)),
+                        child: Text(
+                          call.isVideoMuted
+                              ? 'Cam Off'
+                              : (call.isFrontCamera
+                                  ? 'You (Front)'
+                                  : 'You (Rear)'),
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white, fontSize: 9),
+                        ),
                       ),
                     ),
                   ],
@@ -325,8 +356,8 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
           // Bottom Call Controls
           Positioned(
             bottom: 30,
-            left: 20,
-            right: 20,
+            left: 16,
+            right: 16,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -337,12 +368,14 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
                   ),
                   onPressed: () {
                     ref.read(videoCallProvider.notifier).triggerSafetyViolation(
-                          reason: 'Explicit video content flagged by TFLite NSFW classifier',
+                          reason:
+                              'Demo TFLite NSFW Trigger: Explicit content alert',
                         );
                   },
-                  icon: const Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 16),
+                  icon: const Icon(Icons.warning_amber_rounded,
+                      color: AppColors.warning, size: 16),
                   label: const Text(
-                    'Simulate TFLite NSFW Violation (Terminates Call)',
+                    'Simulate NSFW Lock (Demo TFLite)',
                     style: TextStyle(color: AppColors.warning, fontSize: 11),
                   ),
                 ),
@@ -353,17 +386,46 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
                     _buildCallActionBtn(
                       icon: call.isAudioMuted ? Icons.mic_off : Icons.mic,
                       active: !call.isAudioMuted,
-                      onTap: () => ref.read(videoCallProvider.notifier).toggleAudio(),
+                      tooltip: call.isAudioMuted ? 'Unmute' : 'Mute',
+                      onTap: () =>
+                          ref.read(videoCallProvider.notifier).toggleAudio(),
                     ),
                     _buildCallActionBtn(
-                      icon: call.isVideoMuted ? Icons.videocam_off : Icons.videocam,
+                      icon: call.isVideoMuted
+                          ? Icons.videocam_off
+                          : Icons.videocam,
                       active: !call.isVideoMuted,
-                      onTap: () => ref.read(videoCallProvider.notifier).toggleVideo(),
+                      tooltip: call.isVideoMuted ? 'Video On' : 'Video Off',
+                      onTap: () =>
+                          ref.read(videoCallProvider.notifier).toggleVideo(),
+                    ),
+                    _buildCallActionBtn(
+                      icon: call.isSpeakerOn
+                          ? Icons.volume_up_rounded
+                          : Icons.volume_off_rounded,
+                      active: call.isSpeakerOn,
+                      tooltip: call.isSpeakerOn ? 'Speaker On' : 'Speaker Off',
+                      onTap: () =>
+                          ref.read(videoCallProvider.notifier).toggleSpeaker(),
                     ),
                     _buildCallActionBtn(
                       icon: Icons.flip_camera_ios,
                       active: true,
-                      onTap: () => ref.read(videoCallProvider.notifier).switchCamera(),
+                      tooltip: 'Flip Camera',
+                      onTap: () =>
+                          ref.read(videoCallProvider.notifier).switchCamera(),
+                    ),
+                    _buildCallActionBtn(
+                      icon: Icons.flag_rounded,
+                      active: false,
+                      tooltip: 'Report & Disconnect',
+                      onTap: () async {
+                        await ref
+                            .read(videoCallProvider.notifier)
+                            .triggerSafetyViolation(
+                              reason: 'User reported safety issue during call',
+                            );
+                      },
                     ),
                     FloatingActionButton(
                       backgroundColor: AppColors.error,
@@ -386,17 +448,23 @@ class _VideoCallScreenState extends ConsumerState<VideoCallScreen> {
   Widget _buildCallActionBtn({
     required IconData icon,
     required bool active,
+    String? tooltip,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: active ? Colors.white.withValues(alpha: 0.25) : AppColors.error.withValues(alpha: 0.4),
-          shape: BoxShape.circle,
+    return Tooltip(
+      message: tooltip ?? '',
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: active
+                ? Colors.white.withValues(alpha: 0.25)
+                : AppColors.error.withValues(alpha: 0.45),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: Colors.white, size: 22),
         ),
-        child: Icon(icon, color: Colors.white, size: 24),
       ),
     );
   }

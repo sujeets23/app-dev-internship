@@ -64,7 +64,7 @@ class _SubscriptionPricingScreenState
                       Icon(Icons.shield_outlined, color: accent),
                       const SizedBox(width: 8),
                       Text(
-                        'Razorpay Secure Checkout',
+                        'Simulated UPI Checkout (Demo Mode)',
                         style: AppTypography.headlineMedium.copyWith(
                           color: textColor,
                           fontSize: 18,
@@ -75,7 +75,7 @@ class _SubscriptionPricingScreenState
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Upgrading to ${plan.title} (₹${plan.pricePerMonth.toInt()}/month)',
+                    'Upgrading to ${plan.title} (₹${plan.pricePerMonth.toInt()}/month • Demo only, no real payment charged)',
                     style: TextStyle(color: mutedTextColor, fontSize: 13),
                   ),
                   const SizedBox(height: 16),
@@ -370,9 +370,17 @@ class _SubscriptionPricingScreenState
             const SizedBox(height: 12),
 
             _buildMicroUnlockCard(
+              title: 'Single AI Date Plan Unlock',
+              price: '₹29',
+              subtitle: 'Generate a curated 3-stop AI date plan with 10% partner voucher (Demo).',
+              icon: Icons.auto_awesome_rounded,
+              onTap: () => _purchaseUnlock('plan_29', 29.0),
+            ),
+            const SizedBox(height: 10),
+            _buildMicroUnlockCard(
               title: '1-Hour Profile Super Boost',
               price: '₹29',
-              subtitle: 'Place your card at the top of local discovery decks for 60 minutes.',
+              subtitle: 'Place your card at the top of local discovery decks for 60 minutes (Demo).',
               icon: Icons.rocket_launch,
               onTap: () => _purchaseUnlock('boost_29', 29.0),
             ),
@@ -380,7 +388,7 @@ class _SubscriptionPricingScreenState
             _buildMicroUnlockCard(
               title: 'Incognito Rewind Pass',
               price: '₹49',
-              subtitle: 'Undo past swipes and secretly re-visit missed connections.',
+              subtitle: 'Undo past swipes and secretly re-visit missed connections (Demo).',
               icon: Icons.replay,
               onTap: () => _purchaseUnlock('rewind_49', 49.0),
             ),

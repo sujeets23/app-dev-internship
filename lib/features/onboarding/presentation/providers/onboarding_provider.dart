@@ -373,24 +373,6 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
     );
   }
 
-  /// Fills demo profile values and marks onboarding completed for dev testing
-  Future<void> fillDemoProfileAndComplete() async {
-    final demoProfile = state.profile.copyWith(
-      firstName: state.profile.firstName.isNotEmpty ? state.profile.firstName : 'Sujeet',
-      bio: state.profile.bio.isNotEmpty ? state.profile.bio : 'Inclusive design & tech enthusiast ✨',
-      dateOfBirth: state.profile.dateOfBirth ?? DateTime(2000, 1, 1),
-      genderIdentity: state.profile.genderIdentity ?? const GenderIdentity(option: 'Non-Binary'),
-      pronouns: state.profile.pronouns ?? const Pronouns(option: 'They/Them'),
-      sexualOrientation: state.profile.sexualOrientation ?? const SexualOrientation(option: 'Queer'),
-      connectionPreferences: state.profile.connectionPreferences.isNotEmpty
-          ? state.profile.connectionPreferences
-          : ['Dating', 'Friendship', 'Networking'],
-      isCompleted: true,
-    );
-    state = state.copyWith(profile: demoProfile);
-    await completeProfile();
-  }
-
   /// Resets onboarding data completely
   Future<void> resetOnboarding() async {
     await _storage.clearAll();

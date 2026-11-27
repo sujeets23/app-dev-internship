@@ -14,6 +14,11 @@ class SafetyHudWidget extends ConsumerWidget {
     if (booking == null) return const SizedBox.shrink();
 
     final isSos = booking.bookingState == BookingState.sosTriggered;
+    final isInProgress = booking.bookingState == BookingState.inProgress;
+    final isCompleted = booking.bookingState == BookingState.completed;
+    final telemetryTime = booking.lastTelemetryAt != null
+        ? '${booking.lastTelemetryAt!.hour.toString().padLeft(2, '0')}:${booking.lastTelemetryAt!.minute.toString().padLeft(2, '0')}:${booking.lastTelemetryAt!.second.toString().padLeft(2, '0')}'
+        : 'ready';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -29,7 +34,8 @@ class SafetyHudWidget extends ConsumerWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: (isSos ? AppColors.error : AppColors.encreDeep).withValues(alpha: 0.25),
+            color: (isSos ? AppColors.error : AppColors.encreDeep)
+                .withValues(alpha: 0.25),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -52,17 +58,22 @@ class SafetyHudWidget extends ConsumerWidget {
               Expanded(
                 child: Text(
                   isSos
-                      ? '🚨 EMERGENCY SOS ACTIVE - HELP DISPATCHED'
-                      : 'SAFETY ESCROW HUD • GPS MONITORING ON',
+                      ? 'DEMO SOS TRIGGERED — SIMULATED SAFETY DISPATCH'
+                      : (isCompleted
+                          ? 'BOOKING COMPLETED • DEMO ESCROW RELEASED'
+                          : (isInProgress
+                              ? 'ACTIVE SAFETY HUD • DEMO GPS TELEMETRY ($telemetryTime)'
+                              : 'BOOKING CONFIRMED • CHECK-IN OTP READY')),
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w700,
                     color: isSos ? Colors.white : AppColors.accent,
-                    letterSpacing: 0.8,
+                    letterSpacing: 0.6,
                   ),
                 ),
               ),
-              if (!isSos)
+              if (!isSos && !isCompleted)
                 InkWell(
                   onTap: () async {
                     final confirmed = await showSosConfirmationDialog(context);
@@ -71,7 +82,8 @@ class SafetyHudWidget extends ConsumerWidget {
                     }
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.error,
                       borderRadius: BorderRadius.circular(8),
@@ -116,24 +128,35 @@ class SafetyHudWidget extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      '${booking.publicVenueName} • OTP: ${booking.checkInOtp}',
-                      style: const TextStyle(color: AppColors.textSecondaryDark, fontSize: 11),
+                      '${booking.publicVenueName} • GPS ${booking.venueLat.toStringAsFixed(3)}, ${booking.venueLng.toStringAsFixed(3)} • OTP: ${booking.checkInOtp}',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: AppColors.textSecondaryDark, fontSize: 11),
                     ),
                   ],
                 ),
               ),
-              if (booking.bookingState == BookingState.inProgress)
+              if (isInProgress)
                 TextButton(
                   onPressed: () {
                     ref.read(activeBookingProvider.notifier).completeBooking();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Booking completed! Escrow released to companion.'),
+                        content:
+                            Text('Demo Booking completed! Simulated escrow released.'),
                         backgroundColor: AppColors.primary,
                       ),
                     );
                   },
-                  child: const Text('End Booking', style: TextStyle(color: AppColors.accent, fontSize: 12)),
+                  child: const Text('End Booking',
+                      style: TextStyle(color: AppColors.accent, fontSize: 12)),
+                )
+              else if (isCompleted)
+                TextButton(
+                  onPressed: () =>
+                      ref.read(activeBookingProvider.notifier).clearBooking(),
+                  child: const Text('Dismiss',
+                      style: TextStyle(color: AppColors.accent, fontSize: 12)),
                 ),
             ],
           ),

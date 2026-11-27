@@ -45,7 +45,7 @@ class PaymentConfirmationScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'Payment Verified & Activated!',
+                'Demo Entitlement Activated!',
                 textAlign: TextAlign.center,
                 style: AppTypography.headlineMedium.copyWith(
                   color: textPrimary,
@@ -54,7 +54,7 @@ class PaymentConfirmationScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Processed via Razorpay Secure Gateway (Test Mode)',
+                'Simulated Demo Gateway (No real UPI payment processed)',
                 style: TextStyle(
                   color: isDark ? AppColors.accent : AppColors.accentTeal,
                   fontSize: 12,

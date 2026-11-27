@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/models/subscription_model.dart';
 
 abstract class IPaymentService {
@@ -9,11 +11,12 @@ abstract class IPaymentService {
     required bool enableAutoPayMandate,
   });
   Future<PaymentTransaction> processMicroUnlock({
-    required String unlockType, // 'boost_29' or 'rewind_49'
+    required String unlockType, // 'boost_29', 'plan_29', or 'rewind_49'
     required double amount,
     required String paymentMethod,
   });
   Future<bool> cancelAutoPayMandate(String mandateId);
+  Future<UserBillingProfile> setGracePeriodDemo(bool active);
 }
 
 class ProductionPaymentService implements IPaymentService {
@@ -43,9 +46,21 @@ class ProductionPaymentService implements IPaymentService {
   @override
   Future<bool> cancelAutoPayMandate(String mandateId) =>
       throw UnimplementedError('Backend offline');
+
+  @override
+  Future<UserBillingProfile> setGracePeriodDemo(bool active) =>
+      throw UnimplementedError('Backend offline');
 }
 
+/// Simulated payment and subscription ledger service for frontend demo testing.
+/// Clearly distinguishes simulated demo states from real Razorpay / UPI mandates.
 class MockPaymentService implements IPaymentService {
+  static const String _storageKey = 'date2_billing_profile_v1';
+  final SharedPreferences? _prefs;
+  bool _loadedFromPrefs = false;
+
+  MockPaymentService([this._prefs]);
+
   UserBillingProfile _profile = UserBillingProfile(
     activeTier: SubscriptionTier.free,
     renewalDate: null,
@@ -55,7 +70,7 @@ class MockPaymentService implements IPaymentService {
     transactionHistory: [
       PaymentTransaction(
         transactionId: 'txn_init_001',
-        description: 'Account Setup Free Plan',
+        description: 'Account Setup Free Plan (Demo)',
         amount: 0.0,
         date: DateTime.now().subtract(const Duration(days: 14)),
         method: 'Free Tier',
@@ -64,9 +79,71 @@ class MockPaymentService implements IPaymentService {
     ],
   );
 
+  void _ensureLoaded() {
+    if (_loadedFromPrefs || _prefs == null) return;
+    _loadedFromPrefs = true;
+    final raw = _prefs.getString(_storageKey);
+    if (raw == null || raw.isEmpty) return;
+    try {
+      final map = jsonDecode(raw) as Map<String, dynamic>;
+      final tier = SubscriptionTier.values.firstWhere(
+        (t) => t.name == map['activeTier'],
+        orElse: () => SubscriptionTier.free,
+      );
+      final txns = (map['transactionHistory'] as List<dynamic>? ?? [])
+          .map((item) {
+            final m = Map<String, dynamic>.from(item as Map);
+            return PaymentTransaction(
+              transactionId: m['transactionId'] as String,
+              description: m['description'] as String,
+              amount: (m['amount'] as num).toDouble(),
+              date: DateTime.parse(m['date'] as String),
+              method: m['method'] as String,
+              status: m['status'] as String,
+              invoiceUrl: m['invoiceUrl'] as String?,
+            );
+          })
+          .toList();
+      _profile = UserBillingProfile(
+        activeTier: tier,
+        renewalDate: map['renewalDate'] != null
+            ? DateTime.tryParse(map['renewalDate'] as String)
+            : null,
+        isAutoPayActive: map['isAutoPayActive'] as bool? ?? false,
+        autoPayMandateId: map['autoPayMandateId'] as String?,
+        inGracePeriod: map['inGracePeriod'] as bool? ?? false,
+        transactionHistory: txns,
+      );
+    } catch (_) {}
+  }
+
+  void _persist() {
+    if (_prefs == null) return;
+    final encoded = jsonEncode({
+      'activeTier': _profile.activeTier.name,
+      'renewalDate': _profile.renewalDate?.toIso8601String(),
+      'isAutoPayActive': _profile.isAutoPayActive,
+      'autoPayMandateId': _profile.autoPayMandateId,
+      'inGracePeriod': _profile.inGracePeriod,
+      'transactionHistory': _profile.transactionHistory
+          .map((t) => {
+                'transactionId': t.transactionId,
+                'description': t.description,
+                'amount': t.amount,
+                'date': t.date.toIso8601String(),
+                'method': t.method,
+                'status': t.status,
+                'invoiceUrl': t.invoiceUrl,
+              })
+          .toList(),
+    });
+    _prefs.setString(_storageKey, encoded);
+  }
+
   @override
   Future<UserBillingProfile> fetchBillingProfile() async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    _ensureLoaded();
+    await Future.delayed(const Duration(milliseconds: 200));
     return _profile;
   }
 
@@ -76,32 +153,35 @@ class MockPaymentService implements IPaymentService {
     required String paymentMethod,
     required bool enableAutoPayMandate,
   }) async {
-    // Razorpay test mode simulation with 0.8s gateway response
-    await Future.delayed(const Duration(milliseconds: 800));
+    _ensureLoaded();
+    await Future.delayed(const Duration(milliseconds: 500));
 
     final double price = tier == SubscriptionTier.pro ? 100.0 : 50.0;
     final String tierName = tier == SubscriptionTier.pro ? 'Pro Plan' : 'Basic Plan';
-    final txnId = 'razor_pay_${DateTime.now().millisecondsSinceEpoch}';
+    final txnId = 'demo_pay_${DateTime.now().millisecondsSinceEpoch}';
 
     final txn = PaymentTransaction(
       transactionId: txnId,
-      description: '$tierName Monthly Subscription',
+      description: '$tierName Monthly Subscription (Demo)',
       amount: price,
       date: DateTime.now(),
       method: paymentMethod,
       status: 'Success',
-      invoiceUrl: 'https://invoices.date2.app/$txnId.pdf',
+      invoiceUrl: null,
     );
 
     _profile = _profile.copyWith(
       activeTier: tier,
       renewalDate: DateTime.now().add(const Duration(days: 30)),
       isAutoPayActive: enableAutoPayMandate,
-      autoPayMandateId: enableAutoPayMandate ? 'AUTOPAY_MANDATE_${DateTime.now().millisecondsSinceEpoch}' : null,
+      autoPayMandateId: enableAutoPayMandate
+          ? 'DEMO_MANDATE_${DateTime.now().millisecondsSinceEpoch}'
+          : null,
+      clearAutoPayMandate: !enableAutoPayMandate,
       inGracePeriod: false,
       transactionHistory: [txn, ..._profile.transactionHistory],
     );
-
+    _persist();
     return txn;
   }
 
@@ -111,12 +191,22 @@ class MockPaymentService implements IPaymentService {
     required double amount,
     required String paymentMethod,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 600));
+    _ensureLoaded();
+    await Future.delayed(const Duration(milliseconds: 450));
 
-    final String desc = unlockType == 'boost_29'
-        ? 'Profile Super Boost (1-Hour Top Placement)'
-        : 'Incognito Rewind (Un-swipe & Revisit Deck)';
-    final txnId = 'unlock_${DateTime.now().millisecondsSinceEpoch}';
+    final String desc;
+    switch (unlockType) {
+      case 'boost_29':
+        desc = 'Profile Super Boost (1-Hour Top Placement • Demo)';
+        break;
+      case 'plan_29':
+        desc = 'Single AI Date Plan Unlock (Demo)';
+        break;
+      default:
+        desc = 'Incognito Rewind Pass (Demo)';
+        break;
+    }
+    final txnId = 'demo_unlock_${DateTime.now().millisecondsSinceEpoch}';
 
     final txn = PaymentTransaction(
       transactionId: txnId,
@@ -130,17 +220,27 @@ class MockPaymentService implements IPaymentService {
     _profile = _profile.copyWith(
       transactionHistory: [txn, ..._profile.transactionHistory],
     );
-
+    _persist();
     return txn;
   }
 
   @override
   Future<bool> cancelAutoPayMandate(String mandateId) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    _ensureLoaded();
+    await Future.delayed(const Duration(milliseconds: 300));
     _profile = _profile.copyWith(
       isAutoPayActive: false,
       clearAutoPayMandate: true,
     );
+    _persist();
     return true;
+  }
+
+  @override
+  Future<UserBillingProfile> setGracePeriodDemo(bool active) async {
+    _ensureLoaded();
+    _profile = _profile.copyWith(inGracePeriod: active);
+    _persist();
+    return _profile;
   }
 }

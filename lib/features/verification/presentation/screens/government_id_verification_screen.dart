@@ -40,7 +40,13 @@ class _GovernmentIdVerificationScreenState
 
   bool _consentAffirmed = false;
   bool _isSubmitting = false;
+  bool _docNumberTouched = false;
   GovIdSubmissionResult? _submissionResult;
+
+  String? get _docNumberError =>
+      GovernmentIdValidator.validate(_selectedDocType, _docNumberController.text);
+
+  bool get _hasValidDocNumber => _docNumberError == null;
 
   @override
   void dispose() {
@@ -51,6 +57,21 @@ class _GovernmentIdVerificationScreenState
   }
 
   Future<void> _handleSubmitDocument() async {
+    final docError = _docNumberError;
+    if (docError != null) {
+      setState(() {
+        _docNumberTouched = true;
+        _currentStage = GovIdVerificationStage.documentSelection;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(docError),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     if (!_consentAffirmed) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -169,21 +190,6 @@ class _GovernmentIdVerificationScreenState
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () async {
-              await ref.read(authProvider.notifier).skipVerificationForDev();
-              if (!context.mounted) return;
-              Navigator.of(context).pushReplacementNamed(AppRoutes.personalInfo);
-            },
-            child: Text(
-              'Skip',
-              style: TextStyle(
-                color: AppColors.adaptiveAccent(isDark),
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
           if (!Navigator.canPop(context))
             TextButton(
               onPressed: () async {
@@ -422,7 +428,7 @@ class _GovernmentIdVerificationScreenState
         ),
         const SizedBox(height: 6),
         const Text(
-          'Only documents valid in your selected region are shown below.',
+          'Choose a document valid in your selected region and enter its mandatory ID number.',
           style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
         const SizedBox(height: 20),
@@ -495,10 +501,19 @@ class _GovernmentIdVerificationScreenState
 
         TextField(
           controller: _docNumberController,
+          textCapitalization: TextCapitalization.characters,
+          onChanged: (_) => setState(() => _docNumberTouched = true),
           decoration: InputDecoration(
-            labelText: '$_selectedDocType Reference / Last 4 Digits',
-            hintText: 'Enter ID reference (or PENDING / REJECT / RETRY for demo)',
+            labelText: '$_selectedDocType Number (Mandatory Proof) *',
+            hintText: GovernmentIdValidator.hintForDocumentType(_selectedDocType),
+            helperText: 'Mandatory proof • Demo: PENDING / REJECT / RETRY',
+            helperMaxLines: 2,
+            errorText: _docNumberTouched ? _docNumberError : null,
+            errorMaxLines: 2,
             prefixIcon: const Icon(Icons.pin_outlined),
+            suffixIcon: _hasValidDocNumber
+                ? const Icon(Icons.check_circle_rounded, color: AppColors.success)
+                : null,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
           ),
         ),
@@ -508,6 +523,10 @@ class _GovernmentIdVerificationScreenState
           label: 'Proceed to Document Capture',
           icon: Icons.camera_alt_rounded,
           onPressed: () {
+            setState(() => _docNumberTouched = true);
+            if (_docNumberError != null) {
+              return;
+            }
             setState(() {
               _currentStage = GovIdVerificationStage.documentCapture;
             });
@@ -685,10 +704,11 @@ class _GovernmentIdVerificationScreenState
                   'Country', '${_selectedCountry.flag} ${_selectedCountry.countryName}'),
               const Divider(height: 20),
               _buildReviewRow('Document Type', _selectedDocType),
-              if (_docNumberController.text.trim().isNotEmpty) ...[
-                const Divider(height: 20),
-                _buildReviewRow('Document Ref', _docNumberController.text.trim()),
-              ],
+              const Divider(height: 20),
+              _buildReviewRow(
+                'ID Proof Number',
+                _docNumberController.text.trim(),
+              ),
               const Divider(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

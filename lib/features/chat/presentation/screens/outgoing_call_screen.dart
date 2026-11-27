@@ -45,6 +45,7 @@ class _OutgoingCallScreenState extends State<OutgoingCallScreen>
               matchId: widget.channelId,
               matchName: widget.participantName,
               matchAvatar: widget.participantAvatar,
+              consentAlreadyGranted: true,
             ),
           ),
         );

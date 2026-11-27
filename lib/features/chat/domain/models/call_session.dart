@@ -16,6 +16,7 @@ class CallSession {
   final CallStatus status;
   final bool isAudioMuted;
   final bool isVideoMuted;
+  final bool isSpeakerOn;
   final bool isFrontCamera;
   final Duration duration;
   final String? moderationWarning;
@@ -28,6 +29,7 @@ class CallSession {
     this.status = CallStatus.idle,
     this.isAudioMuted = false,
     this.isVideoMuted = false,
+    this.isSpeakerOn = true,
     this.isFrontCamera = true,
     this.duration = Duration.zero,
     this.moderationWarning,
@@ -41,6 +43,7 @@ class CallSession {
     CallStatus? status,
     bool? isAudioMuted,
     bool? isVideoMuted,
+    bool? isSpeakerOn,
     bool? isFrontCamera,
     Duration? duration,
     String? moderationWarning,
@@ -53,6 +56,7 @@ class CallSession {
       status: status ?? this.status,
       isAudioMuted: isAudioMuted ?? this.isAudioMuted,
       isVideoMuted: isVideoMuted ?? this.isVideoMuted,
+      isSpeakerOn: isSpeakerOn ?? this.isSpeakerOn,
       isFrontCamera: isFrontCamera ?? this.isFrontCamera,
       duration: duration ?? this.duration,
       moderationWarning: moderationWarning ?? this.moderationWarning,

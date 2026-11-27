@@ -4,6 +4,7 @@ import '../theme/app_colors.dart';
 import 'package:inclusive_dating/features/auth/domain/models/auth_state.dart';
 import 'package:inclusive_dating/features/discovery/presentation/screens/discover_screen.dart';
 import 'package:inclusive_dating/features/chat/presentation/screens/matches_screen.dart';
+import 'package:inclusive_dating/features/companions/presentation/widgets/safety_hud_widget.dart';
 import 'package:inclusive_dating/features/games/presentation/screens/games_lobby_screen.dart';
 
 /// Feature 5: Home Page Hub containing the three primary tabs:
@@ -49,9 +50,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       requiredStep: AuthFlowStep.completed,
       child: Scaffold(
         backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-        body: IndexedStack(
-          index: safeIndex,
-          children: screens,
+        body: Column(
+          children: [
+            const SafeArea(
+              bottom: false,
+              child: SafetyHudWidget(),
+            ),
+            Expanded(
+              child: IndexedStack(
+                index: safeIndex,
+                children: screens,
+              ),
+            ),
+          ],
         ),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(

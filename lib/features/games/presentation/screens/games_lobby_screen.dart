@@ -1,18 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
+import 'package:inclusive_dating/features/chat/domain/models/chat_message.dart';
+import 'package:inclusive_dating/features/chat/presentation/providers/chat_provider.dart';
 import 'compatibility_trivia_screen.dart';
 import 'two_truths_game_screen.dart';
 import 'would_you_rather_screen.dart';
 
 /// Feature 5 (GAME Tab): Interactive Icebreaker Games Lobby
-/// Features 3 playable games: 2 Truths & a Lie, Compatibility Trivia, and Would You Rather.
-class GamesLobbyScreen extends StatelessWidget {
-  const GamesLobbyScreen({super.key});
+/// Supports Solo & Turn-Based Match modes for all 3 games and posts
+/// completed scorecards directly into the chosen match's chat thread.
+class GamesLobbyScreen extends ConsumerStatefulWidget {
+  final String? defaultMatchConversationId;
+  final String? defaultMatchName;
+
+  const GamesLobbyScreen({
+    super.key,
+    this.defaultMatchConversationId,
+    this.defaultMatchName,
+  });
+
+  @override
+  ConsumerState<GamesLobbyScreen> createState() => _GamesLobbyScreenState();
+}
+
+class _GamesLobbyScreenState extends ConsumerState<GamesLobbyScreen> {
+  bool _isMatchMode = true;
+  late String _selectedConversationId;
+  late String _selectedMatchName;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedConversationId = widget.defaultMatchConversationId ?? 'conv_1';
+    _selectedMatchName = widget.defaultMatchName ?? 'Aarya';
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final convs = ref
+        .watch(conversationsProvider)
+        .maybeWhen(data: (v) => v, orElse: () => const <ChatConversation>[]);
+    final accent = AppColors.adaptiveAccent(isDark);
+    final textPrimary = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final textSecondary =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
@@ -23,25 +57,132 @@ class GamesLobbyScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Text(
                 'Icebreaker Games',
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: isDark
-                      ? AppColors.textPrimaryDark
-                      : AppColors.textPrimary,
+                  color: textPrimary,
                   letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
-                'Break the ice with your matches through fun, interactive games. Completed scorecards post directly into your chat!',
+                'Play solo practice or turn-based rounds with a match and share your scorecard straight to chat.',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isDark
-                      ? AppColors.textSecondaryDark
-                      : AppColors.textSecondary,
+                  color: textSecondary,
                   height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Solo vs Match Mode Selector Card
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.surfaceDark : AppColors.surface,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppColors.adaptiveBorder(isDark)),
+                  boxShadow: AppColors.softShadow,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ChoiceChip(
+                            label: const Center(child: Text('With a Match')),
+                            selected: _isMatchMode,
+                            selectedColor: AppColors.glanceableCyan,
+                            labelStyle: TextStyle(
+                              color: _isMatchMode
+                                  ? AppColors.encreDeep
+                                  : textPrimary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                            onSelected: (_) =>
+                                setState(() => _isMatchMode = true),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ChoiceChip(
+                            label: const Center(child: Text('Solo Mode')),
+                            selected: !_isMatchMode,
+                            selectedColor: AppColors.glanceableCyan,
+                            labelStyle: TextStyle(
+                              color: !_isMatchMode
+                                  ? AppColors.encreDeep
+                                  : textPrimary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                            onSelected: (_) =>
+                                setState(() => _isMatchMode = false),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_isMatchMode) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        'PLAYING TURN-BASED ROUND WITH:',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                          color: accent,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      if (convs.isEmpty)
+                        Text(
+                          '$_selectedMatchName (Demo Match)',
+                          style: TextStyle(
+                            color: textPrimary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        )
+                      else
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: convs.map((c) {
+                              final isSel =
+                                  _selectedConversationId == c.id ||
+                                      _selectedMatchName == c.participantName;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: ChoiceChip(
+                                  avatar: CircleAvatar(
+                                    backgroundImage:
+                                        NetworkImage(c.participantAvatar),
+                                  ),
+                                  label: Text(c.participantName),
+                                  selected: isSel,
+                                  selectedColor: isDark
+                                      ? AppColors.encreElevated
+                                      : AppColors.glacierLight,
+                                  side: BorderSide(
+                                    color: isSel
+                                        ? accent
+                                        : AppColors.adaptiveBorder(isDark),
+                                  ),
+                                  onSelected: (_) {
+                                    setState(() {
+                                      _selectedConversationId = c.id;
+                                      _selectedMatchName = c.participantName;
+                                    });
+                                  },
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                    ],
+                  ],
                 ),
               ),
 
@@ -52,17 +193,22 @@ class GamesLobbyScreen extends StatelessWidget {
                 context,
                 title: '2 Truths & a Lie',
                 tag: 'POPULAR ICEBREAKER',
-                description:
-                    'Read 3 statements from your match and spot the lie. Fast-paced, surprising, and instant conversation starter.',
+                description: _isMatchMode
+                    ? 'Spot $_selectedMatchName\'s lie across 3 rounds & send your own 2 Truths + 1 Lie turn.'
+                    : 'Read 3 statements and spot the lie in solo intuition practice mode.',
                 icon: Icons.psychology_alt_rounded,
                 iconColor: AppColors.glanceableCyanDeep,
-                tagColor: AppColors.glanceableCyan,
-                badgeText: '3 Rounds • Intuition Score',
+                tagColor: AppColors.glanceableCyanDeep,
+                badgeText: '3 Rounds • Turn-Based Mode',
                 isDark: isDark,
                 onPlay: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => const TwoTruthsGameScreen(),
+                      builder: (_) => TwoTruthsGameScreen(
+                        conversationId:
+                            _isMatchMode ? _selectedConversationId : null,
+                        matchName: _isMatchMode ? _selectedMatchName : null,
+                      ),
                     ),
                   );
                 },
@@ -75,17 +221,22 @@ class GamesLobbyScreen extends StatelessWidget {
                 context,
                 title: 'Compatibility Trivia',
                 tag: 'VIBE HARMONY',
-                description:
-                    'Answer 5 lifestyle and dating scenario questions to calculate your mutual compatibility vibe percentage.',
+                description: _isMatchMode
+                    ? 'Compare 5 lifestyle & date answers with $_selectedMatchName to compute your harmony score.'
+                    : 'Answer 5 dating lifestyle scenario questions in solo reflection mode.',
                 icon: Icons.quiz_rounded,
-                iconColor: const Color(0xFF6C5CE7),
-                tagColor: const Color(0xFF6C5CE7),
+                iconColor: isDark ? AppColors.accent : AppColors.primary,
+                tagColor: isDark ? AppColors.accent : AppColors.primary,
                 badgeText: '5 Questions • % Match Result',
                 isDark: isDark,
                 onPlay: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => const CompatibilityTriviaScreen(),
+                      builder: (_) => CompatibilityTriviaScreen(
+                        conversationId:
+                            _isMatchMode ? _selectedConversationId : null,
+                        matchName: _isMatchMode ? _selectedMatchName : null,
+                      ),
                     ),
                   );
                 },
@@ -98,17 +249,22 @@ class GamesLobbyScreen extends StatelessWidget {
                 context,
                 title: 'Would You Rather',
                 tag: 'RAPID-FIRE DILEMMAS',
-                description:
-                    'Choose between 5 spontaneous date and lifestyle dilemmas. See live community votes and compare with your match.',
+                description: _isMatchMode
+                    ? 'Compare 5 rapid-fire dilemmas side by side with $_selectedMatchName & community picks.'
+                    : 'Explore 5 spontaneous date & lifestyle dilemmas with live community stats.',
                 icon: Icons.compare_arrows_rounded,
-                iconColor: const Color(0xFFFF7675),
-                tagColor: const Color(0xFFFF7675),
-                badgeText: '5 Dilemmas • Community Consensus',
+                iconColor: AppColors.warning,
+                tagColor: AppColors.warning,
+                badgeText: '5 Dilemmas • Consensus',
                 isDark: isDark,
                 onPlay: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => const WouldYouRatherScreen(),
+                      builder: (_) => WouldYouRatherScreen(
+                        conversationId:
+                            _isMatchMode ? _selectedConversationId : null,
+                        matchName: _isMatchMode ? _selectedMatchName : null,
+                      ),
                     ),
                   );
                 },

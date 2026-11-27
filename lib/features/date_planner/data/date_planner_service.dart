@@ -37,6 +37,39 @@ class ProductionDatePlannerService implements IDatePlannerService {
 }
 
 class MockDatePlannerService implements IDatePlannerService {
+  static const Map<String, List<String>> _neighborhoodVenues = {
+    'Bandra West, Mumbai': [
+      'Subko Specialty Coffee & Craftery',
+      'The Olive Bistro & Tapas',
+      'Bandra Bandstand Sunset Promenade',
+    ],
+    'Colaba & Fort, Mumbai': [
+      'Kala Ghoda Pavement Roasters',
+      'Burma Burma Artisanal Kitchen',
+      'Marine Drive Starlit Walk',
+    ],
+    'Indiranagar, Bengaluru': [
+      'Araku Craft Coffee Collective',
+      'The Reservoire Rooftop Courtyard',
+      '100ft Road Boutique Dessert Walk',
+    ],
+    'Koramangala, Bengaluru': [
+      'Third Wave Coffee Studio',
+      'Bistro Claytopia & Patio',
+      'Koramangala 4th Block Lantern Walk',
+    ],
+    'Hauz Khas, New Delhi': [
+      'Coast Cafe Verandah Roasters',
+      'Naivedyam & Hauz Khas Courtyards',
+      'Deer Park Twilight Stroll',
+    ],
+    'Koregaon Park, Pune': [
+      'Zen Cafe Botanical Courtyard',
+      'Arthur\'s Theme & Bistro',
+      'Osho Teerth Park Evening Walk',
+    ],
+  };
+
   @override
   Future<DatePlan> generateDatePlan({
     required double budget,
@@ -44,13 +77,23 @@ class MockDatePlannerService implements IDatePlannerService {
     required String vibe,
     required String dietary,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    // Dynamic cost balancing within selected budget
-    final double stop1Cost = (budget * 0.28).clamp(200.0, 800.0).roundToDouble();
-    final double stop2Cost = (budget * 0.52).clamp(400.0, 2500.0).roundToDouble();
-    final double stop3Cost = (budget * 0.12).clamp(100.0, 400.0).roundToDouble();
-    final double totalEstimated = stop1Cost + stop2Cost + stop3Cost;
+    final venues = _neighborhoodVenues[neighborhood] ??
+        const [
+          'Local Partner Artisan Cafe',
+          'Inclusive Neighborhood Bistro',
+          'Public Twilight Promenade',
+        ];
+
+    // Strict budget ceiling: keep itemized total <= budget even at ₹500 min
+    final double stop1Cost = (budget * 0.28).roundToDouble();
+    final double stop2Cost = (budget * 0.50).roundToDouble();
+    final double stop3Cost =
+        ((budget - stop1Cost - stop2Cost) * 0.5).clamp(50.0, 400.0).roundToDouble();
+    final double rawTotal = stop1Cost + stop2Cost + stop3Cost;
+    final double totalEstimated =
+        rawTotal > budget ? budget : rawTotal;
 
     final planId = 'dp_${DateTime.now().millisecondsSinceEpoch}';
 
@@ -69,43 +112,46 @@ class MockDatePlannerService implements IDatePlannerService {
         ItineraryStop(
           stepNumber: 1,
           timeSlot: '05:30 PM - 06:45 PM',
-          venueName: 'Subko Specialty Coffee & Craftery',
+          venueName: venues[0],
           neighborhood: neighborhood,
-          activityTitle: 'Artisan Coffee & Warm Icebreaker',
+          activityTitle: 'Warm Icebreaker & Specialty Brews ($vibe)',
           description:
-              'Begin with specialty pour-over brew and warm conversations in a safe, queer-friendly atmosphere.',
+              'Start with artisan coffee or chai and relaxed conversation in a verified queer-friendly space.',
           estimatedCost: stop1Cost,
           durationMinutes: 75,
           isQueerFriendlyPartner: true,
           partnerDiscountDetails: '10% Instant Bill Discount with Date² QR Voucher',
-          imageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400',
+          imageUrl:
+              'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400',
         ),
         ItineraryStop(
           stepNumber: 2,
           timeSlot: '07:00 PM - 08:30 PM',
-          venueName: 'The Olive Bistro & Tapas',
+          venueName: venues[1],
           neighborhood: neighborhood,
-          activityTitle: 'Candlelit Tapas & Shared Plates',
+          activityTitle: '$vibe Shared Dining ($dietary)',
           description:
-              'Enjoy Mediterranean small plates with $dietary curated pairings in an intimate outdoor patio garden.',
+              'Enjoy curated small plates with $dietary-friendly options in an inviting public dining room.',
           estimatedCost: stop2Cost,
           durationMinutes: 90,
           isQueerFriendlyPartner: true,
           partnerDiscountDetails: '10% Instant Bill Discount with Date² QR Voucher',
-          imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400',
+          imageUrl:
+              'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400',
         ),
         ItineraryStop(
           stepNumber: 3,
           timeSlot: '08:45 PM - 09:30 PM',
-          venueName: 'Bandra Seaside Promenade Walk',
+          venueName: venues[2],
           neighborhood: neighborhood,
-          activityTitle: 'Starlit Promenade Stroll',
+          activityTitle: 'Evening Stroll & Reflection',
           description:
-              'A peaceful seaside wind-down under the evening breeze to reflect on the date.',
+              'Wind down along $neighborhood\'s lively public promenade to wrap up the evening comfortably.',
           estimatedCost: stop3Cost,
           durationMinutes: 45,
           isQueerFriendlyPartner: false,
-          imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400',
+          imageUrl:
+              'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400',
         ),
       ],
     );

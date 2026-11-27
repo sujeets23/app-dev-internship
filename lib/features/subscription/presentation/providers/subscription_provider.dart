@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
 import '../../data/payment_service.dart';
 import '../../domain/models/subscription_model.dart';
 
 final paymentServiceProvider = Provider<IPaymentService>((ref) {
-  return MockPaymentService();
+  final prefs = ref.watch(optionalSharedPreferencesProvider);
+  return MockPaymentService(prefs);
 });
 
 final availablePlansProvider = Provider<List<SubscriptionPlan>>((ref) {
@@ -108,6 +110,11 @@ class BillingNotifier extends AsyncNotifier<UserBillingProfile> {
       await refresh();
     }
     return success;
+  }
+
+  Future<void> setGracePeriodDemo(bool active) async {
+    final updated = await _service.setGracePeriodDemo(active);
+    state = AsyncValue.data(updated);
   }
 }
 

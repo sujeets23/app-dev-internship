@@ -48,26 +48,61 @@ class BillingLedgerScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 48-Hour Grace Period Notification Banner (if applicable or alert)
+                // 48-Hour Grace Period Notification Banner
                 if (profile.inGracePeriod)
                   Container(
                     margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppColors.warning.withValues(alpha: 0.16)
                           : AppColors.warningLight,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: AppColors.warning),
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.warning_amber, color: AppColors.warning),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            '⚠️ 48-Hour Renewal Grace Period Active. Please verify your UPI balance.',
-                            style: TextStyle(color: textPrimary, fontSize: 12),
+                        Row(
+                          children: [
+                            const Icon(Icons.warning_amber,
+                                color: AppColors.warning),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '48-Hour Renewal Grace Period Active (Demo)',
+                                style: TextStyle(
+                                  color: textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'AutoPay retry pending. Update your UPI method within 48 hours to retain membership benefits.',
+                          style: TextStyle(color: textSecondary, fontSize: 12),
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.warning,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 8),
+                            ),
+                            onPressed: () => ref
+                                .read(billingProfileProvider.notifier)
+                                .setGracePeriodDemo(false),
+                            child: const Text(
+                              'Resolve Renewal (Demo)',
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ),
                       ],
@@ -194,6 +229,25 @@ class BillingLedgerScreen extends ConsumerWidget {
                   )
                 else
                   ...profile.transactionHistory.map((txn) => _buildTransactionCard(context, txn)),
+
+                const SizedBox(height: 16),
+
+                OutlinedButton.icon(
+                  icon: Icon(
+                    profile.inGracePeriod
+                        ? Icons.check_circle_outline
+                        : Icons.notification_important_outlined,
+                    size: 18,
+                  ),
+                  label: Text(
+                    profile.inGracePeriod
+                        ? 'Clear 48-Hour Grace Alert (Demo)'
+                        : 'Simulate 48-Hour Grace Alert (Demo)',
+                  ),
+                  onPressed: () => ref
+                      .read(billingProfileProvider.notifier)
+                      .setGracePeriodDemo(!profile.inGracePeriod),
+                ),
 
                 const SizedBox(height: 40),
               ],

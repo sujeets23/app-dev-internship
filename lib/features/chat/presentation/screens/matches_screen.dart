@@ -117,6 +117,15 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                   hintText: 'Search matched connections...',
                   hintStyle: TextStyle(color: mutedTextColor),
                   prefixIcon: Icon(Icons.search, color: mutedTextColor),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.close, color: mutedTextColor, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
                   filled: true,
                   fillColor: cardBg,
                   enabledBorder: OutlineInputBorder(
@@ -185,17 +194,20 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                       final match = _newMatches[index];
                       return GestureDetector(
                         onTap: () {
+                          final resolvedId = ref
+                              .read(chatServiceProvider)
+                              .resolveConversationId(match['name']!);
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => ChatScreen(
-                                conversationId: 'conv_${match['name']}',
+                                conversationId: resolvedId,
                                 participantName: match['name']!,
                                 participantAvatar: match['avatar']!,
                                 isVerified: true,
                               ),
                             ),
-                          );
+                          ).then((_) => ref.invalidate(conversationsProvider));
                         },
                         child: Column(
                           children: [
@@ -288,6 +300,9 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final conv = filtered[index];
+                    final isTyping = ref
+                        .watch(chatTypingStatusProvider(conv.id))
+                        .maybeWhen(data: (v) => v, orElse: () => false);
                     return InkWell(
                       onTap: () {
                         Navigator.push(
@@ -300,7 +315,7 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                               isVerified: conv.isVerified,
                             ),
                           ),
-                        );
+                        ).then((_) => ref.invalidate(conversationsProvider));
                       },
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
@@ -378,12 +393,19 @@ class _MatchesScreenState extends ConsumerState<MatchesScreen> {
                                     children: [
                                       Expanded(
                                         child: Text(
-                                          conv.lastMessageText,
+                                          isTyping
+                                              ? '${conv.participantName} is typing...'
+                                              : conv.lastMessageText,
                                           style: TextStyle(
-                                            color: conv.unreadCount > 0
-                                                ? textColor
-                                                : mutedTextColor,
-                                            fontWeight: conv.unreadCount > 0
+                                            color: isTyping
+                                                ? AppColors.accentTeal
+                                                : (conv.unreadCount > 0
+                                                    ? textColor
+                                                    : mutedTextColor),
+                                            fontStyle: isTyping
+                                                ? FontStyle.italic
+                                                : FontStyle.normal,
+                                            fontWeight: conv.unreadCount > 0 || isTyping
                                                 ? FontWeight.w600
                                                 : FontWeight.normal,
                                             fontSize: 13,

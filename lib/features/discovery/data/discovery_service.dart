@@ -2,7 +2,13 @@ import 'dart:async';
 import '../domain/models/discovery_profile.dart';
 
 abstract class IDiscoveryService {
-  Future<List<DiscoveryProfile>> fetchDeck({bool incognitoShield = false});
+  Future<List<DiscoveryProfile>> fetchDeck({
+    bool incognitoShield = false,
+    int? minAge,
+    int? maxAge,
+    int? maxDistanceKm,
+    Set<String> excludedIds = const {},
+  });
   Future<SwipeResult> sendSwipe({
     required String profileId,
     required SwipeDirection direction,
@@ -15,7 +21,13 @@ class ProductionDiscoveryService implements IDiscoveryService {
   ProductionDiscoveryService({this.baseUrl = 'https://api.date2.app'});
 
   @override
-  Future<List<DiscoveryProfile>> fetchDeck({bool incognitoShield = false}) async {
+  Future<List<DiscoveryProfile>> fetchDeck({
+    bool incognitoShield = false,
+    int? minAge,
+    int? maxAge,
+    int? maxDistanceKm,
+    Set<String> excludedIds = const {},
+  }) async {
     throw UnimplementedError('Production server at $baseUrl is offline.');
   }
 
@@ -156,14 +168,36 @@ class MockDiscoveryService implements IDiscoveryService {
   ];
 
   @override
-  Future<List<DiscoveryProfile>> fetchDeck({bool incognitoShield = false}) async {
+  Future<List<DiscoveryProfile>> fetchDeck({
+    bool incognitoShield = false,
+    int? minAge,
+    int? maxAge,
+    int? maxDistanceKm,
+    Set<String> excludedIds = const {},
+  }) async {
     await Future.delayed(const Duration(milliseconds: 300));
 
-    if (incognitoShield) {
-      // Stack isolation: Hide straight profiles from queer discovery queue
-      return _allProfiles.where((p) => p.orientation != 'Straight').toList();
+    Iterable<DiscoveryProfile> filtered = _allProfiles.where((p) {
+      if (excludedIds.contains(p.id)) return false;
+      if (incognitoShield && p.orientation == 'Straight') {
+        return false;
+      }
+      if (minAge != null && p.age < minAge) return false;
+      if (maxAge != null && p.age > maxAge) return false;
+      if (maxDistanceKm != null && p.distanceKm > maxDistanceKm) return false;
+      return true;
+    });
+
+    final result = filtered.toList();
+    // If strict distance/age filter empties an unseen deck while unswiped non-incognito profiles exist, keep discovery usable
+    if (result.isEmpty &&
+        excludedIds.isEmpty &&
+        (minAge != null || maxAge != null || maxDistanceKm != null)) {
+      return _allProfiles
+          .where((p) => !incognitoShield || p.orientation != 'Straight')
+          .toList();
     }
-    return List<DiscoveryProfile>.from(_allProfiles);
+    return result;
   }
 
   @override

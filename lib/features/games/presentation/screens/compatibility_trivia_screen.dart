@@ -8,9 +8,14 @@ import '../../domain/models/game_models.dart';
 /// 5 multi-choice questions assessing lifestyle, dating habits, and romantic vibes.
 /// Computes compatibility percentage and generates a shareable scorecard.
 class CompatibilityTriviaScreen extends ConsumerStatefulWidget {
+  final String? conversationId;
   final String? matchName;
 
-  const CompatibilityTriviaScreen({super.key, this.matchName});
+  const CompatibilityTriviaScreen({
+    super.key,
+    this.conversationId,
+    this.matchName,
+  });
 
   @override
   ConsumerState<CompatibilityTriviaScreen> createState() =>
@@ -178,11 +183,14 @@ class _CompatibilityTriviaScreenState
                 Navigator.of(dialogCtx).pop();
                 Navigator.of(context).pop();
 
-                // Post scorecard message to chat
+                final targetConvId = widget.conversationId ?? 'conv_1';
+                final targetLabel = widget.matchName ?? 'Aarya';
+
+                // Post scorecard message to chosen match chat
                 ref
-                    .read(conversationMessagesProvider('conv_1').notifier)
+                    .read(conversationMessagesProvider(targetConvId).notifier)
                     .sendMessage(
-                      'I just completed Compatibility Trivia with you! Here is our lifestyle harmony score ✨',
+                      'I just completed Compatibility Trivia${widget.matchName != null ? " with $targetLabel" : ""}! Your turn to compare answers ✨',
                       gameScorecardSnippet: {
                         'gameTitle': 'Compatibility Trivia',
                         'score': '$compatibilityPct% Vibe Match',
@@ -190,14 +198,14 @@ class _CompatibilityTriviaScreenState
                             ? 'Soul Connection ✨'
                             : 'Dynamic Harmony 💫',
                         'highlights':
-                            'Alikeness across first date preferences, social batteries & travel vibes!',
+                            'Shared alignment check across first date style & travel vibes!',
                       },
                     );
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Compatibility Scorecard ($compatibilityPct% Vibe Match) posted into your chat thread!',
+                      'Compatibility Scorecard ($compatibilityPct% Vibe Match) posted to $targetLabel\'s chat!',
                     ),
                     backgroundColor: AppColors.encreDeep,
                     behavior: SnackBarBehavior.floating,

@@ -320,32 +320,24 @@ void main() {
       container2.dispose();
     });
 
-    test('skipVerificationForDev immediately grants fully verified status for onboarding', () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      final container = ProviderContainer(
-        overrides: [optionalSharedPreferencesProvider.overrideWithValue(prefs)],
+    testWidgets('Verification screens do not expose any Skip bypass options',
+        (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(home: SecurityCheckIntroScreen()),
+        ),
       );
-      final notifier = container.read(authProvider.notifier);
-      await notifier.signUp(
-        username: 'dev_skipper',
-        email: 'skipper@date2.app',
-        password: 'Date2Password!2026',
+      await tester.pump();
+      expect(find.text('Skip'), findsNothing);
+      expect(find.text('Skip Verification for Now'), findsNothing);
+
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(home: GovernmentIdVerificationScreen()),
+        ),
       );
-
-      expect(container.read(authProvider).isFullyVerified, isFalse);
-      await notifier.skipVerificationForDev();
-
-      final state = container.read(authProvider);
-      expect(state.isFullyVerified, isTrue);
-      expect(state.isEmailVerified, isTrue);
-      expect(state.isFaceVerified, isTrue);
-      expect(state.isDocVerified, isTrue);
-      expect(notifier.canAccessStep(AuthFlowStep.personalInfo), isTrue);
-
-      await notifier.skipAllToHomeForDev();
-      expect(notifier.canAccessStep(AuthFlowStep.completed), isTrue);
-      container.dispose();
+      await tester.pump();
+      expect(find.text('Skip'), findsNothing);
     });
 
     testWidgets('Strict VerificationRouteGuard blocks unverified access to Personal Info and Home',
@@ -438,14 +430,30 @@ void main() {
       expect(goodRes.isSharp, isTrue);
     });
 
-    test('MockGovernmentIdRepository supports pending, rejected, retry & verified states and wipes buffers', () async {
+    test('MockGovernmentIdRepository requires valid mandatory ID number proof, supports status keywords & wipes buffers', () async {
       final repo = MockGovernmentIdRepository();
+
+      // Missing or invalid Aadhaar ID numbers must be rejected and still wipe buffers
+      for (final invalidNumber in ['', '1234', 'invalid!@#']) {
+        final invalidData = GovernmentIdData(
+          country: GovernmentIdCountry.india,
+          documentType: 'Aadhaar Card',
+          documentNumber: invalidNumber,
+          frontImageBytes: Uint8List.fromList([1, 2, 3, 4]),
+          backImageBytes: Uint8List.fromList([5, 6, 7, 8]),
+        );
+        expect(invalidData.hasValidDocumentNumber, isFalse);
+        final res = await repo.submitDocument(invalidData);
+        expect(res.status, GovIdStatus.rejected);
+        expect(invalidData.frontImageBytes, isNull);
+        expect(invalidData.backImageBytes, isNull);
+      }
 
       for (final entry in <String, GovIdStatus>{
         'PENDING-123': GovIdStatus.pendingReview,
         'REJECT-123': GovIdStatus.rejected,
         'RETRY-123': GovIdStatus.retryRequired,
-        'VALID-4921': GovIdStatus.verified,
+        '4921 5678 9012': GovIdStatus.verified,
       }.entries) {
         final data = GovernmentIdData(
           country: GovernmentIdCountry.india,
@@ -455,11 +463,27 @@ void main() {
           backImageBytes: Uint8List.fromList([5, 6, 7, 8]),
         );
 
+        expect(data.hasValidDocumentNumber, isTrue);
         final res = await repo.submitDocument(data);
         expect(res.status, entry.value);
         expect(data.frontImageBytes, isNull);
         expect(data.backImageBytes, isNull);
       }
+    });
+
+    test('GovernmentIdValidator validates document formats as mandatory proof', () {
+      expect(GovernmentIdValidator.validate('Aadhaar Card', ''), isNotNull);
+      expect(GovernmentIdValidator.validate('Aadhaar Card', '1234'), isNotNull);
+      expect(GovernmentIdValidator.validate('Aadhaar Card', '1234 5678 9012'), isNull);
+
+      expect(GovernmentIdValidator.validate('PAN Card', '12345'), isNotNull);
+      expect(GovernmentIdValidator.validate('PAN Card', 'ABCDE1234F'), isNull);
+
+      expect(GovernmentIdValidator.validate('Passport', 'AB12'), isNotNull);
+      expect(GovernmentIdValidator.validate('Passport', 'K1234567'), isNull);
+
+      expect(GovernmentIdValidator.validate('Driving Licence', 'DL1420110012345'), isNull);
+      expect(GovernmentIdValidator.validate('Aadhaar Card', 'PENDING-01'), isNull);
     });
   });
 
@@ -813,10 +837,28 @@ void main() {
         expect(tester.takeException(), isNull);
       }
 
-      // Advance GovernmentIdVerificationScreen through Stage 2 & Stage 3 at 360x780
+      // Advance GovernmentIdVerificationScreen Stage 2 -> requires mandatory ID number proof
       await tester.ensureVisible(find.text('Continue to Document Selection'));
       await tester.tap(find.text('Continue to Document Selection'));
       await tester.pumpAndSettle();
+
+      // Blank ID number must block Stage 3
+      await tester.ensureVisible(find.text('Proceed to Document Capture'));
+      await tester.tap(find.text('Proceed to Document Capture'));
+      await tester.pumpAndSettle();
+      expect(find.text('Mandatory proof: Enter your Aadhaar Card number.'), findsOneWidget);
+      expect(find.text('Capture Aadhaar Card'), findsNothing);
+
+      // Invalid short ID number must still block Stage 3
+      await tester.enterText(find.byType(TextField), '1234');
+      await tester.tap(find.text('Proceed to Document Capture'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('complete 12-digit Aadhaar number'), findsOneWidget);
+      expect(find.text('Capture Aadhaar Card'), findsNothing);
+
+      // Valid 12-digit Aadhaar number advances cleanly to Stage 3
+      await tester.enterText(find.byType(TextField), '1234 5678 9012');
+      await tester.pump();
       await tester.ensureVisible(find.text('Proceed to Document Capture'));
       await tester.tap(find.text('Proceed to Document Capture'));
       await tester.pumpAndSettle();

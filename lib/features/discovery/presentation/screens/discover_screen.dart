@@ -5,7 +5,10 @@ import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
 import 'package:inclusive_dating/features/chat/presentation/providers/chat_provider.dart';
 import 'package:inclusive_dating/features/chat/presentation/screens/chat_screen.dart';
+import 'package:inclusive_dating/features/companions/presentation/screens/companion_marketplace_screen.dart';
+import 'package:inclusive_dating/features/date_planner/presentation/screens/date_planner_screen.dart';
 import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
+import 'package:inclusive_dating/features/subscription/presentation/screens/subscription_pricing_screen.dart';
 import '../../domain/models/discovery_profile.dart';
 import '../providers/discovery_provider.dart';
 import '../widgets/incognito_privacy_shield_dialog.dart';
@@ -37,7 +40,7 @@ class DiscoverScreen extends ConsumerWidget {
               notifier.clearMatchDialog();
 
               // Register match with chat service
-              ref.read(chatServiceProvider).addMatch(
+              final convId = ref.read(chatServiceProvider).addMatch(
                     name: matchedProfile.name,
                     avatar: matchedProfile.photoUrls.first,
                     matchId: matchedProfile.id,
@@ -50,7 +53,7 @@ class DiscoverScreen extends ConsumerWidget {
                 context,
                 MaterialPageRoute(
                   builder: (_) => ChatScreen(
-                    conversationId: 'conv_${matchedProfile.id}',
+                    conversationId: convId,
                     participantName: matchedProfile.name,
                     participantAvatar: matchedProfile.photoUrls.first,
                     isVerified: matchedProfile.isVerified,
@@ -70,7 +73,9 @@ class DiscoverScreen extends ConsumerWidget {
     });
 
     final accent = AppColors.adaptiveAccent(isDark);
-    final userInterests = ref.watch(onboardingProvider).profile.interests;
+    final profile = ref.watch(onboardingProvider).profile;
+    final userInterests = profile.interests;
+    final maxDistanceKm = profile.maxDistanceKm;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
@@ -114,7 +119,9 @@ class DiscoverScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      state.isIncognitoEnabled ? 'Incognito' : 'Nearby (10km)',
+                      state.isIncognitoEnabled
+                          ? 'Incognito'
+                          : 'Nearby (${maxDistanceKm}km)',
                       style: TextStyle(
                         color: state.isIncognitoEnabled
                             ? accent
@@ -174,6 +181,52 @@ class DiscoverScreen extends ConsumerWidget {
                 ? _buildEmptyState(context, notifier, isDark)
                 : Column(
                     children: [
+                      // Quick Access Modules Rail (Companions, AI Date Planner, Subscriptions)
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                        child: Row(
+                          children: [
+                            _buildQuickModuleChip(
+                              context,
+                              icon: Icons.diversity_1_rounded,
+                              label: 'Companions (Escrow)',
+                              isDark: isDark,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const CompanionMarketplaceScreen(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildQuickModuleChip(
+                              context,
+                              icon: Icons.auto_awesome_rounded,
+                              label: 'AI Date Planner',
+                              isDark: isDark,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const DatePlannerScreen(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildQuickModuleChip(
+                              context,
+                              icon: Icons.workspace_premium_outlined,
+                              label: 'Plans & Boosts',
+                              isDark: isDark,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const SubscriptionPricingScreen(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       // Active Card Viewport
                       Expanded(
                         child: Stack(
@@ -372,7 +425,47 @@ class DiscoverScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              onPressed: () => notifier.loadDeck(),
+              onPressed: () => notifier.loadDeck(resetCache: true),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickModuleChip(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    final accent = AppColors.adaptiveAccent(isDark);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : AppColors.glacierBorder,
+          ),
+          boxShadow: AppColors.softShadow,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: accent),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),

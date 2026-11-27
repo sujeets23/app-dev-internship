@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
-import 'package:inclusive_dating/core/widgets/main_navigation_screen.dart';
 import 'package:inclusive_dating/core/widgets/onboarding_progress_bar.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
-import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
-import '../providers/onboarding_provider.dart';
 
 /// Standard step wrapper ensuring consistent layout, spacing, and animations
-class OnboardingStepScaffold extends ConsumerWidget {
+class OnboardingStepScaffold extends StatelessWidget {
   final int currentStep; // 1 to 6
   final int totalSteps; // 6
   final String title;
@@ -37,7 +33,7 @@ class OnboardingStepScaffold extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -77,31 +73,10 @@ class OnboardingStepScaffold extends ConsumerWidget {
             ),
           ),
           actions: [
-            if (trailingHeaderAction != null)
-              trailingHeaderAction!
-            else
-              TextButton(
-                onPressed: () async {
-                  await ref.read(onboardingProvider.notifier).fillDemoProfileAndComplete();
-                  ref.read(authProvider.notifier).setPersonalInfoCompleted(true);
-                  if (!context.mounted) return;
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (_) => const MainNavigationScreen(initialIndex: 0),
-                    ),
-                    (route) => false,
-                  );
-                },
-                child: Text(
-                  'Skip',
-                  style: TextStyle(
-                    color: isDark ? AppColors.accentTeal : AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            const SizedBox(width: 8),
+            if (trailingHeaderAction != null) ...[
+              trailingHeaderAction!,
+              const SizedBox(width: 8),
+            ],
           ],
         ),
         body: SafeArea(

@@ -8,9 +8,14 @@ import '../../domain/models/game_models.dart';
 /// Tap between two lifestyle/dating dilemmas, reveal community voting consensus,
 /// and generate a shareable game scorecard for chat.
 class WouldYouRatherScreen extends ConsumerStatefulWidget {
+  final String? conversationId;
   final String? matchName;
 
-  const WouldYouRatherScreen({super.key, this.matchName});
+  const WouldYouRatherScreen({
+    super.key,
+    this.conversationId,
+    this.matchName,
+  });
 
   @override
   ConsumerState<WouldYouRatherScreen> createState() =>
@@ -147,24 +152,27 @@ class _WouldYouRatherScreenState extends ConsumerState<WouldYouRatherScreen> {
                 Navigator.of(dialogCtx).pop();
                 Navigator.of(context).pop();
 
-                // Post scorecard message to chat
+                final targetConvId = widget.conversationId ?? 'conv_1';
+                final targetLabel = widget.matchName ?? 'Aarya';
+
+                // Post scorecard message to chosen match chat
                 ref
-                    .read(conversationMessagesProvider('conv_1').notifier)
+                    .read(conversationMessagesProvider(targetConvId).notifier)
                     .sendMessage(
-                      'I just finished playing Rapid-Fire Would You Rather! Here are my dilemmas & consensus ✨',
+                      'I just finished Rapid-Fire Would You Rather${widget.matchName != null ? " with $targetLabel" : ""}! Send your picks next ✨',
                       gameScorecardSnippet: {
                         'gameTitle': 'Would You Rather',
                         'score': '5/5 Dilemmas Answered',
                         'badge': 'Bold Decision Maker ⚡',
                         'highlights':
-                            'Chose cozy indoors, sunset rooftops, and street food exploration!',
+                            'Turn-based dilemma picks ready to compare with $targetLabel!',
                       },
                     );
 
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text(
-                      'Would You Rather dilemmas & answers shared to your match chat!',
+                      'Would You Rather answers shared to $targetLabel\'s chat!',
                     ),
                     backgroundColor: AppColors.encreDeep,
                     behavior: SnackBarBehavior.floating,

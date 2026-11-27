@@ -79,11 +79,14 @@ class VideoCallNotifier extends Notifier<CallSession?> {
         reason: reason,
         confidence: '0.98',
       );
+      ref
+          .read(moderationLockProvider.notifier)
+          .lockSession(state!.matchId, reason);
 
       state = state!.copyWith(
         status: CallStatus.terminatedByModeration,
         moderationWarning:
-            '🛡️ Connection safely terminated. AI safety filter detected content violating our community standards. Incident has been recorded.',
+            '🛡️ Connection safely terminated. AI safety filter detected content violating our community standards. Local video calls for this session are now locked.',
       );
     }
   }
@@ -97,6 +100,12 @@ class VideoCallNotifier extends Notifier<CallSession?> {
   void toggleVideo() {
     if (state != null) {
       state = state!.copyWith(isVideoMuted: !state!.isVideoMuted);
+    }
+  }
+
+  void toggleSpeaker() {
+    if (state != null) {
+      state = state!.copyWith(isSpeakerOn: !state!.isSpeakerOn);
     }
   }
 

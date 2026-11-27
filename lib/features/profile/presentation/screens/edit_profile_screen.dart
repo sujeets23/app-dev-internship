@@ -1,30 +1,64 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
+import 'package:inclusive_dating/features/onboarding/domain/models/gender_identity.dart';
+import 'package:inclusive_dating/features/onboarding/domain/models/pronouns.dart';
+import 'package:inclusive_dating/features/onboarding/domain/models/sexual_orientation.dart';
+import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameController = TextEditingController(text: 'Alex');
-  final _ageController = TextEditingController(text: '25');
-  final _pronounsController = TextEditingController(text: 'they/them');
-  final _bioController = TextEditingController(
-    text:
-        'Designer & creative thinker. Big on analog photography, indie poetry, specialty coffees, and queer social events across the city. Looking for meaningful dating & creative friendships.',
-  );
+class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _ageController;
+  late final TextEditingController _pronounsController;
+  late final TextEditingController _bioController;
 
-  String _genderIdentity = 'Non-Binary';
-  String _sexualOrientation = 'Queer';
-  String _connectionPreference = 'Dating & Friendships';
+  late String _genderIdentity;
+  late String _sexualOrientation;
+  late String _connectionPreference;
 
   final List<String> _genders = ['Non-Binary', 'Woman', 'Man', 'Transgender', 'Genderfluid', 'Agender', 'Self-described'];
   final List<String> _orientations = ['Queer', 'Bisexual', 'Pansexual', 'Lesbian', 'Gay', 'Asexual', 'Questioning'];
   final List<String> _preferences = ['Dating & Friendships', 'Long-term Romantic', 'Casual Dating', 'Platonic Companionship'];
+
+  @override
+  void initState() {
+    super.initState();
+    final profile = ref.read(onboardingProvider).profile;
+    _nameController = TextEditingController(
+      text: profile.firstName.isNotEmpty ? profile.firstName : 'Alex',
+    );
+    _ageController = TextEditingController(
+      text: '${profile.age ?? 25}',
+    );
+    _pronounsController = TextEditingController(
+      text: profile.displayPronouns != 'Not specified'
+          ? profile.displayPronouns
+          : 'they/them',
+    );
+    _bioController = TextEditingController(
+      text: profile.bio.isNotEmpty
+          ? profile.bio
+          : 'Designer & creative thinker exploring meaningful dating & creative friendships.',
+    );
+    _genderIdentity = _genders.contains(profile.displayGender)
+        ? profile.displayGender
+        : 'Non-Binary';
+    _sexualOrientation = _orientations.contains(profile.displayOrientation)
+        ? profile.displayOrientation
+        : 'Queer';
+    _connectionPreference = profile.connectionPreferences.isNotEmpty &&
+            _preferences.contains(profile.connectionPreferences.first)
+        ? profile.connectionPreferences.first
+        : 'Dating & Friendships';
+  }
 
   @override
   void dispose() {
@@ -36,9 +70,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _saveProfile() {
+    final current = ref.read(onboardingProvider).profile;
+    final updated = current.copyWith(
+      firstName: _nameController.text.trim(),
+      bio: _bioController.text.trim(),
+      genderIdentity: GenderIdentity(option: _genderIdentity),
+      pronouns: Pronouns(
+        option: 'Custom',
+        customPronouns: _pronounsController.text.trim(),
+      ),
+      sexualOrientation: SexualOrientation(option: _sexualOrientation),
+      connectionPreferences: [_connectionPreference],
+    );
+    ref.read(onboardingProvider.notifier).updateFullProfile(updated);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('✅ Profile updated successfully!'),
+        content: const Text('Profile updated & persisted locally!'),
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? AppColors.encreElevated
             : AppColors.primary,

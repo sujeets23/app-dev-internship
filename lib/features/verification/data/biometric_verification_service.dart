@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:inclusive_dating/features/auth/domain/models/auth_state.dart';
 import '../domain/models/biometric_verification_model.dart';
+import '../domain/models/government_id_model.dart';
 
 abstract class IBiometricVerificationService {
   Future<BiometricVerificationResult> verifyBiometric({
@@ -181,6 +182,17 @@ class MockBiometricVerificationService
           'success': false,
           'status': CompanionKycStatus.rejected.name,
           'message': 'Background & safety affirmation is required.',
+        };
+      }
+      final docNumberError = GovernmentIdValidator.validate(
+        submission.idType,
+        submission.documentNumber,
+      );
+      if (docNumberError != null) {
+        return {
+          'success': false,
+          'status': CompanionKycStatus.rejected.name,
+          'message': docNumberError,
         };
       }
       if (submission.selfieVerificationProofId == null ||

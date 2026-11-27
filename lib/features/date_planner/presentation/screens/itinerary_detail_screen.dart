@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
+import 'package:inclusive_dating/features/chat/domain/models/chat_message.dart';
 import 'package:inclusive_dating/features/chat/presentation/providers/chat_provider.dart';
+import 'package:inclusive_dating/features/chat/presentation/screens/chat_screen.dart';
 import '../../domain/models/date_plan_model.dart';
 import 'voucher_screen.dart';
 
@@ -409,83 +411,100 @@ class ItineraryDetailScreen extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Share Date Plan into Chat',
-                style: AppTypography.headlineMedium.copyWith(
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Select a match to directly dispatch this curated itinerary with 10% partner discount:',
-                style: TextStyle(color: mutedColor, fontSize: 13),
-              ),
-              const SizedBox(height: 16),
-              Material(
-                color: Colors.transparent,
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const CircleAvatar(
-                        backgroundImage: NetworkImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400'),
-                      ),
-                      title: Text('Aarya', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
-                      subtitle: const Text('Active now', style: TextStyle(color: AppColors.success, fontSize: 11)),
-                      trailing: Icon(Icons.send, color: accent),
-                      onTap: () {
-                        ref.read(conversationMessagesProvider('conv_1').notifier).sendMessage(
-                          'Hey Aarya, check out this date itinerary I generated for us on Date²! 🍷✨',
-                          itinerarySnippet: {
-                            'title': plan.title,
-                            'summary': plan.stops.map((s) => s.venueName).join(' ➔ '),
-                            'budget': plan.totalEstimatedCost.toInt().toString(),
-                          },
-                        );
-                        Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('🎉 Itinerary shared with Aarya!'),
-                            backgroundColor: isDark ? AppColors.encreElevated : AppColors.primary,
-                          ),
-                        );
-                      },
+        return Consumer(
+          builder: (sheetCtx, sheetRef, _) {
+            final convsAsync = sheetRef.watch(conversationsProvider);
+            return Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Share Date Plan into Chat',
+                    style: AppTypography.headlineMedium.copyWith(
+                      color: textColor,
                     ),
-                    ListTile(
-                      leading: const CircleAvatar(
-                        backgroundImage: NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'),
-                      ),
-                      title: Text('Zayan', style: TextStyle(color: textColor, fontWeight: FontWeight.bold)),
-                      subtitle: Text('Matched yesterday', style: TextStyle(color: mutedColor, fontSize: 11)),
-                      trailing: Icon(Icons.send, color: accent),
-                      onTap: () {
-                        ref.read(conversationMessagesProvider('conv_2').notifier).sendMessage(
-                          'Hey Zayan, generated this date plan for us!',
-                          itinerarySnippet: {
-                            'title': plan.title,
-                            'summary': plan.stops.map((s) => s.venueName).join(' ➔ '),
-                            'budget': plan.totalEstimatedCost.toInt().toString(),
-                          },
-                        );
-                        Navigator.pop(ctx);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('🎉 Itinerary shared with Zayan!'),
-                            backgroundColor: isDark ? AppColors.encreElevated : AppColors.primary,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Select a match to dispatch this curated itinerary with 10% partner voucher:',
+                    style: TextStyle(color: mutedColor, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  convsAsync.when(
+                    data: (convs) {
+                      final List<ChatConversation> targets = convs.take(4).toList();
+                      return Column(
+                        children: targets.map((conv) {
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: CircleAvatar(
+                              backgroundImage:
+                                  NetworkImage(conv.participantAvatar),
+                            ),
+                            title: Text(
+                              conv.participantName,
+                              style: TextStyle(
+                                color: textColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              conv.isOnline ? 'Active now' : 'Recently active',
+                              style: TextStyle(
+                                color: conv.isOnline
+                                    ? AppColors.success
+                                    : mutedColor,
+                                fontSize: 11,
+                              ),
+                            ),
+                            trailing: Icon(Icons.send_rounded, color: accent),
+                            onTap: () {
+                              ref
+                                  .read(conversationMessagesProvider(conv.id)
+                                      .notifier)
+                                  .sendMessage(
+                                    'Hey ${conv.participantName}, check out this date itinerary I generated for us on Date²! 🍷✨',
+                                    itinerarySnippet: {
+                                      'title': plan.title,
+                                      'neighborhood': plan.neighborhood,
+                                      'summary': plan.stops
+                                          .map((s) => s.venueName)
+                                          .join(' ➔ '),
+                                      'budget':
+                                          plan.totalEstimatedCost.toInt().toString(),
+                                      'stops': plan.stops
+                                          .map((s) =>
+                                              'Stop ${s.stepNumber}: ${s.venueName} (₹${s.estimatedCost.toInt()})')
+                                          .toList(),
+                                    },
+                                  );
+                              Navigator.pop(ctx);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChatScreen(
+                                    conversationId: conv.id,
+                                    participantName: conv.participantName,
+                                    participantAvatar: conv.participantAvatar,
+                                    isVerified: conv.isVerified,
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        }).toList(),
+                      );
+                    },
+                    loading: () =>
+                        Center(child: CircularProgressIndicator(color: accent)),
+                    error: (err, _) => Text('Unable to load matches: $err'),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

@@ -8,9 +8,14 @@ import '../../domain/models/game_models.dart';
 /// Guess which of the 3 statements is the lie, receive instant reveal animations,
 /// track score across 3 rounds, and view the final shareable scorecard.
 class TwoTruthsGameScreen extends ConsumerStatefulWidget {
+  final String? conversationId;
   final String? matchName;
 
-  const TwoTruthsGameScreen({super.key, this.matchName});
+  const TwoTruthsGameScreen({
+    super.key,
+    this.conversationId,
+    this.matchName,
+  });
 
   @override
   ConsumerState<TwoTruthsGameScreen> createState() => _TwoTruthsGameScreenState();
@@ -155,11 +160,14 @@ class _TwoTruthsGameScreenState extends ConsumerState<TwoTruthsGameScreen> {
                 Navigator.of(dialogCtx).pop();
                 Navigator.of(context).pop();
 
-                // Post scorecard message to chat
+                final targetConvId = widget.conversationId ?? 'conv_1';
+                final targetLabel = widget.matchName ?? 'Aarya';
+
+                // Post scorecard message to chosen match chat
                 ref
-                    .read(conversationMessagesProvider('conv_1').notifier)
+                    .read(conversationMessagesProvider(targetConvId).notifier)
                     .sendMessage(
-                      'I just finished playing 2 Truths & a Lie with you! Here is my scorecard 🕵️‍♂️',
+                      'I just finished playing 2 Truths & a Lie${widget.matchName != null ? " with $targetLabel" : ""}! Here is my scorecard (Your turn next!) 🕵️‍♂️',
                       gameScorecardSnippet: {
                         'gameTitle': 'Two Truths & a Lie',
                         'score':
@@ -168,14 +176,14 @@ class _TwoTruthsGameScreenState extends ConsumerState<TwoTruthsGameScreen> {
                             ? 'Master Lie Detective 🕵️‍♂️'
                             : 'Icebreaker Explorer ✨',
                         'highlights':
-                            'Found out the truth about wheel-thrown ceramics and living abroad!',
+                            'Turn-based challenge ready for $targetLabel!',
                       },
                     );
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Scorecard shared into your match chat: "$_correctGuesses/${_rounds.length} Lies Caught ($pct%)"!',
+                      'Scorecard shared to $targetLabel\'s chat: "$_correctGuesses/${_rounds.length} Lies Caught ($pct%)"!',
                     ),
                     backgroundColor: AppColors.encreDeep,
                     behavior: SnackBarBehavior.floating,

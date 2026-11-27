@@ -33,6 +33,10 @@ class ProductionGovernmentIdRepository implements IGovernmentIdRepository {
   @override
   Future<GovIdSubmissionResult> submitDocument(GovernmentIdData data) async {
     try {
+      final numberError = data.documentNumberError;
+      if (numberError != null) {
+        throw ArgumentError(numberError);
+      }
       if (data.frontImageBytes != null && !data.isFrontPdf) {
         data.frontImageBytes = BiometricPrivacyGuard.stripExifMetadataInMemory(
           data.frontImageBytes!,
@@ -76,6 +80,14 @@ class MockGovernmentIdRepository implements IGovernmentIdRepository {
       }
 
       await Future.delayed(const Duration(milliseconds: 700));
+
+      final numberError = data.documentNumberError;
+      if (numberError != null) {
+        return GovIdSubmissionResult(
+          status: GovIdStatus.rejected,
+          message: numberError,
+        );
+      }
 
       final docUpper = data.documentNumber.trim().toUpperCase();
       final prefix = data.country.name.substring(0, 2).toUpperCase();

@@ -189,6 +189,11 @@ class GovernmentIdData {
     this.proofReferenceId,
   });
 
+  String? get documentNumberError =>
+      GovernmentIdValidator.validate(documentType, documentNumber);
+
+  bool get hasValidDocumentNumber => documentNumberError == null;
+
   bool get hasRequiredSides {
     final needsBack = GovernmentIdCountry.requiresBackSide(documentType);
     if (needsBack) {
@@ -196,6 +201,8 @@ class GovernmentIdData {
     }
     return frontImageBytes != null;
   }
+
+  bool get isCompleteProof => hasValidDocumentNumber && hasRequiredSides;
 
   void secureWipe() {
     if (frontImageBytes != null) {
@@ -206,5 +213,85 @@ class GovernmentIdData {
       BiometricPrivacyGuard.bestEffortWipeBytes(backImageBytes);
       backImageBytes = null;
     }
+  }
+}
+
+/// Shared mandatory validation for Government ID numbers across consumer
+/// verification and Companion KYC.
+class GovernmentIdValidator {
+  const GovernmentIdValidator._();
+
+  static final RegExp _allowedChars = RegExp(r'^[A-Za-z0-9\s\-/]+$');
+  static final RegExp _separators = RegExp(r'[\s\-/]');
+  static final RegExp _aadhaarRegex = RegExp(r'^\d{12}$');
+  static final RegExp _panRegex = RegExp(r'^[A-Z]{5}\d{4}[A-Z]$');
+  static final RegExp _passportRegex = RegExp(r'^(?=.*\d)[A-Z0-9]{6,12}$');
+  static final RegExp _generalIdRegex = RegExp(r'^(?=.*\d)[A-Z0-9]{6,20}$');
+
+  static bool isDemoKeyword(String rawValue) {
+    final compact = rawValue.trim().replaceAll(_separators, '').toUpperCase();
+    return compact.startsWith('PENDING') ||
+        compact.startsWith('REJECT') ||
+        compact.startsWith('RETRY') ||
+        compact.startsWith('APPROVE');
+  }
+
+  static String hintForDocumentType(String docType) {
+    switch (docType) {
+      case 'Aadhaar Card':
+        return '12-digit Aadhaar number (e.g. 1234 5678 9012)';
+      case 'PAN Card':
+        return '10-character PAN (e.g. ABCDE1234F)';
+      case 'Passport':
+        return '6–12 character passport no. (e.g. K1234567)';
+      case 'Driving Licence':
+        return '6–20 character licence no. (e.g. DL1420110012345)';
+      case 'Voter ID':
+        return '6–20 character EPIC / Voter ID (e.g. ABC1234567)';
+      default:
+        return '6–20 character ID number (e.g. ID-123456)';
+    }
+  }
+
+  /// Returns `null` when [rawValue] satisfies mandatory proof requirements for
+  /// [docType], or an actionable error message otherwise.
+  static String? validate(String docType, String rawValue) {
+    final trimmed = rawValue.trim();
+    if (trimmed.isEmpty) {
+      return 'Mandatory proof: Enter your $docType number.';
+    }
+    if (!_allowedChars.hasMatch(trimmed)) {
+      return 'Use only letters, numbers, spaces, hyphens, or slashes.';
+    }
+    if (isDemoKeyword(trimmed)) {
+      return null;
+    }
+
+    final compact = trimmed.replaceAll(_separators, '').toUpperCase();
+    if (docType == 'Aadhaar Card') {
+      if (!_aadhaarRegex.hasMatch(compact)) {
+        return 'Enter the complete 12-digit Aadhaar number (e.g. 1234 5678 9012).';
+      }
+      return null;
+    }
+
+    if (docType == 'PAN Card') {
+      if (!_panRegex.hasMatch(compact)) {
+        return 'Enter a valid 10-character PAN (e.g. ABCDE1234F).';
+      }
+      return null;
+    }
+
+    if (docType == 'Passport') {
+      if (!_passportRegex.hasMatch(compact)) {
+        return 'Enter a valid 6–12 character Passport number containing at least 1 digit.';
+      }
+      return null;
+    }
+
+    if (!_generalIdRegex.hasMatch(compact)) {
+      return 'Enter a valid 6–20 character $docType number containing at least 1 digit.';
+    }
+    return null;
   }
 }
