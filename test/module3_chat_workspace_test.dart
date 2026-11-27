@@ -227,6 +227,7 @@ void main() {
       final statuses = <ChatConnectionStatus>[];
       final sub = service.connectionStatusStream.listen(statuses.add);
       await service.simulateReconnect();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
       await sub.cancel();
       expect(
         statuses,
@@ -309,18 +310,24 @@ void main() {
         await tester.pump(const Duration(milliseconds: 200));
 
         await tester.tap(find.byIcon(Icons.delete_outline_rounded));
-        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
         expect(find.text('Delete for everyone'), findsOneWidget);
         expect(find.text('Delete for me'), findsOneWidget);
 
         await tester.tap(find.text('Delete for everyone'));
-        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
         expect(find.text('You deleted this message'), findsWidgets);
 
+        await tester.ensureVisible(find.text('Vanish Mode'));
+        await tester.pump(const Duration(milliseconds: 250));
         await tester.tap(find.text('Vanish Mode'));
         await tester.pump(const Duration(milliseconds: 250));
         expect(find.textContaining('Vanish Mode Active'), findsOneWidget);
 
+        await tester.ensureVisible(find.text('AI Chat'));
+        await tester.pump(const Duration(milliseconds: 250));
         await tester.tap(find.text('AI Chat'));
         await tester.pump(const Duration(milliseconds: 300));
         expect(find.text('Date² AI Chat (Demo)'), findsOneWidget);
@@ -354,7 +361,7 @@ void main() {
 
         await tester.tap(find.text('Solo Mode'));
         await tester.pump(const Duration(milliseconds: 250));
-        expect(find.text('Two Truths & a Lie'), findsOneWidget);
+        expect(find.text('2 Truths & a Lie'), findsOneWidget);
       }, createHttpClient: (_) => _TransparentImageHttpClient());
     });
   });

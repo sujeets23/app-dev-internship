@@ -373,27 +373,33 @@ class _GamesLobbyScreenState extends ConsumerState<GamesLobbyScreen> {
           ),
           const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.bolt_rounded,
-                    size: 16,
-                    color: AppColors.glanceableCyanDeep,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    badgeText,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppColors.textTertiaryDark
-                          : AppColors.textTertiary,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.bolt_rounded,
+                      size: 16,
+                      color: AppColors.glanceableCyanDeep,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        badgeText,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppColors.textTertiaryDark
+                              : AppColors.textTertiary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               FilledButton.icon(
                 icon: const Icon(Icons.play_arrow_rounded, size: 18),
                 label: const Text('Play'),
@@ -401,7 +407,7 @@ class _GamesLobbyScreenState extends ConsumerState<GamesLobbyScreen> {
                   backgroundColor: AppColors.glanceableCyan,
                   foregroundColor: AppColors.encreDeep,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
+                    horizontal: 16,
                     vertical: 10,
                   ),
                   shape: RoundedRectangleBorder(

@@ -659,84 +659,87 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     bottom: BorderSide(color: AppColors.encreBorderDark, width: 1),
                   ),
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.timer_outlined,
-                        color: AppColors.accent, size: 14),
-                    const SizedBox(width: 6),
-                    const Text(
-                      'TTL:',
-                      style: TextStyle(
-                        color: AppColors.accent,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.timer_outlined,
+                          color: AppColors.accent, size: 14),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'TTL:',
+                        style: TextStyle(
+                          color: AppColors.accent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    for (final ttl in [10, 30, 60]) ...[
-                      GestureDetector(
-                        onTap: () => setState(() => _vanishTtlSeconds = ttl),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
-                          margin: const EdgeInsets.only(right: 6),
-                          decoration: BoxDecoration(
-                            color: _vanishTtlSeconds == ttl
-                                ? AppColors.error
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
+                      const SizedBox(width: 6),
+                      for (final ttl in [10, 30, 60]) ...[
+                        GestureDetector(
+                          onTap: () => setState(() => _vanishTtlSeconds = ttl),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            margin: const EdgeInsets.only(right: 6),
+                            decoration: BoxDecoration(
                               color: _vanishTtlSeconds == ttl
                                   ? AppColors.error
-                                  : AppColors.accent.withValues(alpha: 0.6),
-                              width: 1,
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: _vanishTtlSeconds == ttl
+                                    ? AppColors.error
+                                    : AppColors.accent.withValues(alpha: 0.6),
+                                width: 1,
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            '${ttl}s',
-                            style: TextStyle(
-                              color: _vanishTtlSeconds == ttl
-                                  ? Colors.white
-                                  : AppColors.accent,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                    const Spacer(),
-                    InkWell(
-                      onTap: _simulateScreenshot,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.warning.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(8),
-                          border:
-                              Border.all(color: AppColors.warning, width: 0.8),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.camera_alt_outlined,
-                                color: AppColors.warning, size: 12),
-                            SizedBox(width: 4),
-                            Text(
-                              'Capture Limits',
+                            child: Text(
+                              '${ttl}s',
                               style: TextStyle(
-                                color: AppColors.warning,
+                                color: _vanishTtlSeconds == ttl
+                                    ? Colors.white
+                                    : AppColors.accent,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(width: 12),
+                      InkWell(
+                        onTap: _simulateScreenshot,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.warning.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(8),
+                            border:
+                                Border.all(color: AppColors.warning, width: 0.8),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.camera_alt_outlined,
+                                  color: AppColors.warning, size: 12),
+                              SizedBox(width: 4),
+                              Text(
+                                'Capture Limits',
+                                style: TextStyle(
+                                  color: AppColors.warning,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 
@@ -1093,43 +1096,46 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
                 if (displayInterests.isNotEmpty) ...[
                   const SizedBox(height: 2),
-                  Row(
-                    children: displayInterests.take(2).map((interest) {
-                      return Container(
-                        margin: const EdgeInsets.only(right: 4),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(
-                          color:
-                              AppColors.glanceableCyan.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: AppColors.glanceableCyan
-                                .withValues(alpha: 0.5),
-                            width: 0.8,
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: displayInterests.take(2).map((interest) {
+                        return Container(
+                          margin: const EdgeInsets.only(right: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color:
+                                AppColors.glanceableCyan.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: AppColors.glanceableCyan
+                                  .withValues(alpha: 0.5),
+                              width: 0.8,
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.auto_awesome,
-                              color: AppColors.glanceableCyan,
-                              size: 8,
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              interest,
-                              style: const TextStyle(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.auto_awesome,
                                 color: AppColors.glanceableCyan,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w700,
+                                size: 8,
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
+                              const SizedBox(width: 2),
+                              Text(
+                                interest,
+                                style: const TextStyle(
+                                  color: AppColors.glanceableCyan,
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ],
               ],
