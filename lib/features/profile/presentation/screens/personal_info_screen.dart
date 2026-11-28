@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inclusive_dating/core/constants/onboarding_options.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
+import 'package:inclusive_dating/core/widgets/sf_pattern_widgets.dart';
 import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
 
 /// Feature 4: Personal Information Screen
@@ -375,28 +376,29 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                         }
                       },
                       labelStyle: TextStyle(
+                        fontFamily: 'SF Pro',
                         fontSize: 14,
                         fontWeight:
                             isSelected ? FontWeight.w700 : FontWeight.w600,
                         color: isSelected
-                            ? AppColors.encreDeep
+                            ? Colors.white
                             : (isDark
                                 ? AppColors.textPrimaryDark
-                                : AppColors.textPrimary),
+                                : AppColors.sfCharcoal),
                       ),
-                      selectedColor: AppColors.glanceableCyan,
+                      selectedColor: AppColors.sfCoral,
                       backgroundColor: isDark
                           ? AppColors.surfaceDark
-                          : AppColors.surface,
+                          : Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(22),
                         side: BorderSide(
                           color: isSelected
-                              ? AppColors.glanceableCyan
+                              ? AppColors.sfCoral
                               : (isDark
                                   ? AppColors.borderDark
-                                  : AppColors.border),
-                          width: isSelected ? 1.5 : 1.0,
+                                  : const Color(0xFFE8E3DA)),
+                          width: isSelected ? 1.6 : 1.0,
                         ),
                       ),
                       padding: const EdgeInsets.symmetric(
@@ -463,8 +465,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                       ),
                       Switch.adaptive(
                         value: _isSexVisible,
-                        activeColor: AppColors.glanceableCyanDeep,
-                        activeTrackColor: AppColors.glanceableCyan,
+                        activeColor: AppColors.sfCoral,
                         onChanged: (val) {
                           setState(() => _isSexVisible = val);
                         },
@@ -515,32 +516,34 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                         });
                       },
                       labelStyle: TextStyle(
+                        fontFamily: 'SF Pro',
                         fontSize: 14,
                         fontWeight:
                             isSelected ? FontWeight.w700 : FontWeight.w600,
                         color: isSelected
-                            ? AppColors.encreDeep
+                            ? Colors.white
                             : (isDark
                                 ? AppColors.textPrimaryDark
-                                : AppColors.textPrimary),
+                                : AppColors.sfCharcoal),
                       ),
-                      selectedColor: AppColors.glanceableCyan,
+                      selectedColor: AppColors.sfCoral,
+                      checkmarkColor: Colors.white,
                       backgroundColor: isDark
                           ? AppColors.surfaceDark
-                          : AppColors.surface,
+                          : Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(22),
                         side: BorderSide(
                           color: isSelected
-                              ? AppColors.glanceableCyan
+                              ? AppColors.sfCoral
                               : (isDark
                                   ? AppColors.borderDark
-                                  : AppColors.border),
-                          width: isSelected ? 1.5 : 1.0,
+                                  : const Color(0xFFE8E3DA)),
+                          width: isSelected ? 1.6 : 1.0,
                         ),
                       ),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
+                        horizontal: 16,
                         vertical: 10,
                       ),
                     );
@@ -717,6 +720,11 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                 }),
 
                 const SizedBox(height: 24),
+
+                // SF PATTERN: Candy Tokens with Heart Cutouts (Screen 4 Pattern)
+                const SfCandyTokensPattern(),
+
+                const SizedBox(height: 20),
 
                 // Save Button
                 PrimaryButton(

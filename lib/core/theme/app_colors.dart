@@ -10,10 +10,34 @@ class AppColors {
   AppColors._();
 
   // ===========================================================================
-  // 1. PRIMARY BRAND INK FAMILY (Glanceable Encre)
+  // SF PRO BRAND PALETTE (User Swatch: #212322, #FEFCF9, #FF94CE, #FC7445, #1A5EDB)
   // ===========================================================================
-  /// --brand--encre-700: Primary brand ink, light-mode CTAs, dark section blocks & active ink
-  static const Color primary = Color(0xFF1C2134);
+  /// #212322: Primary dark charcoal for headers, black stadium CTAs & active text
+  static const Color sfCharcoal = Color(0xFF212322);
+
+  /// #FEFCF9: Warm porcelain off-white scaffold canvas background
+  static const Color sfCanvas = Color(0xFFFEFCF9);
+
+  /// #FF94CE: Candy bubblegum pink for playful badges, pills & celebration patterns
+  static const Color sfPink = Color(0xFFFF94CE);
+
+  /// #FC7445: Vibrant warm coral for active segmented pills, toggle chips & primary accents
+  static const Color sfCoral = Color(0xFFFC7445);
+
+  /// #1A5EDB: Cobalt electric blue for feature pills, verification & connection badges
+  static const Color sfBlue = Color(0xFF1A5EDB);
+
+  /// #FAC938: Sunny pastel yellow for heart badge cutouts and festive tokens
+  static const Color sfYellow = Color(0xFFFAC938);
+
+  /// #D6B8FF: Soft pastel lilac/lavender for speech pills & candy tokens
+  static const Color sfLilac = Color(0xFFD6B8FF);
+
+  // ===========================================================================
+  // 1. PRIMARY BRAND INK FAMILY
+  // ===========================================================================
+  /// Primary brand ink, light-mode CTAs, dark section blocks & active ink
+  static const Color primary = sfCharcoal;
 
   /// --brand--encre-900: Deepest ink for pressed states & dark-mode scaffold canvas
   static const Color encreDeep = Color(0xFF0E1018);
@@ -70,8 +94,8 @@ class AppColors {
   // ===========================================================================
   // 4. BACKGROUNDS & WARM EDITORIAL SURFACES (Light & Dark)
   // ===========================================================================
-  /// --brand--neutral: Clean editorial off-white app canvas
-  static const Color background = Color(0xFFFBFBFB);
+  /// #FEFCF9: Clean warm porcelain off-white app canvas
+  static const Color background = sfCanvas;
 
   /// --brand--neutral-200: Warm stone/linen section background
   static const Color backgroundWarm = Color(0xFFF4F3F0);

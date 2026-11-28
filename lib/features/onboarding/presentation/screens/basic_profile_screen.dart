@@ -5,6 +5,7 @@ import 'package:inclusive_dating/core/constants/onboarding_options.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/widgets/avatar_picker_widget.dart';
 import 'package:inclusive_dating/core/widgets/custom_text_field.dart';
+import 'package:inclusive_dating/core/widgets/sf_pattern_widgets.dart';
 import '../providers/onboarding_provider.dart';
 import '../widgets/onboarding_step_scaffold.dart';
 
@@ -145,22 +146,30 @@ class _BasicProfileScreenState extends ConsumerState<BasicProfileScreen> {
           Text(
             'Date of Birth',
             style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.sfCharcoal,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
+
+          // SF Pro 3-Box Day, Month, Year Input Cards (Screen 3 Pattern)
+          SfDateOfBirthBoxes(
+            dateOfBirth: profile.dateOfBirth,
+            onTap: () => _selectDateOfBirth(context),
+          ),
+          const SizedBox(height: 10),
+
           GestureDetector(
             onTap: () => _selectDateOfBirth(context),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.surfaceMutedDark : AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: errors.containsKey('dob')
                       ? AppColors.error
-                      : (isDark ? AppColors.borderDark : AppColors.border),
+                      : (isDark ? AppColors.borderDark : const Color(0xFFE8E3DA)),
                   width: errors.containsKey('dob') ? 1.6 : 1.2,
                 ),
               ),
@@ -169,7 +178,7 @@ class _BasicProfileScreenState extends ConsumerState<BasicProfileScreen> {
                   const Icon(
                     Icons.calendar_today_outlined,
                     size: 20,
-                    color: AppColors.primary,
+                    color: AppColors.sfCoral,
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -181,10 +190,10 @@ class _BasicProfileScreenState extends ConsumerState<BasicProfileScreen> {
                         color: profile.dateOfBirth != null
                             ? (isDark
                                 ? AppColors.textPrimaryDark
-                                : AppColors.textPrimary)
+                                : AppColors.sfCharcoal)
                             : AppColors.textTertiary,
                         fontWeight: profile.dateOfBirth != null
-                            ? FontWeight.w500
+                            ? FontWeight.w600
                             : FontWeight.w400,
                       ),
                     ),
@@ -259,26 +268,26 @@ class _BasicProfileScreenState extends ConsumerState<BasicProfileScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? (isDark
-                                ? AppColors.glanceableCyan.withValues(alpha: 0.22)
-                                : AppColors.glacierLight)
-                            : (isDark ? AppColors.surfaceMutedDark : AppColors.surface),
-                        borderRadius: BorderRadius.circular(12),
+                            ? AppColors.sfCoral
+                            : (isDark ? AppColors.surfaceMutedDark : Colors.white),
+                        borderRadius: BorderRadius.circular(22),
                         border: Border.all(
                           color: isSelected
-                              ? AppColors.glanceableCyan
-                              : (isDark ? AppColors.borderDark : AppColors.border),
-                          width: isSelected ? 1.6 : 1.0,
+                              ? AppColors.sfCoral
+                              : (isDark ? AppColors.borderDark : const Color(0xFFE8E3DA)),
+                          width: isSelected ? 1.6 : 1.2,
                         ),
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         opt,
-                        style: theme.textTheme.bodyMedium?.copyWith(
+                        style: TextStyle(
+                          fontFamily: 'SF Pro',
                           color: isSelected
-                              ? (isDark ? AppColors.glanceableCyan : AppColors.encreDeep)
-                              : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              ? Colors.white
+                              : (isDark ? AppColors.textPrimaryDark : AppColors.sfCharcoal),
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                          fontSize: 13.5,
                         ),
                       ),
                     ),
@@ -361,27 +370,32 @@ class _BasicProfileScreenState extends ConsumerState<BasicProfileScreen> {
                 label: Text(pref),
                 selected: isChecked,
                 onSelected: (_) => notifier.toggleMatchSexPreference(pref),
-                selectedColor: isDark
-                    ? AppColors.glanceableCyan.withValues(alpha: 0.25)
-                    : AppColors.glacierLight,
-                checkmarkColor: isDark ? AppColors.glanceableCyan : AppColors.encreDeep,
+                selectedColor: AppColors.sfCoral,
+                checkmarkColor: Colors.white,
                 labelStyle: TextStyle(
+                  fontFamily: 'SF Pro',
                   color: isChecked
-                      ? (isDark ? AppColors.glanceableCyan : AppColors.encreDeep)
-                      : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
-                  fontWeight: isChecked ? FontWeight.w700 : FontWeight.w500,
+                      ? Colors.white
+                      : (isDark ? AppColors.textPrimaryDark : AppColors.sfCharcoal),
+                  fontWeight: isChecked ? FontWeight.w700 : FontWeight.w600,
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(20),
                   side: BorderSide(
                     color: isChecked
-                        ? AppColors.glanceableCyan
-                        : (isDark ? AppColors.borderDark : AppColors.border),
+                        ? AppColors.sfCoral
+                        : (isDark ? AppColors.borderDark : const Color(0xFFE8E3DA)),
                   ),
                 ),
               );
             }).toList(),
           ),
+
+          const SizedBox(height: 28),
+
+          // SF PATTERN: Birthday Cake Candles Celebration Pattern (Screen 3 Pattern)
+          SfBirthdayCandlesPattern(age: profile.age ?? 18),
+          const SizedBox(height: 16),
         ],
       ),
     );

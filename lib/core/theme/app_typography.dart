@@ -10,7 +10,11 @@ class AppTypography {
   AppTypography._();
 
   static const List<String> sansFallbacks = [
-    'PP Mori',
+    'SF Pro',
+    'SF Pro Display',
+    'SF Pro Text',
+    '-apple-system',
+    'BlinkMacSystemFont',
     'Plus Jakarta Sans',
     'Inter',
     'Helvetica Neue',

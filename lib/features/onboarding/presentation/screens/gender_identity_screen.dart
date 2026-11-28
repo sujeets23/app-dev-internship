@@ -154,24 +154,25 @@ class _GenderIdentityScreenState extends ConsumerState<GenderIdentityScreen> {
                   }
                 },
                 labelStyle: TextStyle(
+                  fontFamily: 'SF Pro',
                   fontSize: 14,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   color: isSelected
-                      ? AppColors.encreDeep
+                      ? Colors.white
                       : (isDark
                           ? AppColors.textPrimaryDark
-                          : AppColors.textPrimary),
+                          : AppColors.sfCharcoal),
                 ),
-                selectedColor: AppColors.glanceableCyan,
+                selectedColor: AppColors.sfCoral,
                 backgroundColor:
-                    isDark ? AppColors.surfaceDark : AppColors.surface,
+                    isDark ? AppColors.surfaceDark : Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(22),
                   side: BorderSide(
                     color: isSelected
-                        ? AppColors.glanceableCyan
-                        : (isDark ? AppColors.borderDark : AppColors.border),
-                    width: isSelected ? 1.5 : 1.0,
+                        ? AppColors.sfCoral
+                        : (isDark ? AppColors.borderDark : const Color(0xFFE8E3DA)),
+                    width: isSelected ? 1.6 : 1.0,
                   ),
                 ),
                 padding: const EdgeInsets.symmetric(

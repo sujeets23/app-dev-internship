@@ -6,12 +6,13 @@ import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
+import 'package:inclusive_dating/core/widgets/sf_pattern_widgets.dart';
 import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
 import 'package:inclusive_dating/features/auth/presentation/screens/login_screen.dart';
 import 'package:inclusive_dating/features/auth/presentation/screens/signup_screen.dart';
 import '../providers/onboarding_provider.dart';
 
-/// Screen 1: Welcome & Brand Introduction (Editorial Redesign)
+/// Screen 1: Welcome & Brand Introduction (SF Pro & Playful Badges Redesign)
 class WelcomeScreen extends ConsumerWidget {
   final bool isInsideFlow;
 
@@ -36,20 +37,20 @@ class WelcomeScreen extends ConsumerWidget {
     final state = ref.watch(onboardingProvider);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: isDark ? theme.scaffoldBackgroundColor : AppColors.sfCanvas,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // TOP: Prominent Date² Wordmark & Tagline
+              // TOP: Prominent Date² Wordmark & Tagline Badge
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Date2LogoWidget(
-                    height: 40,
+                    height: 38,
                     showContainer: false,
                   ),
                   Container(
@@ -57,18 +58,20 @@ class WelcomeScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: isDark
                           ? AppColors.encreElevated
-                          : AppColors.glacierLight,
-                      borderRadius: BorderRadius.circular(10),
+                          : AppColors.sfCoral.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isDark
                             ? AppColors.borderDark
-                            : AppColors.glacierBorder,
+                            : AppColors.sfCoral.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Text(
                       AppConstants.appName,
                       style: TextStyle(
-                        color: AppColors.adaptiveAccent(isDark),
+                        color: isDark
+                            ? AppColors.adaptiveAccent(isDark)
+                            : AppColors.sfCoral,
                         fontWeight: FontWeight.w800,
                         fontSize: 12,
                         letterSpacing: 0.6,
@@ -78,33 +81,41 @@ class WelcomeScreen extends ConsumerWidget {
                 ],
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
 
               // Brand Tagline
-              Text(
+              const Text(
                 AppConstants.appTagline,
                 style: TextStyle(
-                  color: AppColors.adaptiveAccent(isDark),
+                  color: Color(0xFF8E8E93),
                   fontWeight: FontWeight.w600,
                   fontSize: 12,
                   letterSpacing: 0.2,
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
 
-              // MAIN SECTION: Clean Architectural Headline
+              // SF PATTERN: Floating Speech Bubbles & Playful Badges (Screen 2 Pattern)
+              const SfWelcomeBadgesPattern(),
+
+              const SizedBox(height: 20),
+
+              // MAIN HEADLINE: Bold SF Pro Typography
               Text(
                 'Meet someone who gets you.',
-                style: AppTypography.displayMedium.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                  letterSpacing: -0.7,
+                style: TextStyle(
+                  fontFamily: 'SF Pro',
+                  fontFamilyFallback: AppTypography.sansFallbacks,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.sfCharcoal,
+                  letterSpacing: -0.9,
                   height: 1.15,
                 ),
               ),
 
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
 
               // Supporting Text
               Text(
@@ -112,49 +123,28 @@ class WelcomeScreen extends ConsumerWidget {
                 style: TextStyle(
                   color: isDark
                       ? AppColors.textSecondaryDark
-                      : AppColors.textSecondary,
-                  fontSize: 13.5,
+                      : const Color(0xFF6E6E73),
+                  fontSize: 14,
                   height: 1.4,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
 
               const SizedBox(height: 16),
 
-              // FEATURES: Three Concise Benefits
-              _buildBenefitItem(
-                context,
-                icon: Icons.favorite_rounded,
-                iconColor: AppColors.adaptiveAccent(isDark),
-                title: 'Meaningful Connections',
-                description: 'Discover people who appreciate who you are with authentic affirmation.',
-              ),
-              const SizedBox(height: 8),
-              _buildBenefitItem(
-                context,
-                icon: Icons.verified_user_rounded,
-                iconColor: isDark ? AppColors.accentTeal : AppColors.glacierInk,
-                title: 'Verified & Safer Experiences',
-                description: 'Live biometric verification, mutual video consent, and privacy shields.',
-              ),
-              const SizedBox(height: 8),
-              _buildBenefitItem(
-                context,
-                icon: Icons.auto_awesome_rounded,
-                iconColor: isDark ? AppColors.glacierBorder : AppColors.primarySoft,
-                title: 'Dates Designed Around You',
-                description: 'AI date planning within your exact budget and curated partner venues.',
-              ),
+              // LOWER SF PATTERN: Coral Comfort Pill + Link Coin (Screen 2 Pattern)
+              const SfWelcomeBottomBadgesPattern(),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 28),
 
-              // BOTTOM: Primary Action CTA
+              // BOTTOM: Primary Action CTA (Black Stadium Pill)
               PrimaryButton(
                 label: isInsideFlow ? 'Get Started' : 'Create Your Account',
                 icon: Icons.arrow_forward_rounded,
                 onPressed: () => _handlePrimaryAction(context, ref),
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 14),
 
               // Secondary CTA: "Already a member? Log In"
               Row(
@@ -163,8 +153,11 @@ class WelcomeScreen extends ConsumerWidget {
                   Text(
                     'Already a member? ',
                     style: TextStyle(
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : const Color(0xFF8E8E93),
                       fontSize: 13.5,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   GestureDetector(
@@ -176,8 +169,8 @@ class WelcomeScreen extends ConsumerWidget {
                     child: Text(
                       'Log In',
                       style: TextStyle(
-                        color: AppColors.adaptiveAccent(isDark),
-                        fontWeight: FontWeight.w700,
+                        color: isDark ? AppColors.adaptiveAccent(isDark) : AppColors.sfCoral,
+                        fontWeight: FontWeight.w800,
                         fontSize: 13.5,
                       ),
                     ),
@@ -185,10 +178,8 @@ class WelcomeScreen extends ConsumerWidget {
                 ],
               ),
 
-              const SizedBox(height: 6),
-
               if (!isInsideFlow && state.hasSavedDraft && state.profile.firstName.isNotEmpty) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: 10),
                 Center(
                   child: TextButton.icon(
                     icon: const Icon(Icons.refresh_rounded, size: 16),
@@ -204,63 +195,11 @@ class WelcomeScreen extends ConsumerWidget {
                 ),
               ],
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildBenefitItem(
-    BuildContext context, {
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String description,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: isDark
-                ? AppColors.surfaceMutedDark
-                : AppColors.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: iconColor, size: 18),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                  color: isDark ? Colors.white : AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 1),
-              Text(
-                description,
-                style: TextStyle(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                  fontSize: 11.5,
-                  height: 1.3,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

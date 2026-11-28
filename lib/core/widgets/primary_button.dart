@@ -30,14 +30,14 @@ class PrimaryButton extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final Color defaultBg = isDark ? AppColors.accent : AppColors.primary;
-    final Color defaultFg = isDark ? AppColors.encreDeep : AppColors.textInverse;
+    final Color defaultBg = isDark ? AppColors.accent : AppColors.sfCharcoal;
+    final Color defaultFg = isDark ? AppColors.encreDeep : Colors.white;
     final Color resolvedBg = backgroundColor ?? defaultBg;
     final Color resolvedFg = textColor ??
         (backgroundColor != null
             ? (backgroundColor!.computeLuminance() > 0.5
-                ? AppColors.encreDeep
-                : AppColors.textInverse)
+                ? AppColors.sfCharcoal
+                : Colors.white)
             : defaultFg);
     final Color disabledFg =
         isDark ? AppColors.textTertiaryDark : AppColors.textTertiary;
@@ -70,8 +70,9 @@ class PrimaryButton extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelLarge?.copyWith(
               color: isEnabled ? resolvedFg : disabledFg,
-              fontWeight: FontWeight.w600,
-              fontSize: 15.5,
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              letterSpacing: -0.2,
             ),
           ),
         ),
@@ -89,7 +90,7 @@ class PrimaryButton extends StatelessWidget {
           disabledBackgroundColor:
               isDark ? AppColors.surfaceMutedDark : AppColors.surfaceMuted,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(28),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 22),
         ),
