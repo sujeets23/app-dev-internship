@@ -5,6 +5,7 @@ import 'package:inclusive_dating/core/routing/app_router.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/core/theme/app_typography.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
+import 'package:inclusive_dating/core/widgets/secondary_button.dart';
 import 'package:inclusive_dating/features/auth/domain/models/auth_state.dart';
 import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
 import 'biometric_verification_screen.dart';
@@ -355,6 +356,22 @@ class SecurityCheckIntroScreen extends ConsumerWidget {
                   }
                 },
               ),
+              if (!authState.isFaceVerified) ...[
+                const SizedBox(height: 12),
+                SecondaryButton(
+                  label: 'Bypass Face Scan (QA Testing)',
+                  icon: Icons.fast_forward_rounded,
+                  onPressed: () {
+                    ref.read(authProvider.notifier).setFaceVerified('VERIF-B3D-QA-BYPASS');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const GovernmentIdVerificationScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
               const SizedBox(height: 14),
               Center(
                 child: Text(

@@ -17,6 +17,7 @@ import '../../domain/liveness_state_machine.dart';
 import '../../domain/models/biometric_verification_model.dart';
 import '../providers/biometric_verification_provider.dart';
 import 'companion_kyc_screen.dart';
+import 'government_id_verification_screen.dart';
 import 'security_check_intro_screen.dart';
 import 'verification_result_screen.dart';
 
@@ -485,8 +486,25 @@ class _BiometricVerificationScreenState
             ),
           ),
           actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: TextButton.icon(
+                key: const ValueKey('skip_face_scan_qa_btn'),
+                icon: const Icon(Icons.fast_forward_rounded,
+                    color: Color(0xFFFFD600), size: 16),
+                label: const Text(
+                  'Skip (QA)',
+                  style: TextStyle(
+                    color: Color(0xFFFFD600),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+                onPressed: _bypassForTesting,
+              ),
+            ),
             const Padding(
-              padding: EdgeInsets.only(right: 16),
+              padding: EdgeInsets.only(right: 8),
               child: Center(
                 child: Text(
                   'FACE CHECK · 2 OF 3',
@@ -1056,6 +1074,23 @@ class _BiometricVerificationScreenState
                         ],
                       ),
                     ),
+                    // QA Testing Skip Button
+                    Center(
+                      child: TextButton.icon(
+                        key: const ValueKey('skip_face_scan_bottom_btn'),
+                        icon: const Icon(Icons.fast_forward_rounded,
+                            color: Color(0xFFFFD600), size: 16),
+                        label: const Text(
+                          'Skip Face Scan (For Testing)',
+                          style: TextStyle(
+                            color: Color(0xFFFFD600),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                        onPressed: _bypassForTesting,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                   ],
                 ),
@@ -1070,6 +1105,21 @@ class _BiometricVerificationScreenState
       requiredStep: AuthFlowStep.faceScan,
       child: screen,
     );
+  }
+
+  Future<void> _bypassForTesting() async {
+    await _teardownCameraResources();
+    ref.read(authProvider.notifier).setFaceVerified('VERIF-B3D-QA-SKIP');
+    if (!mounted) return;
+    if (widget.isCompanionFlow) {
+      Navigator.of(context).pop('VERIF-B3D-QA-SKIP');
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const GovernmentIdVerificationScreen(),
+        ),
+      );
+    }
   }
 
   bool _isPermissionBlocked(CameraPermissionState permission) {
@@ -1295,6 +1345,20 @@ class _BiometricVerificationScreenState
                 },
                 child: const Text('Back to Security Check'),
               ),
+            ),
+            const SizedBox(height: 12),
+            TextButton.icon(
+              icon: const Icon(Icons.fast_forward_rounded,
+                  color: Color(0xFFFFD600), size: 16),
+              label: const Text(
+                'Skip Face Scan (For Testing)',
+                style: TextStyle(
+                  color: Color(0xFFFFD600),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+              onPressed: _bypassForTesting,
             ),
           ],
         ),
