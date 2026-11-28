@@ -206,9 +206,9 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Logo Wordmark (Clean DaTe²)
+          // Logo Wordmark (Official Date² Brand Logo)
           const Date2LogoWidget(
-            height: 38,
+            height: 32,
             showContainer: false,
           ),
 
@@ -414,8 +414,8 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                         border: Border.all(color: Colors.white, width: 1.5),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFFF2D55).withValues(alpha: 0.35),
-                            blurRadius: 4,
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 2,
                             offset: const Offset(0, 1),
                           ),
                         ],
@@ -678,14 +678,14 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
 
           const SizedBox(height: 8),
 
-          // Full-Width Media Image
+          // Full-Width Media Image (Proportional height)
           GestureDetector(
             onDoubleTap: () {
               setState(() => _likedPostIds.add(post.id));
             },
             child: Container(
               width: double.infinity,
-              height: 380,
+              height: 290,
               decoration: BoxDecoration(
                 image: DecorationImage(
                   image: NetworkImage(post.imageUrl),
@@ -801,7 +801,7 @@ class _HomeFeedScreenState extends ConsumerState<HomeFeedScreen> {
                       Icon(Icons.reply_rounded, size: 15, color: Color(0xFF141416)),
                       SizedBox(width: 4),
                       Text(
-                        'Reply',
+                        '17 Reply',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,

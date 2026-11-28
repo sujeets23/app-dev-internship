@@ -29,10 +29,18 @@ class Date2LogoWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final Color resolvedLogoTint = color ??
-        (isDark ? AppColors.textPrimaryDark : AppColors.primary);
+        (isDark ? AppColors.textPrimaryDark : const Color(0xFF141416));
 
-    // Direct clean typography wordmark with no background box or container
-    Widget logoCore = _buildFallbackWordmark(context, resolvedLogoTint);
+    // Official brand logo asset with fallback to typographic wordmark
+    Widget logoCore = Image.asset(
+      'assets/images/date2_logo.png',
+      height: height,
+      color: resolvedLogoTint,
+      colorBlendMode: BlendMode.srcIn,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) =>
+          _buildFallbackWordmark(context, resolvedLogoTint),
+    );
 
     if (showTagline) {
       logoCore = Column(

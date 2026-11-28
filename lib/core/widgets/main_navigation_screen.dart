@@ -246,12 +246,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   onTap: () => _onTabSelected(1),
                 ),
 
-                // 3. Center Elevated 3D Action Button (Glowing Pink-to-Coral Gradient)
+                // 3. Center Elevated 3D Action Button (Crisp Coral Gradient, No Glow)
                 GestureDetector(
                   onTap: () => _showCenterActionMenu(context),
                   child: Container(
-                    width: 52,
-                    height: 52,
+                    width: 50,
+                    height: 50,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: const LinearGradient(
@@ -261,9 +261,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFFF2D75).withValues(alpha: 0.45),
-                          blurRadius: 14,
-                          offset: const Offset(0, 4),
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
@@ -271,7 +271,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       child: Icon(
                         Icons.view_in_ar_rounded,
                         color: Colors.white,
-                        size: 27,
+                        size: 26,
                       ),
                     ),
                   ),
