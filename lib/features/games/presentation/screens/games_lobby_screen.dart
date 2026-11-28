@@ -4,6 +4,7 @@ import 'package:inclusive_dating/core/theme/app_colors.dart';
 import 'package:inclusive_dating/features/chat/domain/models/chat_message.dart';
 import 'package:inclusive_dating/features/chat/presentation/providers/chat_provider.dart';
 import 'compatibility_trivia_screen.dart';
+import 'this_or_that_game_screen.dart';
 import 'two_truths_game_screen.dart';
 import 'would_you_rather_screen.dart';
 
@@ -187,6 +188,34 @@ class _GamesLobbyScreenState extends ConsumerState<GamesLobbyScreen> {
               ),
 
               const SizedBox(height: 20),
+
+              // Featured Game: This or That (Unmute Break The Ice)
+              _buildGameCard(
+                context,
+                title: 'This or That',
+                tag: 'BREAK THE ICE',
+                description: _isMatchMode
+                    ? 'Pick your escape between Beach or Mountains and reveal where you and $_selectedMatchName align or clash.'
+                    : 'Compare your lifestyle escapes and reveal community harmony answers.',
+                icon: Icons.flare_rounded,
+                iconColor: const Color(0xFFFF5C38),
+                tagColor: const Color(0xFFFF5C38),
+                badgeText: 'Live Reveal • Match Mode',
+                isDark: isDark,
+                onPlay: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ThisOrThatGameScreen(
+                        conversationId:
+                            _isMatchMode ? _selectedConversationId : null,
+                        matchName: _isMatchMode ? _selectedMatchName : null,
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 16),
 
               // Game 1: 2 Truths & a Lie
               _buildGameCard(

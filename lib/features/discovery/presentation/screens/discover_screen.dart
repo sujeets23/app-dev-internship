@@ -16,6 +16,7 @@ import '../widgets/incognito_privacy_shield_dialog.dart';
 import '../widgets/match_celebration_dialog.dart';
 import '../widgets/profile_detail_sheet.dart';
 import '../widgets/swipeable_card.dart';
+import 'package:inclusive_dating/features/games/presentation/screens/this_or_that_game_screen.dart';
 
 class DiscoverScreen extends ConsumerWidget {
   const DiscoverScreen({super.key});
@@ -67,6 +68,32 @@ class DiscoverScreen extends ConsumerWidget {
             onKeepSwiping: () {
               Navigator.of(dialogCtx).pop();
               notifier.clearMatchDialog();
+            },
+            onBreakTheIce: () {
+              final matchedProfile = next.latestMatch!.profile;
+              Navigator.of(dialogCtx).pop();
+              notifier.clearMatchDialog();
+
+              // Register match with chat service
+              final convId = ref.read(chatServiceProvider).addMatch(
+                    name: matchedProfile.name,
+                    avatar: matchedProfile.photoUrls.first,
+                    matchId: matchedProfile.id,
+                    isVerified: matchedProfile.isVerified,
+                  );
+              ref.invalidate(conversationsProvider);
+
+              // Navigate to This or That breaking the ice
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ThisOrThatGameScreen(
+                    conversationId: convId,
+                    matchName: matchedProfile.name,
+                    matchAvatar: matchedProfile.photoUrls.first,
+                  ),
+                ),
+              );
             },
           ),
         );

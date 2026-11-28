@@ -68,3 +68,28 @@ class GameScorecard {
     required this.shareText,
   });
 }
+
+/// Feature: This or That Icebreaker Break The Ice Dilemma
+class ThisOrThatDilemma {
+  final String id;
+  final String eyebrow;
+  final String title;
+  final String optionA;
+  final String optionB;
+  final String matchChoice; // What partner chooses ('A' or 'B')
+  final String matchAgreeComment; // e.g. "Apparently neither of you wants a beach holiday."
+  final String matchDisagreeComment; // e.g. "One loves the waves, one loves the peaks! Perfect contrast."
+  final String icebreakerText;
+
+  const ThisOrThatDilemma({
+    required this.id,
+    required this.eyebrow,
+    required this.title,
+    required this.optionA,
+    required this.optionB,
+    required this.matchChoice,
+    required this.matchAgreeComment,
+    required this.matchDisagreeComment,
+    required this.icebreakerText,
+  });
+}
