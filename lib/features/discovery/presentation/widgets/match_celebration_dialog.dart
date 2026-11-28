@@ -260,7 +260,7 @@ class MatchCelebrationDialog extends StatelessWidget {
                     const Text(
                       'It\'s a match.',
                       style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
+                        fontFamily: 'SF Pro',
                         fontSize: 38,
                         fontWeight: FontWeight.w900,
                         letterSpacing: -1.0,
@@ -274,6 +274,7 @@ class MatchCelebrationDialog extends StatelessWidget {
                     Text(
                       'Okay, you clearly like each other.\nNow for the awkward part.',
                       style: TextStyle(
+                        fontFamily: 'SF Pro',
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         height: 1.35,

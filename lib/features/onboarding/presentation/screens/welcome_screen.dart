@@ -161,17 +161,21 @@ class WelcomeScreen extends ConsumerWidget {
                     ),
                   ),
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
                       );
                     },
-                    child: Text(
-                      'Log In',
-                      style: TextStyle(
-                        color: isDark ? AppColors.adaptiveAccent(isDark) : AppColors.sfCoral,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13.5,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      child: Text(
+                        'Log In',
+                        style: TextStyle(
+                          color: isDark ? AppColors.adaptiveAccent(isDark) : AppColors.sfCoral,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13.5,
+                        ),
                       ),
                     ),
                   ),

@@ -261,7 +261,7 @@ class _ThisOrThatGameScreenState extends ConsumerState<ThisOrThatGameScreen>
                 const Text(
                   'Pick your escape.',
                   style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
+                    fontFamily: 'SF Pro',
                     fontSize: 32,
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.8,
@@ -486,7 +486,7 @@ class _ThisOrThatGameScreenState extends ConsumerState<ThisOrThatGameScreen>
               child: Text(
                 'Beach',
                 style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
+                  fontFamily: 'SF Pro',
                   fontSize: 34,
                   fontWeight: FontWeight.w900,
                   color: Color(0xFF141416),
@@ -588,7 +588,7 @@ class _ThisOrThatGameScreenState extends ConsumerState<ThisOrThatGameScreen>
               child: Text(
                 'Mountains',
                 style: TextStyle(
-                  fontFamily: 'Plus Jakarta Sans',
+                  fontFamily: 'SF Pro',
                   fontSize: 34,
                   fontWeight: FontWeight.w900,
                   color: Color(0xFF141416),
@@ -832,7 +832,7 @@ class _ThisOrThatGameScreenState extends ConsumerState<ThisOrThatGameScreen>
                 ? 'Okay... this got\neasier.'
                 : 'Opposites\nattract!',
             style: const TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
+              fontFamily: 'SF Pro',
               fontSize: 34,
               fontWeight: FontWeight.w900,
               height: 1.1,
