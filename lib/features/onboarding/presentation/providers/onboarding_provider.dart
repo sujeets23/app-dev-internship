@@ -120,8 +120,34 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
       option: option,
       customDescription: customDescription,
     );
-    final updated = state.profile.copyWith(genderIdentity: identity);
-    state = state.copyWith(profile: updated);
+
+    // Auto-sync sex classification for downstream discovery and compatibility filtering
+    String? resolvedSex = state.profile.sex;
+    if (option == 'Man') {
+      resolvedSex = 'Male';
+    } else if (option == 'Woman') {
+      resolvedSex = 'Female';
+    } else if (option == 'Transgender') {
+      resolvedSex = 'Trans';
+    } else if (resolvedSex == null || resolvedSex.isEmpty || resolvedSex == 'Male' || resolvedSex == 'Female') {
+      resolvedSex = 'Others';
+    }
+
+    final updated = state.profile.copyWith(
+      genderIdentity: identity,
+      sex: resolvedSex,
+    );
+
+    // Clear step 2 validation errors immediately upon valid selection
+    final updatedErrors = Map<String, String>.from(state.errors);
+    updatedErrors.remove('gender');
+    updatedErrors.remove('sex');
+    if (!identity.isSelfDescribed ||
+        (customDescription != null && customDescription.trim().isNotEmpty)) {
+      updatedErrors.remove('genderCustom');
+    }
+
+    state = state.copyWith(profile: updated, errors: updatedErrors);
     _persistState();
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inclusive_dating/core/theme/app_colors.dart';
+import 'package:inclusive_dating/core/widgets/date2_logo_widget.dart';
 import 'package:inclusive_dating/core/widgets/onboarding_progress_bar.dart';
 import 'package:inclusive_dating/core/widgets/primary_button.dart';
 
@@ -64,14 +65,7 @@ class OnboardingStepScaffold extends StatelessWidget {
                   onPressed: onBack,
                 )
               : null,
-          title: Text(
-            'Date²',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-              color: AppColors.primary,
-            ),
-          ),
+          title: const Date2LogoWidget(height: 24),
           actions: [
             if (trailingHeaderAction != null) ...[
               trailingHeaderAction!,
