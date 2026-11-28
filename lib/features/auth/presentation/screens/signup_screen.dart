@@ -204,6 +204,22 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 onPressed: () => Navigator.pop(context),
               )
             : null,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: Center(
+              child: Text(
+                'GETTING STARTED',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                  color: AppColors.figmaPrimary,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -222,19 +238,32 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 const SizedBox(height: 18),
 
                 Text(
-                  'Create Your Account',
-                  style: AppTypography.displayMedium.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 26,
+                  'YOUR NEXT CHAPTER',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: isDark ? AppColors.accent : AppColors.figmaPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
-                  'Begin your verified, affirming journey on Date².',
+                  'Make room for\nsomething real.',
+                  style: TextStyle(
+                    fontFamily: 'SF Pro',
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+                    letterSpacing: -0.8,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Create Your Account',
                   style: AppTypography.bodyMedium.copyWith(
                     color: mutedTextColor,
-                    fontSize: 13,
+                    fontSize: 14,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -597,6 +626,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 // CREATE ACCOUNT BUTTON
                 PrimaryButton(
                   label: _isLoading ? 'Creating Account...' : 'Create Account',
+                  backgroundColor: AppColors.figmaPrimary,
+                  textColor: Colors.white,
                   icon: Icons.person_add_alt_1_rounded,
                   isLoading: _isLoading,
                   onPressed: _isLoading ? null : _handleSignUp,

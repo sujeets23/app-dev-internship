@@ -157,6 +157,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 onPressed: () => Navigator.pop(context),
               )
             : null,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: Center(
+              child: Text(
+                'WELCOME BACK',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                  color: AppColors.figmaPrimary,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -172,7 +188,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     showContainer: false,
                   ),
                 ),
-                const SizedBox(height: 22),
+                const SizedBox(height: 18),
 
                 if (widget.showPostSignupNotice) ...[
                   Container(
@@ -208,22 +224,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ],
 
                 Text(
-                  'Welcome Back',
-                  style: AppTypography.displayMedium.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 26,
+                  'GOOD TO SEE YOU',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: isDark ? AppColors.accent : AppColors.figmaPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
-                  'Log in with your username or registered email.',
+                  'Your people\nare out there.',
+                  style: TextStyle(
+                    fontFamily: 'SF Pro',
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+                    letterSpacing: -0.8,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Welcome Back',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Log in and pick up where you left off.',
                   style: AppTypography.bodyMedium.copyWith(
                     color: mutedTextColor,
                     fontSize: 13,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
                 // USERNAME OR EMAIL INPUT
                 Text(
@@ -315,11 +353,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: Text(
                       'Forgot Password?',
                       style: TextStyle(
-                        color: accent,
+                        color: isDark ? accent : AppColors.figmaPrimary,
                         fontWeight: FontWeight.w700,
-                        fontSize: 12,
+                        fontSize: 13,
                       ),
                     ),
+                  ),
+                ),
+
+                // Figma Reassurance card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  margin: const EdgeInsets.only(top: 6, bottom: 18),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.surfaceMutedDark : AppColors.figmaSoft,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? AppColors.borderDark : const Color(0xFFE5DEE6),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.shield_outlined,
+                        size: 20,
+                        color: isDark ? AppColors.accent : AppColors.figmaPrimary,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'A space for genuine connection.\nYour details stay private.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
@@ -363,6 +436,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 PrimaryButton(
                   label: _isLoading ? 'Authenticating...' : 'Log In',
                   icon: Icons.login_rounded,
+                  backgroundColor: AppColors.figmaPrimary,
                   isLoading: _isLoading,
                   onPressed: _isLoading ? null : _handleLogin,
                 ),

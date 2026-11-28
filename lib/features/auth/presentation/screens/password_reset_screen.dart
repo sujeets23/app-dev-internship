@@ -157,6 +157,22 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                 onPressed: () => Navigator.pop(context),
               )
             : null,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: Center(
+              child: Text(
+                'RESET PASSWORD',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                  color: AppColors.figmaPrimary,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -167,36 +183,64 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  width: 54,
+                  height: 54,
                   decoration: BoxDecoration(
-                    color: AppColors.adaptiveHighlightBg(isDark),
-                    shape: BoxShape.circle,
+                    color: isDark
+                        ? AppColors.figmaPrimary.withValues(alpha: 0.18)
+                        : const Color(0xFFE8F0FE),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(
-                    Icons.key_rounded,
-                    color: accent,
-                    size: 36,
+                  child: const Center(
+                    child: Icon(
+                      Icons.key_rounded,
+                      color: AppColors.figmaPrimary,
+                      size: 26,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                Text(
+                  'A FRESH START',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: isDark ? AppColors.accent : AppColors.figmaPrimary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'A new password.\nA fresh start.',
+                  style: TextStyle(
+                    fontFamily: 'SF Pro',
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+                    letterSpacing: -0.8,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Set New Password',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Choose something strong and make it yours.',
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: mutedTextColor,
+                    fontSize: 13,
+                    height: 1.4,
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                Text(
-                  'Set New Password',
-                  style: AppTypography.displayMedium.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Create a strong, unique password for ${widget.emailTarget ?? "your Date² account"}.',
-                  style: TextStyle(
-                    color: mutedTextColor,
-                    fontSize: 13,
-                    height: 1.45,
-                  ),
-                ),
-                const SizedBox(height: 28),
 
                 Text(
                   'NEW PASSWORD',
@@ -331,6 +375,43 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                   },
                 ),
 
+                // Figma requirements checklist card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  margin: const EdgeInsets.only(top: 16),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.surfaceMutedDark : AppColors.figmaSoft,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? AppColors.borderDark : const Color(0xFFE5DEE6),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildFigmaCheck(
+                        'At least 8 characters',
+                        _passwordController.text.length >= 8,
+                        isDark,
+                      ),
+                      const SizedBox(height: 6),
+                      _buildFigmaCheck(
+                        'A number and a special character',
+                        _strength.hasNumber && _strength.hasSpecialChar,
+                        isDark,
+                      ),
+                      const SizedBox(height: 6),
+                      _buildFigmaCheck(
+                        'Passwords match',
+                        _confirmPasswordController.text.isNotEmpty &&
+                            _confirmPasswordController.text == _passwordController.text,
+                        isDark,
+                      ),
+                    ],
+                  ),
+                ),
+
                 if (_errorMessage != null) ...[
                   const SizedBox(height: 12),
                   Text(
@@ -343,21 +424,62 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                   ),
                 ],
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
 
                 PrimaryButton(
                   label: _isLoading
                       ? 'Updating Password...'
                       : 'Update Password & Sign In',
                   icon: Icons.check_circle_rounded,
+                  backgroundColor: AppColors.figmaPrimary,
                   isLoading: _isLoading,
                   onPressed: _isLoading ? null : _handleResetPassword,
+                ),
+
+                const SizedBox(height: 16),
+
+                Center(
+                  child: Text(
+                    "You'll return to log in with your new password.",
+                    style: TextStyle(
+                      color: mutedTextColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFigmaCheck(String text, bool ok, bool isDark) {
+    return Row(
+      children: [
+        Icon(
+          ok ? Icons.check_circle_rounded : Icons.check_circle_outline_rounded,
+          size: 16,
+          color: ok
+              ? AppColors.figmaSuccess
+              : (isDark ? AppColors.textTertiaryDark : const Color(0xFF9E8F9E)),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: ok ? FontWeight.w700 : FontWeight.w500,
+              color: ok
+                  ? (isDark ? AppColors.textPrimaryDark : AppColors.figmaSuccess)
+                  : (isDark ? AppColors.textTertiaryDark : const Color(0xFF7A6A7A)),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

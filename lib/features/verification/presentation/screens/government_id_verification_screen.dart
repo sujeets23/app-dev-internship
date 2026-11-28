@@ -7,7 +7,6 @@ import 'package:inclusive_dating/core/widgets/primary_button.dart';
 import 'package:inclusive_dating/core/widgets/secondary_button.dart';
 import 'package:inclusive_dating/features/auth/domain/models/auth_state.dart';
 import 'package:inclusive_dating/features/auth/presentation/providers/auth_provider.dart';
-import 'package:inclusive_dating/features/auth/presentation/screens/login_screen.dart';
 import 'package:inclusive_dating/features/onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:inclusive_dating/features/onboarding/presentation/screens/onboarding_flow_screen.dart';
 import '../../data/government_id_repository.dart';
@@ -181,53 +180,31 @@ class _GovernmentIdVerificationScreenState
                 },
               )
             : null,
-        title: Text(
-          'Government ID Verification',
-          style: AppTypography.headlineMedium.copyWith(
-            color: textColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              ref.read(authProvider.notifier).skipVerificationForDemo();
-              if (ref.read(onboardingProvider).currentStep == 0) {
-                ref.read(onboardingProvider.notifier).startOnboarding();
-              }
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const OnboardingFlowScreen()),
-                (route) => false,
-              );
-            },
-            child: const Text(
-              'Skip for now',
-              style: TextStyle(
-                color: AppColors.accentTeal,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            'Government ID Verification',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
             ),
           ),
-          if (!Navigator.canPop(context))
-            TextButton(
-              onPressed: () async {
-                await ref.read(authProvider.notifier).logout();
-                if (!context.mounted) return;
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
-              },
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Center(
               child: Text(
-                'Log Out',
+                'STEP 2',
                 style: TextStyle(
-                  color: AppColors.adaptiveAccent(isDark),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                  color: AppColors.figmaPrimary,
                 ),
               ),
             ),
+          ),
         ],
       ),
       body: SafeArea(
@@ -347,21 +324,55 @@ class _GovernmentIdVerificationScreenState
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppColors.surfaceDark : AppColors.surface;
     final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final mutedTextColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
+          'THE LAST QUICK CHECK',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.2,
+            color: isDark ? AppColors.accent : AppColors.figmaPrimary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Your ID.\nYour peace of mind.',
+          style: TextStyle(
+            fontFamily: 'SF Pro',
+            fontSize: 32,
+            fontWeight: FontWeight.w900,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+            letterSpacing: -0.8,
+            height: 1.15,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          "Choose a government-issued photo ID. Make sure it's valid and easy to read.",
+          style: AppTypography.bodyMedium.copyWith(
+            color: mutedTextColor,
+            fontSize: 14,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        Text(
           'Select Document Issuing Country',
           style: TextStyle(
-              fontSize: 20, fontWeight: FontWeight.bold, color: textColor),
+              fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
         ),
         const SizedBox(height: 6),
         const Text(
           'India is selected by default. Choose any supported issuing region to load eligible official documents.',
           style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
 
         ...GovernmentIdCountry.values.map((country) {
           final isSelected = _selectedCountry == country;
@@ -418,15 +429,61 @@ class _GovernmentIdVerificationScreenState
           );
         }),
 
+        // Figma Reassurance Card
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.only(top: 10),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceMutedDark : AppColors.figmaSoft,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark ? AppColors.borderDark : const Color(0xFFE5DEE6),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.lock_outline_rounded,
+                size: 18,
+                color: isDark ? AppColors.accent : AppColors.figmaPrimary,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Encrypted and kept off your profile.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
         const SizedBox(height: 24),
         PrimaryButton(
           label: 'Continue to Document Selection',
           icon: Icons.arrow_forward_rounded,
+          backgroundColor: AppColors.figmaPrimary,
           onPressed: () {
             setState(() {
               _currentStage = GovIdVerificationStage.documentSelection;
             });
           },
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            'Use an original document, not a screenshot.',
+            style: TextStyle(
+              color: mutedTextColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ],
     );
@@ -538,10 +595,46 @@ class _GovernmentIdVerificationScreenState
           ),
         ),
 
+        const SizedBox(height: 16),
+
+        // Figma Reassurance Card
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceMutedDark : AppColors.figmaSoft,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark ? AppColors.borderDark : const Color(0xFFE5DEE6),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.lock_outline_rounded,
+                size: 18,
+                color: isDark ? AppColors.accent : AppColors.figmaPrimary,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Encrypted and kept off your profile.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
         const SizedBox(height: 24),
         PrimaryButton(
           label: 'Proceed to Document Capture',
           icon: Icons.camera_alt_rounded,
+          backgroundColor: AppColors.figmaPrimary,
           onPressed: () {
             setState(() => _docNumberTouched = true);
             if (_docNumberError != null) {
@@ -551,6 +644,17 @@ class _GovernmentIdVerificationScreenState
               _currentStage = GovIdVerificationStage.documentCapture;
             });
           },
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            'Use an original document, not a screenshot.',
+            style: TextStyle(
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ],
     );

@@ -397,6 +397,21 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
+            )
+          else
+            const Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: Center(
+                child: Text(
+                  'EMAIL VERIFICATION',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: AppColors.figmaPrimary,
+                  ),
+                ),
+              ),
             ),
         ],
       ),
@@ -443,33 +458,50 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                 ),
               ],
               Container(
-                width: 60,
-                height: 60,
+                width: 54,
+                height: 54,
                 decoration: BoxDecoration(
-                  color: AppColors.adaptiveHighlightBg(isDark),
+                  color: isDark
+                      ? AppColors.figmaPrimary.withValues(alpha: 0.18)
+                      : const Color(0xFFE8F0FE),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(
-                  Icons.mark_email_read_rounded,
-                  color: accent,
-                  size: 32,
+                child: const Center(
+                  child: Icon(
+                    Icons.mail_outline_rounded,
+                    color: AppColors.figmaPrimary,
+                    size: 26,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
 
               Text(
-                widget.isEmailVerification
-                    ? 'Verify Your Email'
-                    : 'Verify Reset Code',
-                style: AppTypography.displayMedium.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 26,
+                'ONE QUICK CHECK',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                  color: isDark ? AppColors.accent : AppColors.figmaPrimary,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
-                'Demo OTP verification target:',
+                widget.isEmailVerification
+                    ? 'Verify Your Email'
+                    : 'Verify Reset Code',
+                style: TextStyle(
+                  fontFamily: 'SF Pro',
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+                  letterSpacing: -0.8,
+                  height: 1.15,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Check your inbox. Enter the six-digit code sent to',
                 style: AppTypography.bodyMedium.copyWith(
                   color: mutedTextColor,
                   fontSize: 13,
@@ -482,7 +514,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                     child: Text(
                       _activeTarget,
                       style: TextStyle(
-                        color: accent,
+                        color: isDark ? accent : AppColors.figmaPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -500,13 +532,24 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
               ),
               const SizedBox(height: 20),
 
-              // 6-Digit OTP Input Row with Backspace + Paste support
+              Text(
+                'VERIFICATION CODE',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? accent : AppColors.figmaPrimary,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // 6-Digit OTP Input Row with Figma 16px rounded cells
               Row(
                 children: [
                   for (int index = 0; index < 6; index++) ...[
                     Expanded(
                       child: SizedBox(
-                        height: 56,
+                        height: 58,
                         child: KeyboardListener(
                           focusNode: _listenerFocusNodes[index],
                           onKeyEvent: (event) => _onKeyEvent(index, event),
@@ -518,7 +561,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
-                              color: textColor,
+                              color: isDark ? Colors.white : AppColors.figmaInk,
                             ),
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
@@ -529,20 +572,20 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                               fillColor: cardBg,
                               contentPadding: EdgeInsets.zero,
                               enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(16),
                                 borderSide: BorderSide(
                                   color: _errorMessage != null
-                                      ? AppColors.error
+                                      ? AppColors.figmaError
                                       : (isDark
                                           ? AppColors.borderDark
-                                          : AppColors.border),
+                                          : const Color(0xFFE5DEE6)),
                                   width: 1.4,
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(16),
                                 borderSide: BorderSide(
-                                  color: accent,
+                                  color: isDark ? accent : AppColors.figmaPrimary,
                                   width: 2.0,
                                 ),
                               ),
@@ -552,41 +595,64 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                         ),
                       ),
                     ),
-                    if (index < 5) const SizedBox(width: 6),
+                    if (index < 5) const SizedBox(width: 8),
                   ],
                 ],
               ),
 
-              const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton.icon(
                     onPressed: _pasteFromClipboard,
-                    icon: const Icon(Icons.content_paste_rounded, size: 15),
+                    icon: const Icon(Icons.content_paste_rounded, size: 14),
                     label: const Text('Paste Code', style: TextStyle(fontSize: 12)),
                   ),
                 ],
               ),
-
+              const SizedBox(height: 6),
+              // Normal status vs Error / Expired soft banner
               if (_errorMessage != null) ...[
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Icons.error_outline_rounded,
-                        color: AppColors.error, size: 16),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        _errorMessage!,
-                        style: const TextStyle(
-                          color: AppColors.error,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.error.withValues(alpha: 0.16)
+                        : AppColors.figmaErrorBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? AppColors.error : AppColors.figmaError,
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline_rounded,
+                          color: AppColors.figmaError, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: const TextStyle(
+                            color: AppColors.figmaError,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+              ] else ...[
+                Text(
+                  'Your code is valid for 10 minutes.',
+                  style: TextStyle(
+                    color: mutedTextColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
 
@@ -736,11 +802,13 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                             : 'Verify Reset Code')),
                 icon: Icons.check_circle_rounded,
                 isLoading: _isLoading,
-                backgroundColor: _isSuccess ? AppColors.success : null,
+                backgroundColor: _isSuccess
+                    ? AppColors.success
+                    : (isDark ? null : AppColors.figmaPrimary),
                 onPressed: _isLoading ? null : _handleVerifyOtp,
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
 
               Center(
                 child: _isResending
@@ -757,7 +825,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                                   size: 16, color: mutedTextColor),
                               const SizedBox(width: 6),
                               Text(
-                                'Resend code in ${_countdown}s',
+                                'Resend code in 00:${_countdown.toString().padLeft(2, '0')}',
                                 style: TextStyle(
                                   color: mutedTextColor,
                                   fontSize: 13,
@@ -771,13 +839,26 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                             label: Text(
                               'Resend Code',
                               style: TextStyle(
-                                color: accent,
+                                color: isDark ? accent : AppColors.figmaPrimary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
                               ),
                             ),
                             onPressed: _resendCode,
                           ),
+              ),
+
+              const SizedBox(height: 14),
+
+              Center(
+                child: Text(
+                  "Can't find it? Check your spam folder.",
+                  style: TextStyle(
+                    color: mutedTextColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ],
           ),

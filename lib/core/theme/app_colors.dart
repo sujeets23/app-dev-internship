@@ -10,6 +10,33 @@ class AppColors {
   AppColors._();
 
   // ===========================================================================
+  // FIGMA FOUNDATIONS (00 · date2 foundations.pdf)
+  // ===========================================================================
+  /// #302436: Deep rich ink for headings and primary dark text
+  static const Color figmaInk = Color(0xFF302436);
+
+  /// #1A5EDB: Vibrant electric blue for primary buttons, active state & key CTAs
+  static const Color figmaPrimary = Color(0xFF1A5EDB);
+
+  /// #EAB1A0: Warm peachy accent
+  static const Color figmaAccent = Color(0xFFEAB1A0);
+
+  /// #FCFAF7: Warm porcelain canvas background
+  static const Color figmaCanvas = Color(0xFFFCFAF7);
+
+  /// #F2ECF3: Soft lavender surface for cards and reassuring notice banners
+  static const Color figmaSoft = Color(0xFFF2ECF3);
+
+  /// #28745C: Deep forest green for verified checkmarks and success states
+  static const Color figmaSuccess = Color(0xFF28745C);
+
+  /// #AF404A: Soft crimson for errors and alerts
+  static const Color figmaError = Color(0xFFAF404A);
+
+  /// #FDF2F2: Light pink background for error banners
+  static const Color figmaErrorBg = Color(0xFFFDF2F2);
+
+  // ===========================================================================
   // SF PRO BRAND PALETTE (User Swatch: #212322, #FEFCF9, #FF94CE, #FC7445, #1A5EDB)
   // ===========================================================================
   /// #212322: Primary dark charcoal for headers, black stadium CTAs & active text

@@ -78,6 +78,22 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 onPressed: () => Navigator.pop(context),
               )
             : null,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 20),
+            child: Center(
+              child: Text(
+                'ACCOUNT RECOVERY',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                  color: AppColors.figmaPrimary,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -89,43 +105,72 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  width: 54,
+                  height: 54,
                   decoration: BoxDecoration(
-                    color: AppColors.adaptiveHighlightBg(isDark),
-                    shape: BoxShape.circle,
+                    color: isDark
+                        ? AppColors.figmaPrimary.withValues(alpha: 0.18)
+                        : const Color(0xFFE8F0FE),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(
-                    Icons.lock_reset_rounded,
-                    color: accent,
-                    size: 36,
+                  child: const Center(
+                    child: Icon(
+                      Icons.lock_outline_rounded,
+                      color: AppColors.figmaPrimary,
+                      size: 26,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                Text(
+                  "LET'S GET YOU BACK",
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: isDark ? AppColors.accent : AppColors.figmaPrimary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Forgot your\npassword?',
+                  style: TextStyle(
+                    fontFamily: 'SF Pro',
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+                    letterSpacing: -0.8,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Reset Password',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  "It happens. Enter your email and we'll send a six-digit verification code.",
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: mutedTextColor,
+                    fontSize: 13,
+                    height: 1.4,
                   ),
                 ),
                 const SizedBox(height: 24),
 
                 Text(
-                  'Reset Password',
-                  style: AppTypography.displayMedium.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Enter your registered email address to request a 6-digit password reset code (Demo Mode — no real email is sent).',
+                  'EMAIL ADDRESS',
                   style: TextStyle(
-                    color: mutedTextColor,
-                    fontSize: 13,
-                    height: 1.45,
-                  ),
-                ),
-                const SizedBox(height: 28),
-
-                Text(
-                  'REGISTERED EMAIL',
-                  style: AppTypography.bodySmall.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: accent,
-                    letterSpacing: 1.1,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? accent : AppColors.figmaPrimary,
+                    letterSpacing: 0.8,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -135,13 +180,16 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   autocorrect: false,
                   style: TextStyle(color: textColor, fontSize: 14),
                   decoration: InputDecoration(
-                    hintText: 'your.name@example.com',
+                    hintText: 'maya.rose@email.com',
                     prefixIcon: Icon(
                       Icons.alternate_email,
-                      color: accent,
+                      color: isDark ? accent : AppColors.figmaPrimary,
                     ),
                     filled: true,
                     fillColor: cardBg,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   validator: (val) {
                     if (val == null || val.trim().isEmpty) {
@@ -153,6 +201,42 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     }
                     return null;
                   },
+                ),
+
+                // Figma Reassurance Card: "Check your inbox"
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  margin: const EdgeInsets.only(top: 16),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.surfaceMutedDark : AppColors.figmaSoft,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? AppColors.borderDark : const Color(0xFFE5DEE6),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Check your inbox',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? AppColors.textPrimaryDark : AppColors.figmaInk,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "If an account exists for this email, you'll receive a code. It may take a moment to arrive.",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: mutedTextColor,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
 
                 if (_errorMessage != null) ...[
@@ -178,13 +262,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   ),
                 ],
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
 
                 PrimaryButton(
                   label: _isLoading
                       ? 'Sending Code...'
                       : 'Send Verification Code',
                   icon: Icons.mark_email_read_outlined,
+                  backgroundColor: AppColors.figmaPrimary,
                   isLoading: _isLoading,
                   onPressed: _isLoading ? null : _handleSendOtp,
                 ),
@@ -195,9 +280,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(
-                      'Remember password? Log In',
+                      'Remember it now? Log In',
                       style: TextStyle(
-                        color: AppColors.adaptiveAccent(isDark),
+                        color: isDark ? AppColors.adaptiveAccent(isDark) : AppColors.figmaPrimary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

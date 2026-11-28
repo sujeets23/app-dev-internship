@@ -17,7 +17,6 @@ import '../../domain/liveness_state_machine.dart';
 import '../../domain/models/biometric_verification_model.dart';
 import '../providers/biometric_verification_provider.dart';
 import 'companion_kyc_screen.dart';
-import 'government_id_verification_screen.dart';
 import 'security_check_intro_screen.dart';
 import 'verification_result_screen.dart';
 
@@ -486,25 +485,17 @@ class _BiometricVerificationScreenState
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () async {
-                await _teardownCameraResources();
-                ref
-                    .read(authProvider.notifier)
-                    .setFaceVerified('demo-face-proof-skipped');
-                if (!context.mounted) return;
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const GovernmentIdVerificationScreen()),
-                );
-              },
-              child: const Text(
-                'Skip for now',
-                style: TextStyle(
-                  color: AppColors.accentTeal,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
+            const Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: Center(
+                child: Text(
+                  'FACE CHECK · 2 OF 3',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: AppColors.accent,
+                  ),
                 ),
               ),
             ),
@@ -779,6 +770,43 @@ class _BiometricVerificationScreenState
                                         ),
                                       ),
                                     ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Figma ● LIVE badge
+                          Positioned(
+                            top: 18,
+                            left: 32,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.65),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white24),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFFF3B30),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  const Text(
+                                    'LIVE',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 10,
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),

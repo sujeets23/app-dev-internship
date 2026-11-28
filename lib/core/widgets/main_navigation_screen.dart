@@ -200,108 +200,134 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   Widget _buildFloatingBottomBar(BuildContext context, {required int safeIndex}) {
-    return Container(
-      height: 68,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(38),
-        border: Border.all(
-          color: Colors.black.withValues(alpha: 0.08),
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.10),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(38),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                // 1. Feed (Home)
-                _buildNavItem(
-                  index: 0,
-                  icon: Icons.home_rounded,
-                  label: 'Feed',
-                  isActive: safeIndex == 0,
-                  activeColor: const Color(0xFFFF2D55),
-                  onTap: () => _onTabSelected(0),
-                ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-                // 2. Stream (Games)
-                _buildNavItem(
-                  index: 1,
-                  icon: Icons.smart_display_outlined,
-                  label: 'Stream',
-                  isActive: safeIndex == 1,
-                  activeColor: const Color(0xFFFF2D55),
-                  onTap: () => _onTabSelected(1),
-                ),
-
-                // 3. Center Elevated 3D Action Button (Crisp Coral Gradient, No Glow)
-                GestureDetector(
-                  onTap: () => _showCenterActionMenu(context),
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFFF2D75), Color(0xFFFF6243)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.12),
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.view_in_ar_rounded,
-                        color: Colors.white,
-                        size: 26,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 4. Match (Swipe Cards)
-                _buildNavItem(
-                  index: 2,
-                  icon: Icons.style_outlined,
-                  activeIcon: Icons.style_rounded,
-                  label: 'Match',
-                  isActive: safeIndex == 2,
-                  activeColor: const Color(0xFF141416),
-                  onTap: () => _onTabSelected(2),
-                ),
-
-                // 5. Profile
-                _buildNavItem(
-                  index: 4,
-                  icon: Icons.person_outline_rounded,
-                  activeIcon: Icons.person_rounded,
-                  label: 'Profile',
-                  isActive: safeIndex == 4,
-                  activeColor: const Color(0xFF141416),
-                  onTap: () => _onTabSelected(4),
+    return SizedBox(
+      height: 80,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.bottomCenter,
+        children: [
+          // 1. Frosted Glass Navigation Pill with actual background blur
+          Container(
+            height: 66,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF16182A).withValues(alpha: 0.82)
+                  : Colors.white.withValues(alpha: 0.82),
+              borderRadius: BorderRadius.circular(38),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.12)
+                    : Colors.white.withValues(alpha: 0.65),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(38),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      // 1. Feed (Home)
+                      _buildNavItem(
+                        index: 0,
+                        icon: Icons.home_rounded,
+                        label: 'Feed',
+                        isActive: safeIndex == 0,
+                        activeColor: const Color(0xFFFF2D55),
+                        onTap: () => _onTabSelected(0),
+                      ),
+
+                      // 2. Stream (Games)
+                      _buildNavItem(
+                        index: 1,
+                        icon: Icons.smart_display_outlined,
+                        label: 'Stream',
+                        isActive: safeIndex == 1,
+                        activeColor: const Color(0xFFFF2D55),
+                        onTap: () => _onTabSelected(1),
+                      ),
+
+                      // Central space allocated for raised action button
+                      const SizedBox(width: 58),
+
+                      // 4. Match (Swipe Cards)
+                      _buildNavItem(
+                        index: 2,
+                        icon: Icons.style_outlined,
+                        activeIcon: Icons.style_rounded,
+                        label: 'Match',
+                        isActive: safeIndex == 2,
+                        activeColor: const Color(0xFF141416),
+                        onTap: () => _onTabSelected(2),
+                      ),
+
+                      // 5. Profile
+                      _buildNavItem(
+                        index: 4,
+                        icon: Icons.person_outline_rounded,
+                        activeIcon: Icons.person_rounded,
+                        label: 'Profile',
+                        isActive: safeIndex == 4,
+                        activeColor: const Color(0xFF141416),
+                        onTap: () => _onTabSelected(4),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
+
+          // 2. Center Raised Action Button (Physically elevated above navigation pill)
+          Positioned(
+            top: 0,
+            child: GestureDetector(
+              onTap: () => _showCenterActionMenu(context),
+              child: Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF2D75), Color(0xFFFF6243)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF16182A) : Colors.white,
+                    width: 3.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF2D75).withValues(alpha: 0.38),
+                      blurRadius: 14,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.view_in_ar_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
